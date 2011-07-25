@@ -10,8 +10,7 @@ Amongst others:
 '''
 
 from settings import *
-import aeroplane
-import pygame.sprite
+import world
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -30,22 +29,17 @@ class GameLogic(object):
     '''
 
     def __init__(self):
-        aeroplane.Aeroplane.init()
-        self.bkground = pygame.surface.Surface(WINDOW_SIZE)
-#        self.bkground = pygame.display.get_surface()
+        self.world = world.Aerospace
         self.__quick_start()
 
     def __quick_start(self):
-        self.planes = pygame.sprite.RenderClear()
-        for i in range(100):
-            self.planes.add(aeroplane.Aeroplane())
+        for i in range(3):
+            self.world.add_plane()
 
     def update(self):
-        for plane in self.planes:
-            plane.update()
+        self.world.update()
 
     def draw(self, surface):
-        self.planes.clear(surface, self.bkground)
-        self.planes.draw(surface)
+        self.world.draw(surface)
 
 

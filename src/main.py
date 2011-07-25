@@ -5,6 +5,8 @@ This is the main program of the ATC game.
 
 The ATC game is one of the many "Air Traffic Controller" games available "out
 there". It's implemented in python (with pygame).
+
+This module sole purpose is to initialise and manage the pygame environment.
 '''
 
 from settings import *
@@ -36,7 +38,7 @@ class MainWindow(object):
         # State machine
         self.running = False
 
-    def handleEvents(self):
+    def handle_events(self):
         '''
         Route pygame events to the appropriate handler.
         '''
@@ -54,13 +56,7 @@ class MainWindow(object):
 #            elif event.type == MOUSEMOTION:
 #                self.mouseMotion(event.buttons, event.pos, event.rel)
 
-    def update(self):
-        self.game_logic.update()
-
-    def draw(self):
-        self.game_logic.draw(self.screen)
-
-    def mainLoop(self):
+    def main_loop(self):
         '''
         Start the main loop.
         The mainloop is active until the machine state "running" is set to
@@ -70,11 +66,11 @@ class MainWindow(object):
 
         while self.running:
             pygame.display.set_caption("FPS: %i" % self.clock.get_fps())
-            self.handleEvents()
-            self.update()
-            self.draw()
+            self.handle_events()
+            self.game_logic.update()
+            self.game_logic.draw(self.screen)
             pygame.display.flip()
             self.clock.tick(MAX_FRAMERATE)
 
 if __name__ == '__main__':
-    MainWindow().mainLoop()
+    MainWindow().main_loop()

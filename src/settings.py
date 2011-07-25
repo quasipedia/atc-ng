@@ -28,6 +28,14 @@ TRAIL_LENGTH = 20               # number of ghost radar signal in the trail
 MAX_FRAMERATE = 200
 PLANE_STATES_NUM = 5            # number fo possible states for a plane
 
+# Aeroplane states
+CONTROLLED = 0
+INSTRUCTED = 1
+NON_CONTROLLED = 2
+PRIORITIZED = 3
+COLLISION = 4
+
+
 def sc(vector):
     '''
     Return a scaled version of the tuple-representation of the vector.

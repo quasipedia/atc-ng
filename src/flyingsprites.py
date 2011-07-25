@@ -1,17 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8  -*-
 '''
-Aeroplanes of the ATC simulation game.
+Provides the sprite classes used in the radar window.
+
+These are: aeroplanes, trailing dots, labels.
 '''
 
 from settings import *
 from pygame.locals import *
 import pygame.sprite
 import pygame.surfarray
-from random import randint
-from euclid import Vector3
-from math import sqrt
-from collections import deque
+import pygame.transform
 import os
 
 __author__ = "Mac Ryan"
@@ -33,7 +32,7 @@ class SuperSprite(pygame.sprite.Sprite):
 
     def load_sprite_sheet(self, fname, colorkey=False, directory='../data'):
         '''
-        Loads the specified sprite sheet.
+        Return the specified sprite sheet as loaded surface.
         '''
         fname = os.path.join(directory, fname)
         sheet = pygame.image.load(fname)
@@ -45,29 +44,34 @@ class SuperSprite(pygame.sprite.Sprite):
             sheet = sheet.convert()
         else: # If there is no colorkey, preserve the image's alpha per pixel.
             _image = sheet.convert_alpha()
-        self.sprite_sheet = sheet
+        return sheet
 
-    def get_sprites_from_sheet(self):
+    def get_sprites_from_sheet(self, sheet):
         '''
-        Clip the different sprites from the sheet and resize them.
+        Return the different sprites from the sheet, scaled appropriately.
         The number of sprites is derived from the amount of plane states which
         are possible in the game. The scaling is calculated based on the size
         of the radar window.
         '''
-        sh = self.sprite_sheet
-        sh_size = sh.get_rect()
+        sh_size = sheet.get_rect()
         w, h = sh_size.get_height, sh_size.get_width/PLANE_STATES_NUM
         sprites = []
         for i in range(PLANE_STATES_NUM):
-            sh.set_clip((0+i*w, 0), (w, h))
+            sheet.set_clip((0+i*w, 0), (w, h))
             #TODO: resize
-            sprites.append(sh.get_clip())
+            sprites.append(sheet.get_clip())
         return sprites
 
-class TrailDot(pygame.sprite.Sprite):
+
+class TrailingDot(SuperSprite):
+
+    '''
+    The dots or "ghost signals" on the radar, corresponding to past positions
+    in time of the aeroplane.
+    '''
 
     @classmethod
-    def init(cls):
+    def initialise(cls):
         '''
         Build the entire set of images needed for the traildots.
         That means a two-dimensional array in which each column represents one
@@ -75,8 +79,8 @@ class TrailDot(pygame.sprite.Sprite):
         "ages" of the dot (alpha channel fading out for older radar signals).
         '''
         # Load the basic sprites sheet
-        cls.load_sprite_sheet('sprite-traildots.png')
-        base_sprites = cls.get_sprites_from_sheet()
+        cls.sprite_sheet = cls.load_sprite_sheet('sprite-traildots.png')
+        base_sprites = cls.get_sprites_from_sheet(cls.sprite_sheet)
         cls.sprites = []
         # Generate the fading matrix
         fade_step = -100.0 / TRAIL_LENGTH
@@ -86,78 +90,63 @@ class TrailDot(pygame.sprite.Sprite):
                 a_values = pygame.surfarray.pixels_alpha(img)
                 a_values = int(a_values * opacity_percentage/100)
             cls.images.append(tmp)
-        cls.image = cls.sprites[0][0]
-        cls.rect = cls.image.get_rect()
 
-class Aeroplane(pygame.sprite.Sprite):
+    def __init__(self, data_source, time_shift):
+        '''
+        - data_source: Aeroplane() instantiation from which the sprite will
+          derive it's position on the radar.
+        - time_shift: which of the ghost signals in the data_source this
+          sprite represents
+        '''
+        super(TrailingDot, self).__init__()
+        self.data_source = data_source
+        self.time_shift = time_shift
+        self.last_status = None
+
+    def update(self, *args):
+        status = self.data_source.status
+        if status != self.last_status:
+            self.image = self.sprites[status][self.time_shift]
+        self.rect = self.data_source.trail[self.time_shift]
+
+
+class AeroplaneIcon(SuperSprite):
 
     '''
-    Aeorplane modelling.
-
-    Each aeroplane has static attributes depending from the model the plane is.
-    The flag property contains a list of empty possible flags:
-        Expedite   - Expedite climb or acceleration
-        Cleared    - Cleared for takeoff or landing
-        Emergency  - High priority flight
-        Circling_L - Circling left
-        Circling_R - Circling right
-        Locked     - The plane is under computer control
-        Collision  - The plane is on a collision path
+    The sprite located at the current position of the aeroplane
     '''
-
-    KNOWN_PROPERTIES = [#STATIC
-                        'icao',            # Three-letter code and flight num.
-                        'model',           # Type of plane (name)
-                        'destination',     # Airport name
-                        'entry_time',      # Time of entry in airspace
-                        'speed_limits',    # (min, max) XY projected speed
-                        'accel_limits',    # (decel, accel) XY projected accel
-                        'max_altitude',    # max altitude
-                        'climb_limits',    # (down, up) max climb rates
-                        'takeoff_speed',   # takeoff speed at liftoff
-                        'landing_speed',   # landing speed at touchdown
-                        'max_g',           # maximum Gforce
-                        #DYNAMIC
-                        'target_conf',     # (heading, speed, altitude)
-                        'position',        # 3D vector
-                        'velocity',        # 3D vector
-                        'fuel',            # seconds before crash
-                        'time_last_cmd',   # time of last received command
-                        'flags',           # list of flags
-                       ]
 
     @classmethod
-    def init(cls, fname):
+    def initialise(cls):
         '''
         Build and set the default image for the plane sprite on the radar.
         - fname: name of the spritesheet file.
         '''
         # Load the basic sprites sheet
-        cls.load_sprite_sheet(fname='sprite-jet.png')
-        cls.sprites = cls.get_sprites_from_sheet()
-        cls.image = cls.sprites[0]
-        cls.rect = cls.image.get_rect()
+        sheets = {}
+        sheets['jet'] = cls.load_sprite_sheet('sprite-jet.png')
+        sheets['propeller'] = cls.load_sprite_sheet('sprite-propeller.png')
+        sheets['supersonic'] = cls.load_sprite_sheet('sprite-supersonic.png')
+        cls.sprite_sheets = sheets
 
-    def __random_icao(self):
-        '''Return a random pseudo-ICAO flight number'''
-        rc = lambda : chr(randint(65, 90))
-        return ''.join([rc(), rc(), rc(), str(randint(1000, 9999))])
+    def __init__(self, data_source, model='jet'):
+        assert model in ('jet', 'propeller', 'supersonic')
+        super(AeroplaneIcon, self).__init__()
+        self.sprites = self.get_sprites_from_sheet(self.sprite_sheets[model])
+        self.last_status = None
+        self.last_heading = None
 
-    def __init__(self, **kwargs):
-        # Call parent __init__
-        super(Aeroplane, self).__init__()
+    def update(self, *args):
+        self.image = self.sprites[0]
+        self.rect = self.image.get_rect()
+        status = self.data_source.status
+        heading = self.data_source.heading
+        if status != self.last_status or heading != self.last_heading:
+            img = self.sprites[status]
+            self.image = pygame.transform.rotate(img, heading)
+        self.rect = self.data_source.trail[self.time_shift]
 
-        for property in self.KNOWN_PROPERTIES:
-            value = kwargs[property] if kwargs.has_key(property) else None
-            setattr(self, property, value)
-        if self.icao == None:
-            self.icao = self.__random_icao()
-        if self.position == None:
-            self.position = Vector3(randint(0,WINDOW_SIZE[0]*SCALE_FACTOR),
-                                    randint(0,WINDOW_SIZE[1]*SCALE_FACTOR), 0)
-        if self.velocity == None:
-            self.velocity = Vector3(randint(200,300), 0, 0)
 
-        # Initialise the trail
-        self.trail_coords = deque([self.position.xy], TRAIL_LENGTH)
-
+# Initialisation of the sprite classes
+AeroplaneIcon.initialise()
+TrailingDot.initialise()

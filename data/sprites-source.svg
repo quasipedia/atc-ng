@@ -26,16 +26,16 @@
      borderopacity="1.0"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="2.0149341"
-     inkscape:cx="146.58209"
-     inkscape:cy="126.06108"
+     inkscape:zoom="1.0074671"
+     inkscape:cx="251.4767"
+     inkscape:cy="445.21119"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
      inkscape:window-width="1675"
      inkscape:window-height="933"
-     inkscape:window-x="50"
-     inkscape:window-y="1"
+     inkscape:window-x="-342"
+     inkscape:window-y="158"
      inkscape:window-maximized="0"
      inkscape:showpageshadow="true" />
   <metadata
@@ -331,14 +331,10 @@
          y="439.03625"
          style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Arial;-inkscape-font-specification:Arial Bold">Propeller planes</tspan></text>
     <g
-       id="g4720"
-       transform="translate(-9.095205,-129.67935)"
-       inkscape:export-filename="/home/mac/Programming/python/atc/data/sprite-propeller.png"
-       inkscape:export-xdpi="90"
-       inkscape:export-ydpi="90">
+       id="g5012">
       <g
          style="fill:#ffffff;fill-opacity:1"
-         transform="translate(-451.5395,397.90748)"
+         transform="translate(-460.6347,268.22813)"
          id="g3999">
         <path
            style="fill:#ffffff;fill-opacity:1"
@@ -349,7 +345,7 @@
       </g>
       <g
          style="fill:#cccccc;fill-opacity:1"
-         transform="translate(-326.94372,397.90748)"
+         transform="translate(-336.03892,268.22813)"
          id="g3999-7">
         <path
            style="fill:#808080;fill-opacity:1"
@@ -360,7 +356,7 @@
       </g>
       <g
          style="fill:#ff00ff;fill-opacity:1"
-         transform="translate(-202.34795,397.90748)"
+         transform="translate(-211.44315,268.22813)"
          id="g3999-5">
         <path
            style="fill:#ff00ff;fill-opacity:1"
@@ -371,7 +367,7 @@
       </g>
       <g
          style="fill:#ffff00;fill-opacity:1"
-         transform="translate(-77.752168,397.90748)"
+         transform="translate(-86.847373,268.22813)"
          id="g3999-9">
         <path
            style="fill:#ffff00;fill-opacity:1"
@@ -382,7 +378,7 @@
       </g>
       <g
          style="fill:#ff0000;fill-opacity:1"
-         transform="translate(46.843611,397.90748)"
+         transform="translate(37.748406,268.22813)"
          id="g3999-6">
         <path
            style="fill:#ff0000;fill-opacity:1"
