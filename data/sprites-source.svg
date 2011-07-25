@@ -26,9 +26,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.50373353"
-     inkscape:cx="154.64357"
-     inkscape:cy="559.39771"
+     inkscape:zoom="2.0149341"
+     inkscape:cx="146.58209"
+     inkscape:cy="126.06108"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -243,17 +243,17 @@
        xml:space="preserve"
        style="font-size:20px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
        x="19.068045"
-       y="280.99072"
+       y="208.99072"
        id="text4002-00"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan4004-2"
          x="19.068045"
-         y="280.99072"
+         y="208.99072"
          style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Arial;-inkscape-font-specification:Arial Bold">Jet planes</tspan></text>
     <g
        id="g4703"
-       transform="translate(-17.297191,-57.204467)"
+       transform="translate(-17.297191,-129.20447)"
        inkscape:export-filename="/home/mac/Programming/python/atc/data/sprite-jet.png"
        inkscape:export-xdpi="90"
        inkscape:export-ydpi="90">
@@ -322,17 +322,17 @@
        xml:space="preserve"
        style="font-size:20px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
        x="17.954763"
-       y="511.03625"
+       y="439.03625"
        id="text4002-0"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan4004-5"
          x="17.954763"
-         y="511.03625"
+         y="439.03625"
          style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Arial;-inkscape-font-specification:Arial Bold">Propeller planes</tspan></text>
     <g
        id="g4720"
-       transform="translate(-9.095205,-57.679352)"
+       transform="translate(-9.095205,-129.67935)"
        inkscape:export-filename="/home/mac/Programming/python/atc/data/sprite-propeller.png"
        inkscape:export-xdpi="90"
        inkscape:export-ydpi="90">
@@ -396,17 +396,17 @@
        xml:space="preserve"
        style="font-size:20px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
        x="18.687185"
-       y="741.26477"
+       y="669.26477"
        id="text4002-03"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          x="18.687185"
-         y="741.26477"
+         y="669.26477"
          style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Arial;-inkscape-font-specification:Arial Bold"
          id="tspan4045">Supersonic planes</tspan></text>
     <g
        id="g4732"
-       transform="translate(-26.668546,-20)"
+       transform="translate(-26.668546,-92)"
        inkscape:export-filename="/home/mac/Programming/python/atc/data/sprite-supersonic.png"
        inkscape:export-xdpi="90"
        inkscape:export-ydpi="90">
@@ -505,6 +505,75 @@
           </g>
         </g>
       </g>
+    </g>
+    <text
+       xml:space="preserve"
+       style="font-size:20px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="18.687185"
+       y="869.59412"
+       id="text4002-03-4"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         x="18.687185"
+         y="869.59412"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Arial;-inkscape-font-specification:Arial Bold"
+         id="tspan4045-6">Trailing dots</tspan></text>
+    <g
+       id="g4995"
+       inkscape:export-filename="/home/mac/Programming/python/atc/data/sprite-traildots.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"
+       transform="translate(-31.643491,-80)">
+      <path
+         transform="matrix(0.20353908,0,0,0.20353908,39.624762,784.50049)"
+         d="m 105.27988,960.41772 c 0,13.56705 -10.998259,24.56531 -24.565303,24.56531 -13.567045,0 -24.565308,-10.99826 -24.565308,-24.56531 0,-13.56704 10.998263,-24.5653 24.565308,-24.5653 13.567044,0 24.565303,10.99826 24.565303,24.5653 z"
+         sodipodi:ry="24.565308"
+         sodipodi:rx="24.565308"
+         sodipodi:cy="960.41772"
+         sodipodi:cx="80.714577"
+         id="path4954"
+         style="fill:#ffffff;fill-opacity:1;stroke:none"
+         sodipodi:type="arc" />
+      <path
+         transform="matrix(0.20353908,0,0,0.20353908,49.624762,784.50049)"
+         d="m 105.27988,960.41772 c 0,13.56705 -10.998259,24.56531 -24.565303,24.56531 -13.567045,0 -24.565308,-10.99826 -24.565308,-24.56531 0,-13.56704 10.998263,-24.5653 24.565308,-24.5653 13.567044,0 24.565303,10.99826 24.565303,24.5653 z"
+         sodipodi:ry="24.565308"
+         sodipodi:rx="24.565308"
+         sodipodi:cy="960.41772"
+         sodipodi:cx="80.714577"
+         id="path4954-1"
+         style="fill:#808080;fill-opacity:1;stroke:none"
+         sodipodi:type="arc" />
+      <path
+         transform="matrix(0.20353908,0,0,0.20353908,59.624762,784.50049)"
+         d="m 105.27988,960.41772 c 0,13.56705 -10.998259,24.56531 -24.565303,24.56531 -13.567045,0 -24.565308,-10.99826 -24.565308,-24.56531 0,-13.56704 10.998263,-24.5653 24.565308,-24.5653 13.567044,0 24.565303,10.99826 24.565303,24.5653 z"
+         sodipodi:ry="24.565308"
+         sodipodi:rx="24.565308"
+         sodipodi:cy="960.41772"
+         sodipodi:cx="80.714577"
+         id="path4954-0"
+         style="fill:#ff00ff;fill-opacity:1;stroke:none"
+         sodipodi:type="arc" />
+      <path
+         transform="matrix(0.20353908,0,0,0.20353908,69.624763,784.50049)"
+         d="m 105.27988,960.41772 c 0,13.56705 -10.998259,24.56531 -24.565303,24.56531 -13.567045,0 -24.565308,-10.99826 -24.565308,-24.56531 0,-13.56704 10.998263,-24.5653 24.565308,-24.5653 13.567044,0 24.565303,10.99826 24.565303,24.5653 z"
+         sodipodi:ry="24.565308"
+         sodipodi:rx="24.565308"
+         sodipodi:cy="960.41772"
+         sodipodi:cx="80.714577"
+         id="path4954-12"
+         style="fill:#ffff00;fill-opacity:1;stroke:none"
+         sodipodi:type="arc" />
+      <path
+         transform="matrix(0.20353908,0,0,0.20353908,79.624763,784.50049)"
+         d="m 105.27988,960.41772 c 0,13.56705 -10.998259,24.56531 -24.565303,24.56531 -13.567045,0 -24.565308,-10.99826 -24.565308,-24.56531 0,-13.56704 10.998263,-24.5653 24.565308,-24.5653 13.567044,0 24.565303,10.99826 24.565303,24.5653 z"
+         sodipodi:ry="24.565308"
+         sodipodi:rx="24.565308"
+         sodipodi:cy="960.41772"
+         sodipodi:cx="80.714577"
+         id="path4954-7"
+         style="fill:#ff0000;fill-opacity:1;stroke:none"
+         sodipodi:type="arc" />
     </g>
   </g>
 </svg>

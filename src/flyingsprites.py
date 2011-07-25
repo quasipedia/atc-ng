@@ -7,10 +7,12 @@ Aeroplanes of the ATC simulation game.
 from settings import *
 from pygame.locals import *
 import pygame.sprite
+import pygame.surfarray
 from random import randint
 from euclid import Vector3
 from math import sqrt
 from collections import deque
+import os
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -22,21 +24,70 @@ __email__ = "quasipedia@gmail.com"
 __status__ = "Development"
 
 
+class SuperSprite(pygame.sprite.Sprite):
+
+    '''
+    Base class to derive the in-game sprites in ATC.
+    Add spritesheet manipulation capability.
+    '''
+
+    def load_sprite_sheet(self, fname, colorkey=False, directory='../data'):
+        '''
+        Loads the specified sprite sheet.
+        '''
+        fname = os.path.join(directory, fname)
+        sheet = pygame.image.load(fname)
+        if colorkey:
+            if colorkey == -1:
+            # If the colour key is -1, set it to colour of upper left corner
+                colorkey = sheet.get_at((0, 0))
+            sheet.set_colorkey(colorkey)
+            sheet = sheet.convert()
+        else: # If there is no colorkey, preserve the image's alpha per pixel.
+            _image = sheet.convert_alpha()
+        self.sprite_sheet = sheet
+
+    def get_sprites_from_sheet(self):
+        '''
+        Clip the different sprites from the sheet and resize them.
+        The number of sprites is derived from the amount of plane states which
+        are possible in the game. The scaling is calculated based on the size
+        of the radar window.
+        '''
+        sh = self.sprite_sheet
+        sh_size = sh.get_rect()
+        w, h = sh_size.get_height, sh_size.get_width/PLANE_STATES_NUM
+        sprites = []
+        for i in range(PLANE_STATES_NUM):
+            sh.set_clip((0+i*w, 0), (w, h))
+            #TODO: resize
+            sprites.append(sh.get_clip())
+        return sprites
+
 class TrailDot(pygame.sprite.Sprite):
 
     @classmethod
     def init(cls):
         '''
-        Build and set the default image for the trail dot on the radar.
+        Build the entire set of images needed for the traildots.
+        That means a two-dimensional array in which each column represents one
+        of the possible aeroplane statuses and each row one of the possible
+        "ages" of the dot (alpha channel fading out for older radar signals).
         '''
-        # Aeroplane trail
-        surface = pygame.surface.Surface((3,3), SRCALPHA)
-        for i in range(10):  #antialias with only one pass = gray
-            pygame.draw.aaline(surface, WHITE, (1,0), (1,2), 1)
-            pygame.draw.aaline(surface, WHITE, (0,1), (2,1), 1)
-        cls.image = surface
-        cls.rect = surface.get_rect()
-
+        # Load the basic sprites sheet
+        cls.load_sprite_sheet('sprite-traildots.png')
+        base_sprites = cls.get_sprites_from_sheet()
+        cls.sprites = []
+        # Generate the fading matrix
+        fade_step = -100.0 / TRAIL_LENGTH
+        for opacity_percentage in range(100, 0, fade_step):
+            tmp = base_sprites[:]
+            for img in tmp:
+                a_values = pygame.surfarray.pixels_alpha(img)
+                a_values = int(a_values * opacity_percentage/100)
+            cls.images.append(tmp)
+        cls.image = cls.sprites[0][0]
+        cls.rect = cls.image.get_rect()
 
 class Aeroplane(pygame.sprite.Sprite):
 
@@ -76,19 +127,16 @@ class Aeroplane(pygame.sprite.Sprite):
                        ]
 
     @classmethod
-    def init(cls):
+    def init(cls, fname):
         '''
         Build and set the default image for the plane sprite on the radar.
+        - fname: name of the spritesheet file.
         '''
-        # Aeroplane current position
-        x = y = r = SPRITE_RADIUS
-        surface = pygame.surface.Surface((r*2+1, r*2+1), SRCALPHA)
-        for i in range(10):  #antialias with only one pass = gray
-            points = [(x-r,y), (x,y-r), (x+r,y), (x,y+r)]
-            pygame.draw.aalines(surface, WHITE, True, points, 1)
-        cls.image = surface
-        cls.rect = surface.get_rect()
-
+        # Load the basic sprites sheet
+        cls.load_sprite_sheet(fname='sprite-jet.png')
+        cls.sprites = cls.get_sprites_from_sheet()
+        cls.image = cls.sprites[0]
+        cls.rect = cls.image.get_rect()
 
     def __random_icao(self):
         '''Return a random pseudo-ICAO flight number'''
@@ -113,45 +161,3 @@ class Aeroplane(pygame.sprite.Sprite):
         # Initialise the trail
         self.trail_coords = deque([self.position.xy], TRAIL_LENGTH)
 
-
-    def turn(self):
-        '''
-        Make the plane turn.
-
-        The turn radius is calculated according to maximum g's exerted on the
-        passengers. These are:
-            - Normal flight: 1.15g (30° bank angle)
-            - Quick turn:    1.41g (45° bank angle)
-            - Emergency:     2.00g (60° bank angle)
-        Given that there is always a vertical component of 1g (gravity), the
-        above figures must be the resulting of centrifugal (C) and gravity (G)
-        accelerations combined.
-            Given total acceleration (T), Pitagora says T²=G²+C². This
-        transalates in C²=T²-G² → C=sqrt(T²-G²).
-            But C=ω²r and ω=V/r so C=V²/(V/ω) → C=Vω → ω=C/V
-        '''
-        g_to_mks = lambda x : 9.807 * x
-        acc_module = sqrt(g_to_mks(1.15)**2-g_to_mks(1)**2)
-        angular_speed = acc_module/self.velocity.magnitude()
-        rotation_axis = Vector3(0,0,1)
-        self.velocity = self.velocity.rotate_around(rotation_axis,
-                                                    angular_speed*PING_PERIOD)
-
-    def update(self):
-        self.turn()
-        self.position += self.velocity*PING_PERIOD
-        self.rect = sc(self.position.xy)
-        self.trail.appendleft(sc(self.position.xy))
-        if self.velocity.magnitude() > 75:
-            self.velocity.x -= 1 if self.velocity.x >0 else -1
-            self.velocity.y -= 1 if self.velocity.x >0 else -1
-
-    def draw(self, surface):
-        col = 0
-        dim_step = 255 / len(self.trail)  #TODO: class method?
-        # Trail
-        for pos in reversed(self.trail):
-            pygame.draw.circle(surface, (col,col,col), pos, 0)
-            col += dim_step
-        # Main "plane"
-        surface.blit(self.sprite, [x-7 for x in self.trail[0]])
