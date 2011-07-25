@@ -12,7 +12,6 @@ This module sole purpose is to initialise and manage the pygame environment.
 from settings import *
 from pygame.locals import *
 import pygame.display
-import gamelogic
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -33,7 +32,9 @@ class MainWindow(object):
         # Create timer
         self.clock = pygame.time.Clock() #to track FPS
         self.fps= 0
-        # Create game logic
+        # Create game logic - the import happens here because the module
+        # initialisation requires the pygame environment to be initialised
+        import gamelogic
         self.game_logic = gamelogic.GameLogic()
         # State machine
         self.running = False

@@ -5,7 +5,7 @@ Aeroplanes modelling of the ATC simulation game.
 '''
 
 from settings import *
-from math import sqrt, atan
+from math import sqrt, atan2, degrees
 from euclid import Vector3
 from collections import deque
 from random import randint
@@ -69,10 +69,12 @@ class Aeroplane(object):
             self.icao = self.__random_icao()
         if self.position == None:
             self.position = Vector3(randint(0,WINDOW_SIZE[0]*SCALE_FACTOR),
+                                    randint(0,WINDOW_SIZE[1]*SCALE_FACTOR))
         if self.velocity == None:
             self.velocity = Vector3(randint(200,300), 0, 0)
         # Initialise the trail
-        self.trail_coords = deque([self.position.xy], TRAIL_LENGTH)
+        self.trail = deque([self.position.xy] * TRAIL_LENGTH, TRAIL_LENGTH)
+        self.status = CONTROLLED
 
     def __random_icao(self):
         '''Return a random pseudo-ICAO flight number'''
@@ -82,7 +84,7 @@ class Aeroplane(object):
     @property
     def heading(self):
         '''Current heading'''
-        return atan(1.0*self.velocity.y/self.velocity.x)
+        return degrees(atan2(self.velocity.x, self.velocity.y))
 
     def turn(self):
         '''

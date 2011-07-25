@@ -24,7 +24,7 @@ SCALE_FACTOR = 200.0            # metres per pixel
 WHITE = (255,255,255)
 BLACK = (0,0,0)
 RED = (255,0,0)
-TRAIL_LENGTH = 20               # number of ghost radar signal in the trail
+TRAIL_LENGTH = 05               # number of ghost radar signal in the trail
 MAX_FRAMERATE = 200
 PLANE_STATES_NUM = 5            # number fo possible states for a plane
 

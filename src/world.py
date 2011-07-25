@@ -51,8 +51,8 @@ class Aerospace(object):
         self.sprite_group.add(icon, layer=0)
         record.append(icon)
         for time_shift in range(1, TRAIL_LENGTH):
-            dot = flyingsprites.TrailingDot(plane, layer=time_shift)
-            self.sprite_group.add(dot, time_shift)
+            dot = flyingsprites.TrailingDot(plane, time_shift)
+            self.sprite_group.add(dot, layer=time_shift)
             record.append(dot)
         self.__planes[plane.icao] = tuple(record)
 

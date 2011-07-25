@@ -29,11 +29,11 @@ class GameLogic(object):
     '''
 
     def __init__(self):
-        self.world = world.Aerospace
+        self.world = world.Aerospace()
         self.__quick_start()
 
     def __quick_start(self):
-        for i in range(3):
+        for i in range(1):
             self.world.add_plane()
 
     def update(self):
