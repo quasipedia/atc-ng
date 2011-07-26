@@ -105,12 +105,16 @@ class TrailingDot(SuperSprite):
         base_sprites = cls.get_sprites_from_sheet(cls.sprite_sheet)
         cls.sprites = []
         # Generate the fading matrix
-        fade_step = -100.0 / TRAIL_LENGTH
+        fade_step = int(round(-100.0 / TRAIL_LENGTH))
         for opacity_percentage in range(100, 0, fade_step):
-            tmp = base_sprites[:]
+            tmp = [img.copy() for img in base_sprites]
+            dim = lambda x : int(round(x * opacity_percentage/100))
             for img in tmp:
                 a_values = pygame.surfarray.pixels_alpha(img)
-                a_values *= opacity_percentage/100
+                #TODO: This double-loop is probably feasible with numpy
+                for row in range(len(a_values)):
+                    for col in range(len(a_values[0])):
+                        a_values[row][col] = dim(a_values[row][col])
             cls.sprites.append(tmp)
         for n, row in enumerate(cls.sprites):
             for o, img in enumerate(row):
@@ -170,8 +174,6 @@ class AeroplaneIcon(SuperSprite):
         self.update()
 
     def update(self, *args):
-        self.image = self.sprites[0]
-        self.rect = self.image.get_rect()
         status = self.data_source.status
         heading = self.data_source.heading
         if status != self.last_status or heading != self.last_heading:
