@@ -24,9 +24,11 @@ SCALE_FACTOR = 200.0            # metres per pixel
 WHITE = (255,255,255)
 BLACK = (0,0,0)
 RED = (255,0,0)
-TRAIL_LENGTH = 07               # number of ghost radar signal in the trail
+TRAIL_LENGTH = 20               # number of ghost radar signal in the trail
 MAX_FRAMERATE = 200
 PLANE_STATES_NUM = 5            # number fo possible states for a plane
+
+SPRITE_SCALING = 0.1            # the scaling factor for sprites
 
 # Aeroplane states
 CONTROLLED = 0
@@ -38,6 +40,18 @@ COLLISION = 4
 
 def sc(vector):
     '''
-    Return a scaled version of the tuple-representation of the vector.
+    Return a version of a 2-elements iterable (coordinates) suitable for
+    screen representation. That means:
+    - Scaled (to window resulution)
+    - Translated (to below x axis)
+    - With the y sign reversed (y are positive under x, on screen)
     '''
-    return tuple([int(round(c/SCALE_FACTOR)) for c in vector])
+    x, y = [int(round(c/SCALE_FACTOR)) for c in vector]
+    return (x, -(y-WINDOW_SIZE[1]))
+
+def center_blit_position(img, pos):
+    '''
+    Return the coordinates where 'img' should be blit if 'pos' needs to be its
+    centre.
+    '''
+    return [a - b for a, b in zip(pos, img.get_rect().center)]

@@ -83,6 +83,26 @@ class SuperSprite(pygame.sprite.Sprite):
         new_surface.blit(image, (0,0), area)
         return new_surface
 
+    @classmethod
+    def rotoscale(cls, image, angle=0, factor=1, px_limit=1):
+        '''
+        Return an image that has been rotated CCW of 'angle' degrees, scaled
+        of a 'factor' factor. If 'factor' would imply having the y axis of the
+        original non-rotated image < to 'px_limit', factor is re-calculated
+        to match the limit.
+        '''
+        x, y = image.get_rect().width, image.get_rect().height
+        factor = max(factor, 1.0*px_limit/y)
+        if angle:
+            image = pygame.transform.rotate(image, angle)
+            # The rotation can potentially enlarge the bounding rectangle of
+            # the sprite, filling the extra other space with alpha=0
+            image = cls.crop(image, image.get_bounding_rect())
+        # Calculate the actual ratio that allows not to exceed px_limit
+        x, y = [int(round(v*factor)) for v in (x,y)]
+        # Finally, scaling down as last operation guarantees anti-aliasing
+        return pygame.transform.smoothscale(image, (x,y))
+
 class TrailingDot(SuperSprite):
 
     '''
@@ -107,18 +127,17 @@ class TrailingDot(SuperSprite):
         # Generate the fading matrix
         fade_step = int(round(-100.0 / TRAIL_LENGTH))
         for opacity_percentage in range(100, 0, fade_step):
-            tmp = [img.copy() for img in base_sprites]
+            rtsc = cls.rotoscale
+            tmp = [rtsc(img, 0, SPRITE_SCALING, 2) for img in base_sprites]
             dim = lambda x : int(round(x * opacity_percentage/100))
             for img in tmp:
                 a_values = pygame.surfarray.pixels_alpha(img)
-                #TODO: This double-loop is probably feasible with numpy
+                # There's no pynum native method for in-place mapping, see:
+                # http://stackoverflow.com/q/6824122/146792
                 for row in range(len(a_values)):
                     for col in range(len(a_values[0])):
                         a_values[row][col] = dim(a_values[row][col])
             cls.sprites.append(tmp)
-        for n, row in enumerate(cls.sprites):
-            for o, img in enumerate(row):
-                pygame.image.save(img, '../tmp/sprite_%d%d.png' % (n,o))
         cls.initialised = True
 
     def __init__(self, data_source, time_shift):
@@ -138,8 +157,8 @@ class TrailingDot(SuperSprite):
         status = self.data_source.status
         if status != self.last_status:
             self.image = self.sprites[self.time_shift][status]
-        self.rect = self.data_source.trail[self.time_shift]
-
+        rect = self.data_source.trail[self.time_shift]
+        self.rect = center_blit_position(self.image, rect)
 
 class AeroplaneIcon(SuperSprite):
 
@@ -178,8 +197,17 @@ class AeroplaneIcon(SuperSprite):
         heading = self.data_source.heading
         if status != self.last_status or heading != self.last_heading:
             img = self.sprites[status]
-            self.image = pygame.transform.rotate(img, heading)
-        self.rect = self.data_source.trail[0]
+            # The following line needs a bit of explanation:
+            # 1. plane heading in the simulation is defined as CW degrees from
+            #    North, but on screen (and for pygame) they are CCW from East
+            # 2. screen Y axis has reversed polarity from simulation one (it
+            #    decreases going UP!!
+            # The CCW vs CW and the polarity axis compensate for each other,
+            # eliminatig the need to change sign to the heading. the North vs
+            # East is compensated by subtracting 90 degrees.
+            heading -= 90
+            self.image = self.rotoscale(img, heading, SPRITE_SCALING, 15)
+        self.rect = center_blit_position(self.image, self.data_source.trail[0])
 
 
 # Initialisation of the sprite classes

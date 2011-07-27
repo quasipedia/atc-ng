@@ -47,7 +47,7 @@ class Aerospace(object):
         record = []
         plane = aeroplane.Aeroplane()
         record.append(plane)
-        icon = flyingsprites.AeroplaneIcon(plane, 'jet')
+        icon = flyingsprites.AeroplaneIcon(plane, plane.model)
         self.sprite_group.add(icon, layer=0)
         record.append(icon)
         for time_shift in range(1, TRAIL_LENGTH):
@@ -67,6 +67,7 @@ class Aerospace(object):
     def update(self):
         for record in self.__planes.values():
             record[0].update()
+        self.sprite_group.update() #TODO: this should be part of a ping()
 
     def draw(self, surface):
         self.sprite_group.clear(surface, self.bkground)

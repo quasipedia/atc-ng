@@ -33,7 +33,7 @@ class GameLogic(object):
         self.__quick_start()
 
     def __quick_start(self):
-        for i in range(1):
+        for i in range(30):
             self.world.add_plane()
 
     def update(self):

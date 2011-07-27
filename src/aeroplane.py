@@ -68,13 +68,24 @@ class Aeroplane(object):
         if self.icao == None:
             self.icao = self.__random_icao()
         if self.position == None:
-            self.position = Vector3(randint(0,WINDOW_SIZE[0]*SCALE_FACTOR),
-                                    randint(0,WINDOW_SIZE[1]*SCALE_FACTOR))
+            self.position = Vector3(randint(2000, WINDOW_SIZE[0]*
+                                                  SCALE_FACTOR-2000),
+                                    randint(2000, WINDOW_SIZE[1]*
+                                                  SCALE_FACTOR-2000))
         if self.velocity == None:
-            self.velocity = Vector3(randint(200,300), 0, 0)
+            self.velocity = Vector3(randint(30,400), 0, 0)
+        # Dummy to test varius sprites
+        mag = self.velocity.magnitude()
+        if mag < 150:
+            self.model = 'propeller'
+        elif mag < 300:
+            self.model = 'jet'
+        else:
+            self.model = 'supersonic'
+        self.status = [CONTROLLED, INSTRUCTED, NON_CONTROLLED, PRIORITIZED,
+                       COLLISION][randint(0,4)]
         # Initialise the trail
-        self.trail = deque([self.position.xy] * TRAIL_LENGTH, TRAIL_LENGTH)
-        self.status = CONTROLLED
+        self.trail = deque([sc(self.position.xy)] * TRAIL_LENGTH, TRAIL_LENGTH)
 
     def __random_icao(self):
         '''Return a random pseudo-ICAO flight number'''
@@ -84,7 +95,7 @@ class Aeroplane(object):
     @property
     def heading(self):
         '''Current heading'''
-        return degrees(atan2(self.velocity.x, self.velocity.y))
+        return degrees(atan2(self.velocity.y, self.velocity.x))
 
     def turn(self):
         '''
@@ -114,8 +125,8 @@ class Aeroplane(object):
         self.position += self.velocity*PING_PERIOD
         self.rect = sc(self.position.xy)
         self.trail.appendleft(sc(self.position.xy))
-        if self.velocity.magnitude() > 75:
-            self.velocity.x -= 1 if self.velocity.x >0 else -1
-            self.velocity.y -= 1 if self.velocity.x >0 else -1
+#        if self.velocity.magnitude() > 75:
+#            self.velocity.x -= 1 if self.velocity.x >0 else -1
+#            self.velocity.y -= 1 if self.velocity.x >0 else -1
 
 
