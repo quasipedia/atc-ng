@@ -124,6 +124,8 @@ class Aeroplane(object):
         self.turn()
         self.position += self.velocity*PING_PERIOD
         self.rect = sc(self.position.xy)
+        # TODO: trail entries could happen only 1 in X times, to make dots
+        # more spaced out
         self.trail.appendleft(sc(self.position.xy))
 #        if self.velocity.magnitude() > 75:
 #            self.velocity.x -= 1 if self.velocity.x >0 else -1

@@ -78,3 +78,20 @@ class Aerospace(object):
         Execute a ping of the radar.
         '''
         pass
+
+    @property
+    def airports(self):
+        '''
+        Return a list of the available airports on the map.
+        '''
+        return []
+
+    @property
+    def beacons(self):
+        '''
+        Return a list of the available airports on the map.
+        '''
+        return []
+
+
+

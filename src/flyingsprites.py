@@ -69,7 +69,6 @@ class SuperSprite(pygame.sprite.Sprite):
         sprites = []
         for i in range(PLANE_STATES_NUM):
             crop_area = (pygame.rect.Rect((0+i*w, 0), (w, h)))
-            #TODO: resize
             sprites.append(cls.crop(sheet, crop_area))
         return sprites
 
@@ -91,6 +90,7 @@ class SuperSprite(pygame.sprite.Sprite):
         original non-rotated image < to 'px_limit', factor is re-calculated
         to match the limit.
         '''
+        #TODO: calculating the ratio should go in the initialisation code
         x, y = image.get_rect().width, image.get_rect().height
         factor = max(factor, 1.0*px_limit/y)
         if angle:
