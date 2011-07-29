@@ -6,7 +6,7 @@ Provides the sprite classes used in the radar window.
 These are: aeroplanes, trailing dots, labels.
 '''
 
-from settings import *
+from locals import *
 from pygame.locals import *
 import pygame.sprite
 import pygame.surfarray

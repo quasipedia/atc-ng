@@ -4,7 +4,7 @@
 Aeroplanes modelling of the ATC simulation game.
 '''
 
-from settings import *
+from locals import *
 from math import sqrt, atan2, degrees
 from euclid import Vector3
 from collections import deque
@@ -62,16 +62,15 @@ class Aeroplane(object):
                        ]
 
     def __init__(self, **kwargs):
+        self.ping_in_seconds = PING_PERIOD / 1000.0
         for property in self.KNOWN_PROPERTIES:
             value = kwargs[property] if kwargs.has_key(property) else None
             setattr(self, property, value)
         if self.icao == None:
             self.icao = self.__random_icao()
         if self.position == None:
-            self.position = Vector3(randint(2000, WINDOW_SIZE[0]*
-                                                  SCALE_FACTOR-2000),
-                                    randint(2000, WINDOW_SIZE[1]*
-                                                  SCALE_FACTOR-2000))
+            self.position = Vector3(randint(0, RADAR_RANGE*2),
+                                    randint(0, RADAR_RANGE*2))
         if self.velocity == None:
             self.velocity = Vector3(randint(30,400), 0, 0)
         # Dummy to test varius sprites
@@ -97,7 +96,7 @@ class Aeroplane(object):
         '''Current heading'''
         return degrees(atan2(self.velocity.y, self.velocity.x))
 
-    def turn(self):
+    def turn(self, pings):
         '''
         Make the plane turn.
 
@@ -118,11 +117,11 @@ class Aeroplane(object):
         angular_speed = acc_module/self.velocity.magnitude()
         rotation_axis = Vector3(0,0,1)
         self.velocity = self.velocity.rotate_around(rotation_axis,
-                                                    angular_speed*PING_PERIOD)
+                             angular_speed*self.ping_in_seconds*pings)
 
-    def update(self):
-        self.turn()
-        self.position += self.velocity*PING_PERIOD
+    def update(self, pings):
+        self.turn(pings)
+        self.position += self.velocity*self.ping_in_seconds*pings
         self.rect = sc(self.position.xy)
         # TODO: trail entries could happen only 1 in X times, to make dots
         # more spaced out

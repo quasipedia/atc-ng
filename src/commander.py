@@ -84,17 +84,28 @@ def run_as_script():
     '''
     Allow to test the autocompletion and validation of commands.
     '''
+    # Local initialisations
     valid_chars = \
         'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789'
     cl = CommandLine()
+    # World initialisation
+    import world
+    w = world.Aerospace()
+    w.add_aeroport('ARN', ['18L', '18R'])
+    w.add_aeroport('BMA', ['36'])
+    w.add_plane('ABC1234')
+    w.add_plane('XYZ1234')
+    w.add_plane('MNO1234')
+    # Curses initialisation
     import curses
     stdscr = curses.initscr()
     curses.savetty()
     stdscr.nodelay(True)
     curses.noecho()
-    stdscr.addstr(2,5, 'Press `!` to end simulation')
-    stdscr.addstr(3,5, 'Available airports and runaways: ARN:18L,18R, BMA:36')
-    stdscr.addstr(5,5, '')
+    stdscr.addstr(2,5, '* Press `!` to end simulation')
+    stdscr.addstr(3,5, '* Aeroplanes: ABC1234, XYZ1234, MNO1234')
+    stdscr.addstr(3,5, '* Aeroports and runaways: ARN(18L,18R), BMA(36)')
+    stdscr.addstr(6,5, '')
     while True:
         c = stdscr.getch()
         if c == -1:
@@ -108,7 +119,7 @@ def run_as_script():
             cl.chars.pop()
         elif c in valid_chars:
             # clear command validation message if any
-            stdscr.addstr(7,5,'')
+            stdscr.addstr(8,5,'')
             stdscr.clrtoeol()
             # append valid char
             cl.chars.append(c)

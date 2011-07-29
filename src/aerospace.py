@@ -7,11 +7,12 @@ World modelling and representation for the ATC game.
 - Represent the radar.
 '''
 
-from settings import *
+from locals import *
 import pygame.sprite
 import pygame.surface
 import aeroplane
-import flyingsprites
+import aeroport
+import sprites
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -35,10 +36,12 @@ class Aerospace(object):
     {flight_number : (Aeroplane(), PlaneIcon(), TrailingDot() * ...}
     '''
 
-    def __init__(self):
-        self.bkground = pygame.surface.Surface(WINDOW_SIZE)
+    def __init__(self, surface):
+        self.surface = surface
+        self.bkground = pygame.surface.Surface((RADAR_RECT.w, RADAR_RECT.h))
         self.sprite_group = pygame.sprite.LayeredUpdates()
         self.__planes = {}
+        self.__aeroports = {}
 
     def add_plane(self, **kwargs):
         '''
@@ -47,11 +50,11 @@ class Aerospace(object):
         record = []
         plane = aeroplane.Aeroplane()
         record.append(plane)
-        icon = flyingsprites.AeroplaneIcon(plane, plane.model)
+        icon = sprites.AeroplaneIcon(plane, plane.model)
         self.sprite_group.add(icon, layer=0)
         record.append(icon)
         for time_shift in range(1, TRAIL_LENGTH):
-            dot = flyingsprites.TrailingDot(plane, time_shift)
+            dot = sprites.TrailingDot(plane, time_shift)
             self.sprite_group.add(dot, layer=time_shift)
             record.append(dot)
         self.__planes[plane.icao] = tuple(record)
@@ -64,14 +67,21 @@ class Aerospace(object):
             sprite.kill()
         del self.__planes[icao]
 
-    def update(self):
+    def add_aeroport(self, iata, runaways):
+        '''
+        Add aeroports to the aerospace.
+        There is no need for a `remove` function
+        '''
+        self.__aeroports[iata] = aeroport.Aeroport(iata, runaways)
+
+    def update(self, pings):
         for record in self.__planes.values():
-            record[0].update()
+            record[0].update(pings)
         self.sprite_group.update() #TODO: this should be part of a ping()
 
-    def draw(self, surface):
-        self.sprite_group.clear(surface, self.bkground)
-        self.sprite_group.draw(surface)
+    def draw(self):
+        self.sprite_group.clear(self.surface, self.bkground)
+        self.sprite_group.draw(self.surface)
 
     def ping(self):
         '''
@@ -80,11 +90,11 @@ class Aerospace(object):
         pass
 
     @property
-    def airports(self):
+    def aeroports(self):
         '''
         Return a list of the available airports on the map.
         '''
-        return []
+        return self.__aeroports
 
     @property
     def beacons(self):

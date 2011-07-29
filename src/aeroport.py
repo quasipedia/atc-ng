@@ -21,12 +21,6 @@ class Aeroport(object):
     Docstring.
     '''
 
-    def __init__(self):
-        pass
-
-    @property
-    def runaways(self):
-        '''
-        Return a list of the available runaways on the map.
-        '''
-        return []
+    def __init__(self, iata, runaways):
+        self.iata = iata
+        self.runaways = runaways

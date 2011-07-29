@@ -9,7 +9,7 @@ there". It's implemented in python (with pygame).
 This module sole purpose is to initialise and manage the pygame environment.
 '''
 
-from settings import *
+from locals import *
 from pygame.locals import *
 import pygame.display
 
@@ -35,7 +35,7 @@ class MainWindow(object):
         # Create game logic - the import happens here because the module
         # initialisation requires the pygame environment to be initialised
         import gamelogic
-        self.game_logic = gamelogic.GameLogic()
+        self.game_logic = gamelogic.GameLogic(self.screen)
         # State machine
         self.running = False
 
@@ -68,8 +68,8 @@ class MainWindow(object):
         while self.running:
             pygame.display.set_caption("FPS: %i" % self.clock.get_fps())
             self.handle_events()
-            self.game_logic.update()
-            self.game_logic.draw(self.screen)
+            self.game_logic.update(self.clock.get_time())
+            self.game_logic.draw()
             pygame.display.flip()
             self.clock.tick(MAX_FRAMERATE)
 

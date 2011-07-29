@@ -6,7 +6,7 @@ Globals variables and helper functions for the ATC game.
 Typical usage: "from globals import *"
 '''
 
-#import  modules_names_here
+import pygame.rect
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -18,36 +18,49 @@ __email__ = "quasipedia@gmail.com"
 __status__ = "Development"
 
 
-PING_PERIOD = 3                 # seconds between radar pings
-WINDOW_SIZE = (1024, 768)       # in pixel
-SCALE_FACTOR = 200.0            # metres per pixel
+# Timing
+PING_PERIOD = 1000              # milliseconds between radar pings
+MAX_FRAMERATE = 60              # FPS
+
+# Dimensions
+#WINDOW_SIZE = (1024, 768)       # in pixels
+WINDOW_SIZE = (1200, 750)       # in pixels
+CLI_HEIGHT = 0.10               # as a percentage of windows height
+RADAR_RANGE = 40000             # radius in kilometres --> 80x80km = space
+
+# Colours
 WHITE = (255,255,255)
 BLACK = (0,0,0)
 RED = (255,0,0)
-TRAIL_LENGTH = 20               # number of ghost radar signal in the trail
-MAX_FRAMERATE = 200
-PLANE_STATES_NUM = 5            # number fo possible states for a plane
 
-SPRITE_SCALING = 0.1            # the scaling factor for sprites
+# Sprites
+TRAIL_LENGTH = 15               # number of dots in the trail
+SPRITE_SCALING = 0.1            # scaling factor (used for antialiasing)
 
 # Aeroplane states
+PLANE_STATES_NUM = 5            # number fo possible states for a plane
 CONTROLLED = 0
 INSTRUCTED = 1
 NON_CONTROLLED = 2
 PRIORITIZED = 3
 COLLISION = 4
 
+# Derivative values
+RADAR_RECT = pygame.rect.Rect(
+             (WINDOW_SIZE[0]-WINDOW_SIZE[1]*(1-CLI_HEIGHT))/2, 0,
+              WINDOW_SIZE[1]*(1-CLI_HEIGHT), WINDOW_SIZE[1]*(1-CLI_HEIGHT))
+METRES_PER_PIXELS = RADAR_RANGE*2.0/RADAR_RECT.width
 
 def sc(vector):
     '''
     Return a version of a 2-elements iterable (coordinates) suitable for
     screen representation. That means:
-    - Scaled (to window resulution)
+    - Scaled (to window resolution)
     - Translated (to below x axis)
     - With the y sign reversed (y are positive under x, on screen)
     '''
-    x, y = [int(round(c/SCALE_FACTOR)) for c in vector]
-    return (x, -(y-WINDOW_SIZE[1]))
+    x, y = [int(round(c/METRES_PER_PIXELS)) for c in vector]
+    return (x, -(y-RADAR_RECT.height))
 
 def center_blit_position(img, pos):
     '''
