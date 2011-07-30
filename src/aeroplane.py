@@ -53,7 +53,7 @@ class Aeroplane(object):
                         'landing_speed',   # landing speed at touchdown
                         'max_g',           # maximum Gforce
                         #DYNAMIC
-                        'target_conf',     # (heading, speed, altitude)
+                        'target_conf',     # (heading, ground speed, altitude)
                         'position',        # 3D vector
                         'velocity',        # 3D vector
                         'fuel',            # seconds before crash
@@ -73,6 +73,11 @@ class Aeroplane(object):
                                     randint(0, RADAR_RANGE*2))
         if self.velocity == None:
             self.velocity = Vector3(randint(30,400), 0, 0)
+        if self.target_conf == None:
+            self.target_conf = {}
+            self.target_conf['heading'] = self.heading + randint(-90,90)
+            self.target_conf['speed'] = self.speed + randint(-100, 100)
+            self.target_conf['altitude'] = self.altitude + randint(-3000, 3000)
         # Dummy to test varius sprites
         mag = self.velocity.magnitude()
         if mag < 150:
@@ -93,8 +98,51 @@ class Aeroplane(object):
 
     @property
     def heading(self):
-        '''Current heading'''
+        '''Current heading [CW degrees from North]'''
         return degrees(atan2(self.velocity.y, self.velocity.x))
+
+    @property
+    def speed(self):
+        '''
+        Current ground speed [m/s].
+        (That means speed as projected on the XY plane)
+        '''
+        return int(round(sqrt(self.velocity.x**2 + self.velocity.y**2)))
+
+
+    @property
+    def altitude(self):
+        '''Current altitude [m]'''
+        return self.position.z
+
+    @property
+    def variometer(self):
+        '''
+        Show weather the plane is currently climbing or descending.
+        Note that this is controlled by instant velocity, not by weather the
+        plane target altitude is above or below the present one (inertia of a
+        descending plane might keep the variometer indicating 'down' for a few
+        seconds even if the last command instructed to climb.
+        '''
+        indicator = ' '
+        if self.velocity.z > 0:
+            indicator = CHAR_UP
+        elif self.velocity.z < 0:
+            indicator = CHAR_DOWN
+        return indicator
+
+    @property
+    def accelerometer(self):
+        '''
+        Show weather the plane is currently increasing or decreasing speed.
+        '''
+        tspeed = self.target_conf['speed']
+        indicator = ' '
+        if tspeed > self.speed:
+            indicator = CHAR_UP
+        elif self.velocity.z < self.speed:
+            indicator = CHAR_DOWN
+        return indicator
 
     def turn(self, pings):
         '''
@@ -126,8 +174,3 @@ class Aeroplane(object):
         # TODO: trail entries could happen only 1 in X times, to make dots
         # more spaced out
         self.trail.appendleft(sc(self.position.xy))
-#        if self.velocity.magnitude() > 75:
-#            self.velocity.x -= 1 if self.velocity.x >0 else -1
-#            self.velocity.y -= 1 if self.velocity.x >0 else -1
-
-

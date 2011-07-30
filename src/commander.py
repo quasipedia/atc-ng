@@ -4,7 +4,9 @@
 Provide functionality for entering commands and processing them.
 '''
 
-#import  modules_names_here
+from locals import *
+from pygame.locals import *
+import pygame.font
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -67,12 +69,26 @@ class CommandLine(object):
     This class manage the command string composition, validation, etc...
     '''
 
-    def __init__(self):
-        self.chars = []
+    def __init__(self, surface):
+        self.chars = list('Hello world!')
+        self.surface = surface
+        if not pygame.font.get_init():
+            pygame.font.init()
+        self.textbox = pygame.font.Font(None, FONT_HEIGHT)
 
     @property
     def text(self):
         return ''.join(self.chars)
+
+    def process_keystroke(self, event):
+        if event.key == K_RETURN:
+            print('quit')
+        elif event.key == K_BACKSPACE and self.chars:
+            self.chars.pop()
+        elif event.key == K_TAB:
+            self.autocomplete()
+        elif event.unicode in VALID_CHARS:
+            self.chars.append(event.unicode)
 
     def autocomplete(self):
         self.chars.extend(list('-auto-'))
@@ -80,60 +96,14 @@ class CommandLine(object):
     def validate(self):
         return True
 
-def run_as_script():
-    '''
-    Allow to test the autocompletion and validation of commands.
-    '''
-    # Local initialisations
-    valid_chars = \
-        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789'
-    cl = CommandLine()
-    # World initialisation
-    import world
-    w = world.Aerospace()
-    w.add_aeroport('ARN', ['18L', '18R'])
-    w.add_aeroport('BMA', ['36'])
-    w.add_plane('ABC1234')
-    w.add_plane('XYZ1234')
-    w.add_plane('MNO1234')
-    # Curses initialisation
-    import curses
-    stdscr = curses.initscr()
-    curses.savetty()
-    stdscr.nodelay(True)
-    curses.noecho()
-    stdscr.addstr(2,5, '* Press `!` to end simulation')
-    stdscr.addstr(3,5, '* Aeroplanes: ABC1234, XYZ1234, MNO1234')
-    stdscr.addstr(3,5, '* Aeroports and runaways: ARN(18L,18R), BMA(36)')
-    stdscr.addstr(6,5, '')
-    while True:
-        c = stdscr.getch()
-        if c == -1:
-            continue
-        c = curses.unctrl(c)
-        if c == '!':
-            break
-        if c == '^I':  #tab key
-            cl.autocomplete()
-        elif c == '^?' and len(cl.chars) > 0:  #backspace
-            cl.chars.pop()
-        elif c in valid_chars:
-            # clear command validation message if any
-            stdscr.addstr(8,5,'')
-            stdscr.clrtoeol()
-            # append valid char
-            cl.chars.append(c)
-        stdscr.addstr(5, 5, cl.text)
-        stdscr.clrtoeol()
-        if c == '^J':  #enter
-            if cl.validate():
-                stdscr.addstr(7,5,'VALID COMMAND!')
-            else:
-                stdscr.addstr(7,5,'Invalid command')
-            stdscr.clrtoeol()
-            cl.chars = []
-    curses.resetty()
-    curses.endwin()
+    def update(self):
+        pass
 
-if __name__ == '__main__':
-    run_as_script()
+    def draw(self):
+        image = self.textbox.render(self.text, True, WHITE, BLACK)
+        iw, ih = image.get_size()
+        sw, sh = self.surface.get_size()
+        x = (sw - iw)/2
+        y = (sh - ih)/2
+        self.surface.fill(BLACK)
+        self.surface.blit(image, (x,y))

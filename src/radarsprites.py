@@ -13,6 +13,7 @@ import pygame.surfarray
 import pygame.transform
 import pygame.surface
 import pygame.image
+import pygame.font
 import os
 
 __author__ = "Mac Ryan"
@@ -102,6 +103,42 @@ class SuperSprite(pygame.sprite.Sprite):
         x, y = [int(round(v*factor)) for v in (x,y)]
         # Finally, scaling down as last operation guarantees anti-aliasing
         return pygame.transform.smoothscale(image, (x,y))
+
+
+class Tag(SuperSprite):
+
+    '''
+    The airplane information displayed beside the airplane icon
+    '''
+
+    def __init__(self, data_source):
+        super(Tag, self).__init__()
+        self.plane = data_source
+        self.textbox = pygame.font.Font('../data/ex_modenine.ttf',
+                                        HUD_INFO_FONT_SIZE)
+        self.image = pygame.surface.Surface((0, 0))  #dummy
+        self.rect = (0,0)
+
+    def update(self):
+        pl = self.plane
+        render = self.textbox.render
+        lines = []
+        # LINE 1 = Airplane code
+        lines.append(render(pl.icao.upper(), True, WHITE, BLACK))
+        # LINE 2 = Altitude, speed
+        # Remove last digit, add variometer
+        alt = str(int(round(pl.altitude/10.0)))
+        alt += pl.variometer
+        # Convert m/s to kph AND remove last digit, add accelerometer
+        spd = str(int(round(pl.speed*0.36)))
+        spd += pl.accelerometer
+        lines.append(render('%s%s' % (alt,spd), True, WHITE, BLACK))
+        width = max([l.get_size()[0] for l in lines])+30
+        self.image = pygame.surface.Surface((width, HUD_INFO_FONT_SIZE * 5))
+        for n, line in enumerate(lines):
+            self.image.blit(line, (10, HUD_INFO_FONT_SIZE*(1 + 1.2*n)))
+        x, y = pl.trail[0]
+        self.rect = x+15, y
 
 class TrailingDot(SuperSprite):
 

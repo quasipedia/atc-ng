@@ -46,8 +46,8 @@ class MainWindow(object):
         for event in pygame.event.get():
             if event.type == QUIT:
                 self.running = False
-#            elif event.type == KEYDOWN:
-#                self.keyDown(event.key)
+            elif event.type == KEYDOWN:
+                self.game_logic.key_pressed(event)
 #            elif event.type == KEYUP:
 #                if event.key == K_ESCAPE:
 #                    self.running = False

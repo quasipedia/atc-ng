@@ -12,7 +12,7 @@ import pygame.sprite
 import pygame.surface
 import aeroplane
 import aeroport
-import sprites
+import radarsprites
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -50,13 +50,16 @@ class Aerospace(object):
         record = []
         plane = aeroplane.Aeroplane()
         record.append(plane)
-        icon = sprites.AeroplaneIcon(plane, plane.model)
+        icon = radarsprites.AeroplaneIcon(plane, plane.model)
         self.sprite_group.add(icon, layer=0)
         record.append(icon)
         for time_shift in range(1, TRAIL_LENGTH):
-            dot = sprites.TrailingDot(plane, time_shift)
+            dot = radarsprites.TrailingDot(plane, time_shift)
             self.sprite_group.add(dot, layer=time_shift)
             record.append(dot)
+        tag = radarsprites.Tag(plane)
+        record.append(tag)
+        self.sprite_group.add(tag, layer=0)
         self.__planes[plane.icao] = tuple(record)
 
     def remove_plane(self, icao):
