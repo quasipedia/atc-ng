@@ -39,7 +39,9 @@ class Aerospace(object):
     def __init__(self, surface):
         self.surface = surface
         self.bkground = pygame.surface.Surface((RADAR_RECT.w, RADAR_RECT.h))
-        self.sprite_group = pygame.sprite.LayeredUpdates()
+        self.flying_sprites = pygame.sprite.LayeredUpdates()
+        self.top_layer = pygame.sprite.Group()
+        self.tags = pygame.sprite.Group()
         self.__planes = {}
         self.__aeroports = {}
 
@@ -51,15 +53,18 @@ class Aerospace(object):
         plane = aeroplane.Aeroplane()
         record.append(plane)
         icon = radarsprites.AeroplaneIcon(plane, plane.model)
-        self.sprite_group.add(icon, layer=0)
+        self.flying_sprites.add(icon, layer=0)
+        self.top_layer.add(icon)
         record.append(icon)
         for time_shift in range(1, TRAIL_LENGTH):
             dot = radarsprites.TrailingDot(plane, time_shift)
-            self.sprite_group.add(dot, layer=time_shift)
+            self.flying_sprites.add(dot, layer=time_shift)
             record.append(dot)
         tag = radarsprites.Tag(plane)
         record.append(tag)
-        self.sprite_group.add(tag, layer=0)
+        self.flying_sprites.add(tag, layer=0)
+        self.top_layer.add(tag)
+        self.tags.add(tag)
         self.__planes[plane.icao] = tuple(record)
 
     def remove_plane(self, icao):
@@ -77,14 +82,30 @@ class Aerospace(object):
         '''
         self.__aeroports[iata] = aeroport.Aeroport(iata, runaways)
 
+    def untangle_tags(self):
+        '''
+        Spread plane tags so as not to overlap with other tags or planes.
+        (This should guarantee it's always possible to read them).
+        '''
+        collisions = pygame.sprite.groupcollide(self.tags, self.top_layer,
+                                                False, False)
+        for k,v in collisions.items():
+            # Remove self-collision
+            if [k] == v:
+                del collisions[k]
+            else:
+                v.remove(k)
+        print(collisions)
+
     def update(self, pings):
         for record in self.__planes.values():
             record[0].update(pings)
-        self.sprite_group.update() #TODO: this should be part of a ping()
+        self.flying_sprites.update()
+        self.untangle_tags()
 
     def draw(self):
-        self.sprite_group.clear(self.surface, self.bkground)
-        self.sprite_group.draw(self.surface)
+        self.flying_sprites.clear(self.surface, self.bkground)
+        self.flying_sprites.draw(self.surface)
 
     def ping(self):
         '''

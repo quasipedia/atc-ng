@@ -104,6 +104,9 @@ class SuperSprite(pygame.sprite.Sprite):
         # Finally, scaling down as last operation guarantees anti-aliasing
         return pygame.transform.smoothscale(image, (x,y))
 
+    @property
+    def position(self):
+        return self.rect.center
 
 class Tag(SuperSprite):
 
@@ -111,20 +114,37 @@ class Tag(SuperSprite):
     The airplane information displayed beside the airplane icon
     '''
 
+    @classmethod
+    def initialise(cls):
+        cls.fontobj = pygame.font.Font('../data/ex_modenine.ttf',
+                                        HUD_INFO_FONT_SIZE)
+        cls.initialised = True
+
+    @classmethod
+    def render_lines(cls, lines):
+        '''
+        Return the image of the rendered multiline text
+        '''
+        font_height = cls.fontobj.get_height()
+        surfaces = [cls.fontobj.render(ln, True, WHITE) for ln in lines]
+        maxwidth = max([s.get_width() for s in surfaces])
+        result = pygame.surface.Surface((maxwidth, len(lines)*font_height),
+                                        SRCALPHA)
+        for i in range(len(lines)):
+            result.blit(surfaces[i], (0,i*font_height))
+        return result
+
     def __init__(self, data_source):
         super(Tag, self).__init__()
         self.plane = data_source
-        self.textbox = pygame.font.Font('../data/ex_modenine.ttf',
-                                        HUD_INFO_FONT_SIZE)
-        self.image = pygame.surface.Surface((0, 0))  #dummy
-        self.rect = (0,0)
+        self.update()
 
     def update(self):
         pl = self.plane
-        render = self.textbox.render
+        render = self.fontobj.render
         lines = []
         # LINE 1 = Airplane code
-        lines.append(render(pl.icao.upper(), True, WHITE, BLACK))
+        lines.append(pl.icao.upper())
         # LINE 2 = Altitude, speed
         # Remove last digit, add variometer
         alt = str(int(round(pl.altitude/10.0)))
@@ -132,13 +152,11 @@ class Tag(SuperSprite):
         # Convert m/s to kph AND remove last digit, add accelerometer
         spd = str(int(round(pl.speed*0.36)))
         spd += pl.accelerometer
-        lines.append(render('%s%s' % (alt,spd), True, WHITE, BLACK))
-        width = max([l.get_size()[0] for l in lines])+30
-        self.image = pygame.surface.Surface((width, HUD_INFO_FONT_SIZE * 5))
-        for n, line in enumerate(lines):
-            self.image.blit(line, (10, HUD_INFO_FONT_SIZE*(1 + 1.2*n)))
+        lines.append('%s%s' % (alt,spd))
+        self.image = self.render_lines(lines)
         x, y = pl.trail[0]
-        self.rect = x+15, y
+        self.rect = get_rect_at_centered_pos(self.image, (x+50, y))
+
 
 class TrailingDot(SuperSprite):
 
@@ -195,7 +213,7 @@ class TrailingDot(SuperSprite):
         if status != self.last_status:
             self.image = self.sprites[self.time_shift][status]
         rect = self.data_source.trail[self.time_shift]
-        self.rect = center_blit_position(self.image, rect)
+        self.rect = get_rect_at_centered_pos(self.image, rect)
 
 class AeroplaneIcon(SuperSprite):
 
@@ -244,9 +262,10 @@ class AeroplaneIcon(SuperSprite):
             # East is compensated by subtracting 90 degrees.
             heading -= 90
             self.image = self.rotoscale(img, heading, SPRITE_SCALING, 15)
-        self.rect = center_blit_position(self.image, self.data_source.trail[0])
+        self.rect = get_rect_at_centered_pos(self.image, self.data_source.trail[0])
 
 
 # Initialisation of the sprite classes
 AeroplaneIcon.initialise()
 TrailingDot.initialise()
+Tag.initialise()

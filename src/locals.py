@@ -77,9 +77,12 @@ def sc(vector):
     x, y = [int(round(c/METRES_PER_PIXELS)) for c in vector]
     return (x, -(y-RADAR_RECT.height))
 
-def center_blit_position(img, pos):
+def get_rect_at_centered_pos(img, pos):
     '''
-    Return the coordinates where 'img' should be blit if 'pos' needs to be its
-    centre.
+    Return the rect based on where 'img' should be blit if 'pos' needs to be
+    its centre.
     '''
-    return [a - b for a, b in zip(pos, img.get_rect().center)]
+    rect = img.get_rect()
+    pos = [a - b for a, b in zip(pos, img.get_rect().center)]
+    rect.x, rect.y = pos
+    return rect
