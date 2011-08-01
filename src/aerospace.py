@@ -45,33 +45,51 @@ class Aerospace(object):
         self.__planes = {}
         self.__aeroports = {}
 
+    def __filter_self_collisions(self, sprite, collisions):
+        '''
+        Filter the list of collisions eliminating false positive (sprite will
+        always "collide" with self!).
+        '''
+        try:
+            collisions.remove(sprite)
+        except ValueError:
+            pass
+        return collisions
+
     def add_plane(self, **kwargs):
         '''
         Add aeroplanes to the aerospace.
         '''
-        record = []
+        # This record will contain all info relative to a given plane
+        record = {}
+        # Aeroplane object
         plane = aeroplane.Aeroplane()
-        record.append(plane)
+        record['plane'] = plane
+        record['sprites'] = []
+        # Icon sprite
         icon = radarsprites.AeroplaneIcon(plane, plane.model)
         self.flying_sprites.add(icon, layer=0)
         self.top_layer.add(icon)
-        record.append(icon)
+        record['sprites'].append(icon)
+        # Trail dots sprites
         for time_shift in range(1, TRAIL_LENGTH):
             dot = radarsprites.TrailingDot(plane, time_shift)
             self.flying_sprites.add(dot, layer=time_shift)
-            record.append(dot)
-        tag = radarsprites.Tag(plane)
-        record.append(tag)
+            record['sprites'].append(dot)
+        # Plane tag
+        tag = radarsprites.Tag(plane, self.surface.get_rect())
         self.flying_sprites.add(tag, layer=0)
         self.top_layer.add(tag)
         self.tags.add(tag)
-        self.__planes[plane.icao] = tuple(record)
+        record['sprites'].append(tag)
+        # Storage of plane info in internal dictionary
+        self.__planes[plane.icao] = record
 
     def remove_plane(self, icao):
         '''
         Remove aeroplanes from the aerospace.
         '''
-        for sprite in self.__planes[icao][1:]:
+        for sprite in self.__planes[icao]['sprites']:
             sprite.kill()
         del self.__planes[icao]
 
@@ -90,17 +108,40 @@ class Aerospace(object):
         collisions = pygame.sprite.groupcollide(self.tags, self.top_layer,
                                                 False, False)
         for k,v in collisions.items():
-            # Remove self-collision
-            if [k] == v:
+            self.__filter_self_collisions(k, v)
+            if not v:
                 del collisions[k]
-            else:
-                v.remove(k)
-        print(collisions)
+        is_colliding = lambda tag : \
+            self.__filter_self_collisions(tag,
+                       pygame.sprite.spritecollide(tag, self.top_layer, False))
+        for tag in collisions.keys():
+            # Since "A collides with B" also means "B collides with A", solving
+            # the first means solving the second, so we need to re-check for
+            # collisions at the beginning of each iteration.
+            start_angle = tag.angle
+            angle_step = 5
+            radius_step = 10
+            while is_colliding(tag):
+                tag.angle = (tag.angle + angle_step) % 360
+                if tag.angle == start_angle:
+                    tag.radius += radius_step
+                tag.place()
+
+    def kill_escaped(self):
+        '''
+        Kill all sprites related to a plane that left the aerospace.
+        '''
+        for icao, plane in self.__planes.items():
+            s = self.surface.get_rect()
+            x, y = plane['sprites'][0].position
+            if x < 0 or x > s.width or y < 0 or y > s.height:
+                self.remove_plane(icao)
 
     def update(self, pings):
-        for record in self.__planes.values():
-            record[0].update(pings)
+        for plane in self.__planes.values():
+            plane['plane'].update(pings)
         self.flying_sprites.update()
+        self.kill_escaped()
         self.untangle_tags()
 
     def draw(self):

@@ -15,6 +15,7 @@ import pygame.surface
 import pygame.image
 import pygame.font
 import os
+from math import sin, cos, radians
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -111,13 +112,15 @@ class SuperSprite(pygame.sprite.Sprite):
 class Tag(SuperSprite):
 
     '''
-    The airplane information displayed beside the airplane icon
+    The airplane information displayed beside the aeroplane icon.
     '''
 
     @classmethod
     def initialise(cls):
         cls.fontobj = pygame.font.Font('../data/ex_modenine.ttf',
                                         HUD_INFO_FONT_SIZE)
+        cls.default_angle = 45
+        cls.default_radius = 50
         cls.initialised = True
 
     @classmethod
@@ -134,10 +137,27 @@ class Tag(SuperSprite):
             result.blit(surfaces[i], (0,i*font_height))
         return result
 
-    def __init__(self, data_source):
+    def __init__(self, data_source, radar_rect):
         super(Tag, self).__init__()
         self.plane = data_source
+        self.radar_rect = radar_rect
         self.update()
+
+    def place(self):
+        '''
+        '''
+        cx, cy = self.plane.trail[0]
+        while True:
+            rad = radians(self.angle)
+            ox = rint(cos(rad) * self.radius)
+            oy = -rint(sin(rad) * self.radius)  #minus because of screen coordinates
+            x, y = cx + ox, cy + oy
+            self.rect = get_rect_at_centered_pos(self.image, (x, y))
+            if self.radar_rect.contains(self.rect):
+                break
+            else:
+                self.angle += 5
+                self.angle %= 360
 
     def update(self):
         pl = self.plane
@@ -154,9 +174,9 @@ class Tag(SuperSprite):
         spd += pl.accelerometer
         lines.append('%s%s' % (alt,spd))
         self.image = self.render_lines(lines)
-        x, y = pl.trail[0]
-        self.rect = get_rect_at_centered_pos(self.image, (x+50, y))
-
+        self.angle = self.default_angle
+        self.radius = self.default_radius
+        self.place()
 
 class TrailingDot(SuperSprite):
 
