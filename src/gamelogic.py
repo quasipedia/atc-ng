@@ -40,7 +40,7 @@ class GameLogic(object):
         pygame.draw.line(surface, WHITE, (x-1, y+h+1), (x+w+1, y+h+1))
         self.aerospace = aerospace.Aerospace(self.radar_surface)
         self.cli = commander.CommandLine(self.cli_surface)
-        self.ms_from_last_ping = 0
+        self.ms_from_last_ping = PING_PERIOD+1  #force update on first run
         self.__quick_start()
 
     def __quick_start(self):

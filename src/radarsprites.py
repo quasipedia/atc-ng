@@ -127,7 +127,7 @@ class TagConnector(SuperSprite):
     def icon_pos(self):
         return self.tag.plane.trail[0]
 
-    def update(self):
+    def generate(self):
         plane = Vector2(*self.icon_pos)
         angle = self.tag.angle
         r = self.tag.rect
@@ -146,10 +146,11 @@ class TagConnector(SuperSprite):
         flip_x = True if corner.x > plane.x else False
         flip_y = True if corner.y > plane.y else False
         diff = plane-corner
-        image = pygame.surface.Surface((abs(diff.x), abs(diff.y)), SRCALPHA)
+        image = pygame.surface.Surface((abs(diff.x) or 3, abs(diff.y)) or 3,
+                                       SRCALPHA)
         self.rect = image.get_rect()
-        pygame.draw.aaline(image, WHITE, (0,0), (self.rect.width,
-                                                 self.rect.height))
+        pygame.draw.line(image, WHITE, (1,1), (self.rect.width-1,
+                                               self.rect.height-1))
         if flip_x != flip_y:  #both flips == no flip
             image = pygame.transform.flip(image, flip_x, flip_y)
         self.image = image
@@ -200,21 +201,16 @@ class Tag(SuperSprite):
 
     def place(self):
         '''
-        Place the tag in a radar position that does not overlaps any other
-        tag or aeroplane icon.
+        Place the tag according to the angle and radius properties. Return True
+        if the tag is entirely on radar, False otherwise.
         '''
         cx, cy = self.plane.trail[0]
-        while True:
-            rad = radians(self.angle)
-            ox = rint(cos(rad) * self.radius)
-            oy = -rint(sin(rad) * self.radius)  #minus because of screen coordinates
-            x, y = cx + ox, cy + oy
-            self.rect = get_rect_at_centered_pos(self.image, (x, y))
-            if self.radar_rect.contains(self.rect):
-                break
-            else:
-                self.angle += 5
-                self.angle %= 360
+        rad = radians(self.angle)
+        ox = rint(cos(rad) * self.radius)
+        oy = -rint(sin(rad) * self.radius)  #minus because of screen coordinates
+        x, y = cx + ox, cy + oy
+        self.rect = get_rect_at_centered_pos(self.image, (x, y))
+        return self.radar_rect.contains(self.rect)
 
     def update(self):
         pl = self.plane
@@ -231,9 +227,9 @@ class Tag(SuperSprite):
         spd += pl.accelerometer
         lines.append('%s%s' % (alt,spd))
         self.image = self.render_lines(lines)
+        self.rect = self.image.get_rect()
         self.angle = self.default_angle
         self.radius = self.default_radius
-        self.place()
 
 
 class TrailingDot(SuperSprite):
