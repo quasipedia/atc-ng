@@ -123,10 +123,10 @@ class Aerospace(object):
             self.__filter_self_collisions(tag,
                        pygame.sprite.spritecollide(tag, self.top_layer,
                                                    False, self.collide_func))
+        angle_step = 5
+        radius_step = 10
         for tag in self.tags:
             start_angle = tag.angle
-            angle_step = 5
-            radius_step = 10
             while not tag.place() or is_colliding(tag):
                 tag.angle = (tag.angle + angle_step) % 360
                 if tag.angle == start_angle:

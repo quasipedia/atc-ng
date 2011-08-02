@@ -19,7 +19,7 @@ __status__ = "Development"
 
 
 # Timing
-PING_PERIOD = 1000              # milliseconds between radar pings
+PING_PERIOD = 3000              # milliseconds between radar pings
 MAX_FRAMERATE = 60              # FPS
 
 # Dimensions
@@ -30,20 +30,24 @@ RADAR_RANGE = 40000             # radius in kilometres --> 80x80km = space
 
 # Colours
 WHITE = (255,255,255)
-BLACK = (0,0,0)
+GRAY = (128,128,128)
+MAGENTA = (255,0,255)
+YELLOW = (255,255,0)
 RED = (255,0,0)
+BLACK = (0,0,0)
 
 # Sprites
 TRAIL_LENGTH = 15               # number of dots in the trail
 SPRITE_SCALING = 0.1            # scaling factor (used for antialiasing)
 
-# Aeroplane states
+# Aeroplane states and colors
 PLANE_STATES_NUM = 5            # number fo possible states for a plane
 CONTROLLED = 0
 INSTRUCTED = 1
 NON_CONTROLLED = 2
 PRIORITIZED = 3
 COLLISION = 4
+STATUS_COLORS = [WHITE, GRAY, MAGENTA, YELLOW, RED]
 
 # Commandline
 VALID_CHARS = \

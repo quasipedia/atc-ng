@@ -149,7 +149,8 @@ class TagConnector(SuperSprite):
         image = pygame.surface.Surface((abs(diff.x) or 3, abs(diff.y)) or 3,
                                        SRCALPHA)
         self.rect = image.get_rect()
-        pygame.draw.line(image, WHITE, (1,1), (self.rect.width-1,
+        color = self.tag.color
+        pygame.draw.aaline(image, color, (1,1), (self.rect.width-1,
                                                self.rect.height-1))
         if flip_x != flip_y:  #both flips == no flip
             image = pygame.transform.flip(image, flip_x, flip_y)
@@ -171,13 +172,13 @@ class Tag(SuperSprite):
         cls.default_radius = 50
         cls.initialised = True
 
-    @classmethod
-    def render_lines(cls, lines):
+    def render_lines(self, lines):
         '''
         Return the image of the rendered multiline text
         '''
-        font_height = cls.fontobj.get_height()
-        surfaces = [cls.fontobj.render(ln, True, WHITE) for ln in lines]
+        font_height = self.fontobj.get_height()
+        self.color = STATUS_COLORS[self.plane.status]
+        surfaces = [self.fontobj.render(ln, True, self.color) for ln in lines]
         maxwidth = max([s.get_width() for s in surfaces])
         result = pygame.surface.Surface((maxwidth, len(lines)*font_height),
                                         SRCALPHA)
