@@ -16,6 +16,7 @@ import pygame.image
 import pygame.font
 import os
 from math import sin, cos, radians
+from euclid import Vector2
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -109,6 +110,52 @@ class SuperSprite(pygame.sprite.Sprite):
     def position(self):
         return self.rect.center
 
+
+class TagConnector(SuperSprite):
+
+    '''
+    The line connecting the Tag to the AeroplaneIcon sprites.
+    '''
+
+    def __init__(self, tag):
+        super(TagConnector, self).__init__()
+        tag.set_connector(self)
+        self.tag = tag
+        self.update()
+
+    @property
+    def icon_pos(self):
+        return self.tag.plane.trail[0]
+
+    def update(self):
+        plane = Vector2(*self.icon_pos)
+        angle = self.tag.angle
+        r = self.tag.rect
+        if 0 <= angle < 90:
+            corner = Vector2(*r.bottomleft)
+        elif 90<= angle < 180:
+            corner = Vector2(*r.bottomright)
+        elif 180 <= angle < 270:
+            corner = Vector2(*r.topright)
+        elif 270 <= angle < 360:
+            corner = Vector2(*r.topleft)
+        else:
+            msg = 'Something very fishy with then angles is going on...'
+            raise BaseException(msg)
+        placement = Vector2(min(plane.x, corner.x), min(plane.y, corner.y))
+        flip_x = True if corner.x > plane.x else False
+        flip_y = True if corner.y > plane.y else False
+        diff = plane-corner
+        image = pygame.surface.Surface((abs(diff.x), abs(diff.y)), SRCALPHA)
+        self.rect = image.get_rect()
+        pygame.draw.aaline(image, WHITE, (0,0), (self.rect.width,
+                                                 self.rect.height))
+        if flip_x != flip_y:  #both flips == no flip
+            image = pygame.transform.flip(image, flip_x, flip_y)
+        self.image = image
+        self.rect.move_ip(placement)
+
+
 class Tag(SuperSprite):
 
     '''
@@ -143,8 +190,18 @@ class Tag(SuperSprite):
         self.radar_rect = radar_rect
         self.update()
 
+    def set_connector(self, connector_sprite):
+        '''
+        Associate another sprite (the connecting line from the airplane to the
+        tag) with this sprite. It's used to update that sprite when the tag
+        placement changes.
+        '''
+        self.connector = connector_sprite
+
     def place(self):
         '''
+        Place the tag in a radar position that does not overlaps any other
+        tag or aeroplane icon.
         '''
         cx, cy = self.plane.trail[0]
         while True:
@@ -177,6 +234,7 @@ class Tag(SuperSprite):
         self.angle = self.default_angle
         self.radius = self.default_radius
         self.place()
+
 
 class TrailingDot(SuperSprite):
 
@@ -235,6 +293,7 @@ class TrailingDot(SuperSprite):
         rect = self.data_source.trail[self.time_shift]
         self.rect = get_rect_at_centered_pos(self.image, rect)
 
+
 class AeroplaneIcon(SuperSprite):
 
     '''
@@ -289,3 +348,4 @@ class AeroplaneIcon(SuperSprite):
 AeroplaneIcon.initialise()
 TrailingDot.initialise()
 Tag.initialise()
+TagConnector.initialise()

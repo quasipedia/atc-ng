@@ -44,6 +44,7 @@ class Aerospace(object):
         self.tags = pygame.sprite.Group()
         self.__planes = {}
         self.__aeroports = {}
+        self.collide_func = pygame.sprite.collide_rect_ratio(1.4)
 
     def __filter_self_collisions(self, sprite, collisions):
         '''
@@ -78,10 +79,17 @@ class Aerospace(object):
             record['sprites'].append(dot)
         # Plane tag
         tag = radarsprites.Tag(plane, self.surface.get_rect())
-        self.flying_sprites.add(tag, layer=0)
         self.top_layer.add(tag)
         self.tags.add(tag)
         record['sprites'].append(tag)
+        # Tag connector
+        tag_c = radarsprites.TagConnector(tag)
+        record['sprites'].append(tag_c)
+        # Adding tag and tag connectors to the sprite group: the order is
+        # important, as last-added sprites will be updated first, and since
+        # the tag connectors need the tag to have been already positioned...
+        self.flying_sprites.add(tag_c, layer=0)
+        self.flying_sprites.add(tag, layer=0)
         # Storage of plane info in internal dictionary
         self.__planes[plane.icao] = record
 
@@ -100,20 +108,30 @@ class Aerospace(object):
         '''
         self.__aeroports[iata] = aeroport.Aeroport(iata, runaways)
 
+    def connect_tags(self):
+        '''
+        Connect tags to their plane icon.
+        '''
+        for value in self.__planes.values():
+            ppos = value['sprites'][0].position
+            tpos = value['sprites'][-1].position
+            pygame.draw.aaline(self.surface, WHITE, ppos, tpos)
+
     def untangle_tags(self):
         '''
         Spread plane tags so as not to overlap with other tags or planes.
         (This should guarantee it's always possible to read them).
         '''
         collisions = pygame.sprite.groupcollide(self.tags, self.top_layer,
-                                                False, False)
+                                            False, False, self.collide_func)
         for k,v in collisions.items():
             self.__filter_self_collisions(k, v)
             if not v:
                 del collisions[k]
         is_colliding = lambda tag : \
             self.__filter_self_collisions(tag,
-                       pygame.sprite.spritecollide(tag, self.top_layer, False))
+                       pygame.sprite.spritecollide(tag, self.top_layer,
+                                                   False, self.collide_func))
         for tag in collisions.keys():
             # Since "A collides with B" also means "B collides with A", solving
             # the first means solving the second, so we need to re-check for
@@ -126,6 +144,7 @@ class Aerospace(object):
                 if tag.angle == start_angle:
                     tag.radius += radius_step
                 tag.place()
+            tag.connector.update()
 
     def kill_escaped(self):
         '''
