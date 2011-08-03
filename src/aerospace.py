@@ -163,6 +163,13 @@ class Aerospace(object):
         pass
 
     @property
+    def aeroplanes(self):
+        '''
+        Return a list of the planes existing in the aerospace.
+        '''
+        return [v['plane'] for v in self.__planes.values()]
+
+    @property
     def aeroports(self):
         '''
         Return a list of the available airports on the map.

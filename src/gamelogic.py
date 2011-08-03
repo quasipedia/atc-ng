@@ -39,12 +39,12 @@ class GameLogic(object):
         pygame.draw.line(surface, WHITE, (x+w+1, y), (x+w+1, WINDOW_SIZE[1]))
         pygame.draw.line(surface, WHITE, (x-1, y+h+1), (x+w+1, y+h+1))
         self.aerospace = aerospace.Aerospace(self.radar_surface)
-        self.cli = commander.CommandLine(self.cli_surface)
+        self.cli = commander.CommandLine(self.cli_surface, self.aerospace)
         self.ms_from_last_ping = PING_PERIOD+1  #force update on first run
         self.__quick_start()
 
     def __quick_start(self):
-        for i in range(40):
+        for i in range(3):
             self.aerospace.add_plane()
 
     def key_pressed(self, key):

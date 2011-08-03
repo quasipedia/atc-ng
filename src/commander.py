@@ -98,22 +98,22 @@ class Parser(object):
     Parse a command line (execute it)
     '''
 
-    def __init__(self, sentence=''):
-        #Normalisation
-        sentence = sentence.lower()
+    def __init__(self, aerospace):
+        self.aerospace = aerospace
+        self.initialise()
+
+    def initialise(self, sentence=''):
+        '''
+        The parser object is reusable. This method resets the parser internal
+        status and set the text to a given value.
+        '''
+        # If present, separate control character from command with a space
         if len(sentence) > 1 and sentence[0] in './' and sentence[1] != ' ':
             sentence = sentence[0] + ' ' + sentence[1:]
         self.sentence = sentence
         self.validated = False
         self.bits = []                   #the sentence, reversed and split
         self.target = None               #plane that should receive order
-
-    def init(self, sentence=''):
-        '''
-        The parser object is reusable. This method resets the parser internal
-        status and set the text to a given value.
-        '''
-        self.__init__(sentence)
 
     def validate(self):
         '''Validate current text. Return True/False.'''
@@ -144,7 +144,7 @@ class Parser(object):
             elif first == '/':
                 self.parse_game_command()
             else:
-                msg = 'Invalid ICAO reference (direct - %s)' % plane
+                msg = 'Invalid ICAO reference (direct - %s)' % first
                 raise BaseException(msg)
 
     def parse_plane_command(self):
@@ -154,9 +154,7 @@ class Parser(object):
         pass
 
     def parse_game_command(self):
-        command = self.bits.pop()
-        print(command)
-        print(GAME_COMMANDS['quit']['spellings'])
+        command = self.bits.pop().lower()
         if command in GAME_COMMANDS['quit']['spellings']:
             print('quit')
         elif command in GAME_COMMANDS['help']['spellings']:
@@ -170,13 +168,49 @@ class CommandLine(object):
     This class manage the command string composition, validation, etc...
     '''
 
-    def __init__(self, surface):
-        self.chars = list('Hello world!')
+    def __init__(self, surface, aerospace):
+        self.chars = list('')
         self.surface = surface
+        self.aerospace = aerospace
         if not pygame.font.get_init():
             pygame.font.init()
         self.textbox = pygame.font.Font(None, FONT_HEIGHT)
-        self.parser = Parser()
+        self.parser = Parser(aerospace)
+
+    def _get_list_of_existing(self, what, context=None):
+        '''
+        Return a list of existing (=valid) strings representing `what`
+        ('planes', 'aeroports', 'runaways' or 'beacons'). The `contex` value
+        is used for those `what` which are not global to the aerospace (e.g.:
+        runaways can be given for a given aeroport, not aerospace).
+        '''
+        if what == 'planes':
+            return [p.icao for p in self.aerospace.aeroplanes]
+        elif what == 'aeroports':
+            return [a.iata for a in self.aerospace.aeroports]
+        elif what == 'runaways':
+            assert context != None  #Context must be the name of the aeroport
+            for ap in self.aerospace.aeroports:
+                if ap.iata == context:
+                    return [r.id for r in ap.runaways]
+        elif what == 'beacons':
+            return [b.code for b in self.aerospace.beacons]
+        else:
+            raise BaseException('Unknown type of items!')
+
+    def _get_common_beginning(self, strings):
+        '''
+        Return the strings that is common to the beginning of each string in
+        the strings list.
+        '''
+        result = []
+        limit = min([len(s) for s in strings])
+        for i in range(limit):
+            if reduce(lambda s1,s2 : True and s1[i] == s2[i], strings) == True:
+                result.append(object)
+            else:
+                break
+        return ''.join(result)
 
     @property
     def text(self):
@@ -184,17 +218,24 @@ class CommandLine(object):
 
     def process_keystroke(self, event):
         if event.key == K_RETURN:
-            self.parser.init(self.text)
+            self.parser.initialise(self.text)
             self.parser.parse()
         elif event.key == K_BACKSPACE and self.chars:
             self.chars.pop()
         elif event.key == K_TAB:
             self.autocomplete()
         elif event.unicode in VALID_CHARS:
-            self.chars.append(event.unicode)
+            self.chars.append(event.unicode.upper())
 
     def autocomplete(self):
-        self.chars.extend(list('-auto-'))
+        pool = self._get_list_of_existing('planes')
+        root = ''.join(self.chars).split()[-1]  #The bit after the last space
+        matches = [i for i in pool if i.find(root) == 0]
+        if len(matches) == 1:
+            match = matches[0]
+        else:
+            match = self._get_common_beginning(matches)
+        self.chars.extend(list(match[len(root):]))
 
     def validate(self):
         return True
