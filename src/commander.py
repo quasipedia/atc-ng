@@ -27,7 +27,7 @@ def validate_icao(icao):
     Valid plane designations are in the format `XXX0000` with `X` being letters
     and `0` being digits.
     '''
-    return not None == re.match(r'^[a-z]{3}\d{4}$', icao)
+    return not (None == re.match(r'^[a-zA-Z]{3}\d{4}$', icao))
 
 def validate_heading(heading):
     '''
@@ -206,8 +206,9 @@ class CommandLine(object):
         result = []
         limit = min([len(s) for s in strings])
         for i in range(limit):
-            if reduce(lambda s1,s2 : True and s1[i] == s2[i], strings) == True:
-                result.append(object)
+            chs = set([s[i] for s in strings])
+            if len(chs) == 1:
+                result.append(chs.pop())
             else:
                 break
         return ''.join(result)
@@ -232,9 +233,11 @@ class CommandLine(object):
         root = ''.join(self.chars).split()[-1]  #The bit after the last space
         matches = [i for i in pool if i.find(root) == 0]
         if len(matches) == 1:
-            match = matches[0]
-        else:
+            match = matches[0]+' '
+        elif len(matches) > 1:
             match = self._get_common_beginning(matches)
+        else:
+            return
         self.chars.extend(list(match[len(root):]))
 
     def validate(self):

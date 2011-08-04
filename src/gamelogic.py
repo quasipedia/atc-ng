@@ -44,7 +44,7 @@ class GameLogic(object):
         self.__quick_start()
 
     def __quick_start(self):
-        for i in range(3):
+        for i in range(10):
             self.aerospace.add_plane()
 
     def key_pressed(self, key):
