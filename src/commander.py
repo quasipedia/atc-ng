@@ -65,7 +65,7 @@ PLANE_COMMANDS = {
 class Parser(object):
 
     '''
-    Parse a command line (execute it)
+    Parse a command line (validate and execute it).
     '''
 
     def __init__(self, aerospace):
@@ -91,8 +91,8 @@ class Parser(object):
 
     def _validate_icao(self, icao):
         '''
-        Valid plane designations are in the format `XXX0000` with `X` being letters
-        and `0` being digits.
+        Valid plane designations are in the format `XXX0000` with `X` being
+        letters and `0` being digits.
         '''
         return not (None == re.match(r'^[a-zA-Z]{3}\d{4}$', icao))
 
@@ -109,8 +109,9 @@ class Parser(object):
 
     def _validate_altitude(self, altitude):
         '''
-        Valid altitudes are given in hundreds of meters, and are multiple of 500.
-        They must also be in the range between min and max altitudes for the game.
+        Valid altitudes are given in hundreds of meters, and are multiple of
+        500. They must also be in the range between min and max altitudes for
+        the game.
         '''
         #TODO: Parametrise the min and max in-game altitudes
         try:
@@ -131,8 +132,8 @@ class Parser(object):
 
     def _validate_land(self, iata, runaway):
         '''
-        Valid landings indicate the three-letters airport code and the runaway in
-        the format 00X, where 0 represent a digit and X a letter (R or L or C)
+        Valid landings indicate the three-letters airport code and the runaway
+        in the format 00X, where 0 represent a digit and X a letter (R,L or C)
         '''
         return (not (None == re.match(r'^[a-zA-Z]{3}$', iata)) and
                 not (None == re.match(r'^\d{2}(L|C|R)?$', runaway)))
@@ -145,44 +146,47 @@ class Parser(object):
             return False
         return True
 
-    def validate(self):
-        '''Validate current text. Return True/False.'''
-        #TODO: validation goes here!
-        return True
-
     def parse(self):
-        '''Parse the command line.'''
+        '''
+        Validate/Parse the command line.
+        Returns a list of parsed commands in case of success, or a string with
+        an error message in case of failure.
+        The parsed commands list is structured with a callable object and a
+        list that should be given as input for it:
+        [[callable_, [arg1, arg2...]], [callable_, [arg1, arg2]]]
+        '''
         if len(self.sentence) == 0:
-            return
-        if self.validated or self.validate():
-            self.bits = self.sentence.lower().split()
-            self.bits.reverse()
-            first = self.bits.pop()
-            # We're issuing commands to a plane
-            if self._validate_icao(first):
-                self.parse_plane_commands(first)
-            # We're appending commands to a plane queue
-            elif first[0] == '.':
-                icao = self.bits.pop()
-                if self._validate_icao(icao):
-                    self.append_command(icao)
-                else:
-                    msg = 'Invalid ICAO reference (append - %s)' % icao
-                    raise BaseException(msg)
-            # We're issuing a game command
-            elif first == '/':
-                self.parse_game_command()
+            return []
+        self.bits = self.sentence.lower().split()
+        self.bits.reverse()
+        first = self.bits.pop()
+        # We're issuing commands to a plane
+        if self._validate_icao(first):
+            return self.parse_plane_commands(first)
+        # We're appending commands to a plane queue
+        elif first[0] == '.':
+            icao = self.bits.pop()
+            if self._validate_icao(icao):
+                return self.parse_plane_commands(icao, to_queue=True)
             else:
-                msg = 'Invalid ICAO reference (direct - %s)' % first
-                raise BaseException(msg)
+                msg = 'Invalid ICAO reference (append - %s)' % icao
+                return msg
+        # We're issuing a game command
+        elif first == '/':
+            return self.parse_game_command()
+        else:
+            msg = 'Invalid ICAO reference (direct - %s)' % first
+            return msg
 
-    def parse_plane_commands(self, icao):
+    def parse_plane_commands(self, icao, to_queue=False):
         '''
         Parse all commands on the command line, dispatching them to the plane
         whose ICAO code is given.
         '''
         parsed_commands = []
         aeroplane = self.aerospace.get_plane_by_icao(icao)
+        callable_ = aeroplane.queue_command if to_queue \
+                                            else aeroplane.execute_command
         while len(self.bits) != 0:
             issued = self.bits.pop()
             # Identify what command has been issued
@@ -195,7 +199,7 @@ class Parser(object):
                     break
             if not command_name or not command:
                 msg = 'Unrecognised bit, expected command: %s' % issued
-                raise BaseException(msg)
+                return msg
             # Parse arguments
             args = []
             for i in range(command['arguments']):
@@ -203,13 +207,13 @@ class Parser(object):
                     args.append(self.bits.pop())
                 except IndexError:
                     msg = 'Not enough arguments for command %s' % command_name
-                    raise BaseException(msg)
+                    return msg
             # Verify that arguments pass validation
             if command['validator']:
                 validator = getattr(self, command['validator'])
                 if not validator(*args):
                     msg = 'Parameters for %s failed validation' % command_name
-                    raise BaseException(msg)
+                    return msg
             # Check for flags and parse them if present
             flags = []
             possible_flag = command['flags']  #[] = skip
@@ -226,30 +230,33 @@ class Parser(object):
                         break
             # Store the parsed commands
             parsed_commands.append([command_name, args, flags])
+        # Verify that some command has been entered
+        if len(parsed_commands) == 0:
+            msg = 'No commands were issued for the plane!'
+            return msg
         # Verify the compatibility of stored commands: only heading, speed and
         # altitude values can be combined in a single command.
-        if len(parsed_commands) != 1:
+        elif len(parsed_commands) != 1:
             command_list = [el[0] for el in parsed_commands]
             if len(command_list) != len(set(command_list)):
-                raise BaseException('Repeated commands!')
+                msg = 'Repeated commands!'
+                return msg
             for com in command_list:
                 if com not in ['heading', 'altitude', 'speed']:
                     msg = 'Only heading, altitude and speed can be combined!'
-                    raise BaseException(msg)
-        # If you made it until here, it's safe to process the commands!
-        aeroplane.execute_command(parsed_commands)
+                    return msg
+        return (callable_, parsed_commands)
 
-    def append_command(self, plane):
-        pass
-
-    def parse_game_command(self):
+    def parse_game_command(self, validate_only=False):
         command = self.bits.pop()
         if command in GAME_COMMANDS['quit']['spellings']:
             print('quit')
         elif command in GAME_COMMANDS['help']['spellings']:
             print('help')
         else:
-            raise BaseException('Invalid game command! (%s)' % command)
+            msg = 'Invalid game command! (%s)' % command
+            return msg
+        return []
 
 class CommandLine(object):
 
@@ -309,7 +316,12 @@ class CommandLine(object):
     def process_keystroke(self, event):
         if event.key == K_RETURN:
             self.parser.initialise(self.text)
-            self.parser.parse()
+            parsed = self.parser.parse()
+            if type(parsed) not in (tuple, list):
+                print('Validation failed with message: %s' % parsed)
+            elif parsed:
+                callable_, args = parsed
+                callable_(args)
         elif event.key == K_BACKSPACE and self.chars:
             self.chars.pop()
         elif event.key == K_TAB:

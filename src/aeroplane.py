@@ -90,6 +90,8 @@ class Aeroplane(object):
                        COLLISION][randint(0,4)]
         # Initialise the trail
         self.trail = deque([sc(self.position.xy)] * TRAIL_LENGTH, TRAIL_LENGTH)
+        # Initialise the command queue
+        self.queued_commands = []
 
     def __random_icao(self):
         '''Return a random pseudo-ICAO flight number'''
@@ -150,9 +152,24 @@ class Aeroplane(object):
         Input is a list of triplets each of them in the format:
         [command, arguments (list), flags (list)]
         '''
-        for line in input:
-            command, args, flags = line
+        print('EXECUTED by %s' % self.icao)
+        if type(input[0]) != list:
+            command, args, flags = input
             print(command, args, flags)
+        else:
+            print('alter target conf', input)
+
+    def queue_command(self, input):
+        '''
+        Add a command to the queue buffer.
+        '''
+        self.queued_commands.append(input)
+        print('QUEUED by %s' % self.icao)
+        if type(input[0]) != list:
+            command, args, flags = input
+            print(command, args, flags)
+        else:
+            print('alter target conf', input)
 
     def turn(self, pings):
         '''
