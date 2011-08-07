@@ -8,6 +8,7 @@ from locals import *
 from pygame.locals import *
 import pygame.font
 import re
+import time
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -284,7 +285,7 @@ class CommandLine(object):
         self.aerospace = aerospace
         if not pygame.font.get_init():
             pygame.font.init()
-        self.textbox = pygame.font.Font(None, FONT_HEIGHT)
+        self.textbox = pygame.font.Font('../data/ex_modenine.ttf', FONT_HEIGHT)
         self.parser = Parser(aerospace)
 
     def _get_list_of_existing(self, what, context=None):
@@ -332,6 +333,8 @@ class CommandLine(object):
         return ''.join(self.chars)
 
     def process_keystroke(self, event):
+        mods = pygame.key.get_mods()
+        print(mods, KMOD_NONE, KMOD_CTRL, KMOD_LCTRL, KMOD_RCTRL)
         if event.key == K_RETURN:
             self.parser.initialise(self.text)
             parsed = self.parser.parse()
@@ -340,11 +343,16 @@ class CommandLine(object):
             elif parsed:
                 callable_, args = parsed
                 callable_(args)
+        elif event.key == K_ESCAPE:
+            self.chars = []
         elif event.key == K_BACKSPACE and self.chars:
-            self.chars.pop()
+            self.chars.pop()  #one char is taken away in any case
+            if mods & KMOD_LCTRL:
+                while self.chars and self.chars.pop() != ' ':
+                    pass
         elif event.key == K_TAB:
             self.autocomplete()
-        elif event.unicode in VALID_CHARS:
+        elif not mods & KMOD_LCTRL and event.unicode in VALID_CHARS:
             # No leading spaces, no double spaces
             if event.unicode == ' ' and \
                (len(self.chars) == 0 or self.chars[-1] == ' '):
@@ -399,10 +407,12 @@ class CommandLine(object):
         pass
 
     def draw(self):
-        image = self.textbox.render(self.text, True, WHITE, BLACK)
+        # Basic blinking of cursor
+        cursor = '_' if int(time.time()*2) % 2 else ''
+        image = self.textbox.render(self.text + cursor, True, WHITE, BLACK)
         iw, ih = image.get_size()
         sw, sh = self.surface.get_size()
-        x = (sw - iw)/2
+        x = sw*0.02
         y = (sh - ih)/2
         self.surface.fill(BLACK)
         self.surface.blit(image, (x,y))

@@ -68,7 +68,7 @@ METRES_PER_PIXELS = RADAR_RANGE*2.0/RADAR_RECT.width
 
 CLI_RECT = pygame.rect.Rect(RADAR_RECT.x, RADAR_RECT.h+2,
                             RADAR_RECT.w, WINDOW_SIZE[1]-RADAR_RECT.h-2)
-FONT_HEIGHT = int(round(CLI_RECT.h * 0.8))
+FONT_HEIGHT = int(round(CLI_RECT.h * 0.5))
 
 def rint(float_):
     '''
