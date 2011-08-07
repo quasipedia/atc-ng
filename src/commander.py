@@ -44,7 +44,7 @@ PLANE_COMMANDS = {
                       'arguments': 1,
                       'validator': '_validate_speed',
                       'flags'    : {'expedite': ['expedite', 'x']}},
-        'take off' : {'spellings': ['takeoff', 'to', 'up', 'fly'],
+        'takeoff' : {'spellings': ['takeoff', 'to', 'up', 'fly'],
                       'arguments': 1,
                       'validator': '_validate_altitude',
                       'flags'    : {'expedite': ['expedite', 'x']}},
@@ -188,8 +188,22 @@ class Parser(object):
         callable_ = aeroplane.queue_command if to_queue \
                                             else aeroplane.execute_command
         while len(self.bits) != 0:
+            # The first bit of a command sequence is either the command or
+            # the condensed form for heading, altitude and speed (see below)
             issued = self.bits.pop()
-            # Identify what command has been issued
+            # Special condensed syntax is allowed for H, A, S in the form
+            # letter+digits without spaces
+            print(issued)
+            decomposed = re.match(r'^(h|s|a)(\d{2,})$', issued)
+            if decomposed:
+                c = decomposed.group(1)
+                a = decomposed.group(2)
+                if c == 'h' and self._validate_heading(a) or \
+                   c == 'a' and self._validate_altitude(a) or \
+                   c == 's' and self._validate_speed(a):
+                    issued = c
+                    self.bits.append(a)
+            # Identify the issued command
             command_name = None
             command = None
             for k, v in PLANE_COMMANDS.items():
@@ -282,6 +296,8 @@ class CommandLine(object):
         '''
         if what == 'planes':
             return [p.icao for p in self.aerospace.aeroplanes]
+        elif what == 'plane_commands':
+            return [key for key in PLANE_COMMANDS.keys()]
         elif what == 'aeroports':
             return [a.iata for a in self.aerospace.aeroports]
         elif what == 'runaways':
@@ -291,8 +307,10 @@ class CommandLine(object):
                     return [r.id for r in ap.runaways]
         elif what == 'beacons':
             return [b.code for b in self.aerospace.beacons]
+        elif what == 'game_commands':
+            return [key for key in GAME_COMMANDS.keys()]
         else:
-            raise BaseException('Unknown type of items!')
+            raise BaseException('Unknown type of items: %s!' % what)
 
     def _get_common_beginning(self, strings):
         '''
@@ -327,12 +345,48 @@ class CommandLine(object):
         elif event.key == K_TAB:
             self.autocomplete()
         elif event.unicode in VALID_CHARS:
+            # No leading spaces, no double spaces
+            if event.unicode == ' ' and \
+               (len(self.chars) == 0 or self.chars[-1] == ' '):
+                return
             self.chars.append(event.unicode.upper())
+            # command modifiers from commands
+            if event.unicode in './':
+                self.chars.append(' ')
 
     def autocomplete(self):
-        root = ''.join(self.chars).split()[-1]  #The bit after the last space
-        pool = self._get_list_of_existing('planes')
-        matches = [i for i in pool if i.find(root) == 0]
+        splitted = self.text.split()
+        # get the root to be autocompleted
+        root = splitted[-1]
+        what = None
+        context = None
+        # identify what is the context of autocompletion
+        if self.chars[0] == '/':
+            what = 'game_commands'
+        elif len(splitted) == 2 and self.chars[0] == '.' or root == self.text:
+            what = 'planes'
+        elif len(splitted) > 1:
+            pre = splitted[-2].lower()
+            if self.parser._validate_icao(splitted[-2]):
+                what = 'plane_commands'
+            elif pre in PLANE_COMMANDS['land']['spellings']:
+                what = 'aeroports'
+            elif pre in PLANE_COMMANDS['heading']['spellings']:
+                what = 'beacons'
+            elif len(splitted) > 2:
+                if splitted[-3].lower() in PLANE_COMMANDS['land']['spellings']:
+                    what = 'runaways'
+                    context = splitted[-2]
+                elif (self.parser._validate_icao(splitted[0]) or \
+                     self.parser._validate_icao(splitted[1])) and \
+                     splitted[-2].lower() not in PLANE_COMMANDS.keys():
+                    what = 'plane_commands'
+        print(what, context)
+        if not what:
+            return
+        pool = self._get_list_of_existing(what, context)
+        print(pool)
+        matches = [i.upper() for i in pool if i.upper().find(root) == 0]
         if len(matches) == 1:
             match = matches[0]+' '
         elif len(matches) > 1:
@@ -340,9 +394,6 @@ class CommandLine(object):
         else:
             return
         self.chars.extend(list(match[len(root):]))
-
-    def validate(self):
-        return True
 
     def update(self):
         pass
