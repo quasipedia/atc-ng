@@ -53,7 +53,7 @@ class Aeroplane(object):
                         'landing_speed',   # landing speed at touchdown
                         'max_g',           # maximum Gforce
                         #DYNAMIC
-                        'target_conf',     # (heading, ground speed, altitude)
+                        'target_conf',     # (heading, speed, altitude)
                         'position',        # 3D vector
                         'velocity',        # 3D vector
                         'fuel',            # seconds before crash
@@ -143,6 +143,16 @@ class Aeroplane(object):
         elif self.velocity.z < self.speed:
             indicator = CHAR_DOWN
         return indicator
+
+    def execute_command(self, input):
+        '''
+        Execute commands.
+        Input is a list of triplets each of them in the format:
+        [command, arguments (list), flags (list)]
+        '''
+        for line in input:
+            command, args, flags = line
+            print(command, args, flags)
 
     def turn(self, pings):
         '''

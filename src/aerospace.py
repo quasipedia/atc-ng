@@ -169,6 +169,10 @@ class Aerospace(object):
         '''
         return [v['plane'] for v in self.__planes.values()]
 
+    def get_plane_by_icao(self, icao):
+        icao = icao.upper()
+        return self.__planes[icao]['plane']
+
     @property
     def aeroports(self):
         '''
