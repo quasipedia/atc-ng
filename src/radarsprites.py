@@ -221,7 +221,7 @@ class Tag(SuperSprite):
         lines.append(pl.icao.upper())
         # LINE 2 = Altitude, speed
         # Remove last digit, add variometer
-        alt = str(int(round(pl.altitude/10.0)))
+        alt = str(rint(pl.altitude/100.0))
         alt += pl.variometer
         # Convert m/s to kph AND remove last digit, add accelerometer
         spd = str(rint(pl.speed*0.36))
@@ -333,10 +333,10 @@ class AeroplaneIcon(SuperSprite):
             #    North, but on screen (and for pygame) they are CCW from East
             # 2. screen Y axis has reversed polarity from simulation one (it
             #    decreases going UP!!
-            # The CCW vs CW and the polarity axis compensate for each other,
-            # eliminatig the need to change sign to the heading. the North vs
-            # East is compensated by subtracting 90 degrees.
-            heading -= 90
+            # The CCW vs CW is compensated by sign reversal. The 90 degrees
+            # offset is compensated by the orientation of the original sprite
+            # (North rather than East).
+            heading *= -1
             self.image = self.rotoscale(img, heading, SPRITE_SCALING, 15)
         self.rect = get_rect_at_centered_pos(self.image, self.data_source.trail[0])
 

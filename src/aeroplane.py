@@ -54,19 +54,19 @@ class Aeroplane(object):
                         'model',           # Type of plane (name)
                         'destination',     # Airport name
                         'entry_time',      # Time of entry in airspace
-                        'max_speed',       # max ground speed speed
-                        'accel_limits',    # (decel, accel) XY projected accel
                         'max_altitude',    # max altitude
                         'climb_limits',    # (down, up) max climb rates
+                        'max_speed',       # max ground speed
+                        'accel_limits',    # (decel, accel)
                         'landing_speed',   # landing/takeoff speed
-                        'max_g',           # maximum Gforce
+                        'max_g',           # Gforce for emergency manouvers
                         #DYNAMIC
                         'target_conf',     # (heading, speed, altitude)
                         'position',        # 3D vector
                         'velocity',        # 3D vector
                         'fuel',            # seconds before crash
                         'time_last_cmd',   # time of last received command
-                        'flags',           # list of flags
+                        'flags',           # flag object (see class `Flags`)
                        ]
 
     def __init__(self, **kwargs):
@@ -78,14 +78,16 @@ class Aeroplane(object):
             self.icao = self.__random_icao()
         if self.position == None:
             self.position = Vector3(randint(0, RADAR_RANGE*2),
-                                    randint(0, RADAR_RANGE*2))
+                                    randint(0, RADAR_RANGE*2), 0)
         if self.velocity == None:
             self.velocity = Vector3(randint(30,400), 0, 0)
         if self.target_conf == None:
             self.target_conf = {}
-            self.target_conf['heading'] = self.heading + randint(-90,90)
-            self.target_conf['speed'] = self.speed + randint(-100, 100)
-            self.target_conf['altitude'] = self.altitude + randint(-3000, 3000)
+            self.target_conf['heading'] = self.heading
+            self.target_conf['speed'] = self.speed
+            self.target_conf['altitude'] = self.altitude
+        if self.climb_limits == None:
+            self.climb_limits = (-100, 50)
         # Dummy to test varius sprites
         mag = self.velocity.magnitude()
         if mag < 150:
@@ -122,7 +124,7 @@ class Aeroplane(object):
     @property
     def heading(self):
         '''Current heading [CW degrees from North]'''
-        return degrees(atan2(self.velocity.y, self.velocity.x))
+        return (90-degrees(atan2(self.velocity.y, self.velocity.x)))%360
 
     @property
     def speed(self):
@@ -185,6 +187,12 @@ class Aeroplane(object):
             value = NON_CONTROLLED
         return value
 
+    def queue_command(self, input):
+        '''
+        Add a command to the queue buffer.
+        '''
+        self.queued_commands.append(input)
+
     def execute_command(self, commands):
         '''
         Execute commands.
@@ -194,6 +202,8 @@ class Aeroplane(object):
         '''
         for line in commands:
             command, args, flags = line
+            if 'expedite' in flags:
+                self.flags.expedite = True
             if command == 'heading':
                 feasible = self.__verify_feasibility(heading=args[0])
                 if feasible != True:
@@ -215,13 +225,7 @@ class Aeroplane(object):
                 raise BaseException('Unknown command: %s' % command)
             return True
 
-    def queue_command(self, input):
-        '''
-        Add a command to the queue buffer.
-        '''
-        self.queued_commands.append(input)
-
-    def turn(self, pings):
+    def _veer(self, pings):
         '''
         Make the plane turn.
 
@@ -245,13 +249,23 @@ class Aeroplane(object):
                              angular_speed*self.ping_in_seconds*pings)
 
     def update(self, pings):
-        if self.speed != self.target_conf['speed']:
-            pass
+        print('---')
+        print('Velocity: %s' % self.velocity)
+        print('S:%d - H:%d - A:%d' % (self.speed, self.heading, self.altitude))
         if self.altitude != self.target_conf['altitude']:
-            pass
+            print(self.altitude, self.target_conf['altitude'])
+            index = self.altitude > self.target_conf['altitude']
+            v_acc = Vector3(0, 0, self.climb_limits[index])
+            print(v_acc)
+            # Non expedite climbs are limited at 50% of maximum rate
+            if not self.flags.expedite:
+                v_acc *= 0.5
+            self.velocity += v_acc*self.ping_in_seconds*pings
         if self.heading != self.target_conf['heading']:
             pass
-        self.turn(pings)
+        if self.speed != self.target_conf['speed']:
+            pass
+        self._veer(pings)
         self.position += self.velocity*self.ping_in_seconds*pings
         self.rect = sc(self.position.xy)
         # TODO: trail entries could happen only 1 in X times, to make dots
