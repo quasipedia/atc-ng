@@ -20,6 +20,22 @@ __email__ = "quasipedia@gmail.com"
 __status__ = "Development"
 
 
+class Flags(object):
+
+    '''
+    A simple container for flags, used only to avoid using dictionaries all
+    over the place.
+    '''
+
+    def __init__(self):
+        self.expedite = False
+        self.up_cleared = False        # take off clearance
+        self.down_cleared = False      # landing clearance
+        self.priority = False
+        self.circling = False
+        self.locked = False            # The plane is under computer control
+        self.collision = False         # The plane is on a collision path
+
 class Aeroplane(object):
 
     '''
@@ -30,14 +46,7 @@ class Aeroplane(object):
     The ICAO attribute is also used as unique ID for each airplane.
 
     Each aeroplane has static attributes depending from the model the plane is.
-    The flag property contains a list of empty possible flags:
-        Expedite   - Expedite climb or acceleration
-        Cleared    - Cleared for takeoff or landing
-        Emergency  - High priority flight
-        Circling_L - Circling left
-        Circling_R - Circling right
-        Locked     - The plane is under computer control
-        Collision  - The plane is on a collision path
+    See the class `Flag` to see what status flag a plane can have.
     '''
 
     KNOWN_PROPERTIES = [#STATIC
@@ -85,8 +94,7 @@ class Aeroplane(object):
             self.model = 'jet'
         else:
             self.model = 'supersonic'
-        self.status = [CONTROLLED, INSTRUCTED, NON_CONTROLLED, PRIORITIZED,
-                       COLLISION][randint(0,4)]
+        self.flags = Flags()
         # Initialise the trail
         self.trail = deque([sc(self.position.xy)] * TRAIL_LENGTH, TRAIL_LENGTH)
         # Initialise the command queue
@@ -159,6 +167,24 @@ class Aeroplane(object):
             indicator = CHAR_DOWN
         return indicator
 
+    @property
+    def sprite_index(self):
+        '''
+        Return a sprite index value (for selecting the correct sprite in the
+        sprite sheets). Highest priority statuses override lower priority ones.
+        '''
+        value = CONTROLLED
+        if self.queued_commands or self.flags.circling or \
+           self.flags.down_cleared or self.flags.up_cleared:
+            value = INSTRUCTED
+        if self.flags.priority:
+            value = PRIORITIZED
+        if self.flags.collision:
+            value = COLLISION
+        if self.flags.locked:
+            value = NON_CONTROLLED
+        return value
+
     def execute_command(self, commands):
         '''
         Execute commands.
@@ -169,17 +195,14 @@ class Aeroplane(object):
         for line in commands:
             command, args, flags = line
             if command == 'heading':
-                arg = int(args[0])
-                feasible = self.__verify_feasibility(heading=arg)
+                feasible = self.__verify_feasibility(heading=args[0])
                 if feasible != True:
                     return feasible
-                self.target_conf['heading'] = arg
+                self.target_conf['heading'] = args[0]
             elif command == 'altitude':
-                arg = int(args[0])*100
-                self.target_conf['altitude'] = arg
+                self.target_conf['altitude'] = args[0]
             elif command == 'speed':
-                arg = rint(int(args[0]) / 3.6)
-                self.target_conf['speed'] = arg
+                self.target_conf['speed'] = args[0]
             elif command == 'takeoff':
                 pass
             elif command == 'land':
@@ -222,6 +245,12 @@ class Aeroplane(object):
                              angular_speed*self.ping_in_seconds*pings)
 
     def update(self, pings):
+        if self.speed != self.target_conf['speed']:
+            pass
+        if self.altitude != self.target_conf['altitude']:
+            pass
+        if self.heading != self.target_conf['heading']:
+            pass
         self.turn(pings)
         self.position += self.velocity*self.ping_in_seconds*pings
         self.rect = sc(self.position.xy)

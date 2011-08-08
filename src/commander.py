@@ -90,15 +90,19 @@ class Parser(object):
         self.target = None               #plane that should receive order
 
     # VALIDATORS These methods provide validation for the arguments of the
-    # commands, they all return True/False according to whether the argument is
-    # a valid one. All arguments are passed-in as strings.
+    # commands. All arguments are passed-in as strings and are converted to a
+    # suitable format during the validation process. The methods return False
+    # if the argument fails validation, or a list containing the converted ones
+    # if passes.
 
     def _validate_icao(self, icao):
         '''
         Valid plane designations are in the format `XXX0000` with `X` being
         letters and `0` being digits.
         '''
-        return not (None == re.match(r'^[a-zA-Z]{3}\d{4}$', icao))
+        if None == re.match(r'^[a-zA-Z]{3}\d{4}$', icao):
+            return False
+        return [icao.upper()]
 
     def _validate_heading(self, heading):
         '''
@@ -109,7 +113,9 @@ class Parser(object):
             num_h = int(heading)
         except ValueError:
             return False
-        return 0 <= num_h <= 360 and len(heading) == 3
+        if not 0 <= num_h <= 360 and len(heading) == 3:
+            return False
+        return [num_h]
 
     def _validate_altitude(self, altitude):
         '''
@@ -122,7 +128,9 @@ class Parser(object):
             num_a = int(altitude)
         except ValueError:
             return False
-        return 0 <= num_a <= 80 and len(altitude) == 2 and num_a % 5 == 0
+        if not 0 <= num_a <= 80 and len(altitude) == 2 and num_a % 5 == 0:
+            return False
+        return [num_a * 100]  #return in metres
 
     def _validate_speed(self, speed):
         '''
@@ -132,7 +140,7 @@ class Parser(object):
             num_s = int(speed)
         except ValueError:
             return False
-        return True
+        return [rint(num_s / 3.6)]  #return in metres/second
 
     def _validate_land(self, iata, runaway):
         '''
@@ -228,7 +236,8 @@ class Parser(object):
             # Verify that arguments pass validation
             if command['validator']:
                 validator = getattr(self, command['validator'])
-                if not validator(*args):
+                args = validator(*args)
+                if not args:
                     msg = 'Parameters for %s failed validation' % command_name
                     return msg
             # Check for flags and parse them if present
@@ -348,6 +357,7 @@ class CommandLine(object):
             elif parsed:
                 callable_, args = parsed
                 callable_(args)
+                self.chars = []
         elif event.key == K_ESCAPE:
             self.chars = []
         elif event.key == K_BACKSPACE and self.chars:
@@ -357,7 +367,11 @@ class CommandLine(object):
                     pass
         elif event.key == K_TAB:
             self.autocomplete()
-        elif not mods & KMOD_LCTRL and event.unicode in VALID_CHARS:
+        elif event.unicode in VALID_CHARS:
+            # No unintentional spaces (issued by appending empty chars due
+            # to modifiers keys)
+            if event.unicode == '':
+                return
             # No leading spaces, no double spaces
             if event.unicode == ' ' and \
                (len(self.chars) == 0 or self.chars[-1] == ' '):
@@ -416,9 +430,6 @@ class CommandLine(object):
         else:
             return
         self.chars.extend(list(match[len(root):]))
-
-    def update(self):
-        pass
 
     def draw(self):
         # Basic blinking of cursor

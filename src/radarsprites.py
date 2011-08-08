@@ -177,7 +177,7 @@ class Tag(SuperSprite):
         Return the image of the rendered multiline text
         '''
         font_height = self.fontobj.get_height()
-        self.color = STATUS_COLORS[self.plane.status]
+        self.color = STATUS_COLORS[self.plane.sprite_index]
         surfaces = [self.fontobj.render(ln, True, self.color) for ln in lines]
         maxwidth = max([s.get_width() for s in surfaces])
         result = pygame.surface.Surface((maxwidth, len(lines)*font_height),
@@ -284,7 +284,7 @@ class TrailingDot(SuperSprite):
         self.update()
 
     def update(self, *args):
-        status = self.data_source.status
+        status = self.data_source.sprite_index
         if status != self.last_status:
             self.image = self.sprites[self.time_shift][status]
         rect = self.data_source.trail[self.time_shift]
@@ -324,7 +324,7 @@ class AeroplaneIcon(SuperSprite):
         self.update()
 
     def update(self, *args):
-        status = self.data_source.status
+        status = self.data_source.sprite_index
         heading = self.data_source.heading
         if status != self.last_status or heading != self.last_heading:
             img = self.sprites[status]
