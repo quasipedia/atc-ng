@@ -49,24 +49,27 @@ class Aeroplane(object):
     See the class `Flag` to see what status flag a plane can have.
     '''
 
-    KNOWN_PROPERTIES = [#STATIC
-                        'icao',            # Three-letter code and flight num.
-                        'model',           # Type of plane (name)
-                        'destination',     # Airport name
-                        'entry_time',      # Time of entry in airspace
-                        'max_altitude',    # max altitude
-                        'climb_limits',    # (down, up) max climb rates
-                        'max_speed',       # max ground speed
-                        'accel_limits',    # (decel, accel)
-                        'landing_speed',   # landing/takeoff speed
-                        'max_g',           # Gforce for emergency manouvers
+    KNOWN_PROPERTIES = [#STATIC / game logic
+                        'icao',              # Three-letter code and flight n.
+                        'model',             # Type of plane (name)
+                        'destination',       # Airport name
+                        'entry_time',        # Time of entry in airspace
+                        #STATIC / vertical modelling
+                        'max_altitude',      # max altitude
+                        'climb_rate_limits', # (down, up) climb rates
+                        'climb_rate_accels', # (down, up) climb acceleration
+                        #STATIC / horizontal modelling
+                        'max_speed',         # max ground speed
+                        'ground_accels',     # (decel, accel) ground accel
+                        'landing_speed',     # landing/takeoff speed
+                        'max_g',             # Gforce for emergency manouvers
                         #DYNAMIC
-                        'target_conf',     # (heading, speed, altitude)
-                        'position',        # 3D vector
-                        'velocity',        # 3D vector
-                        'fuel',            # seconds before crash
-                        'time_last_cmd',   # time of last received command
-                        'flags',           # flag object (see class `Flags`)
+                        'target_conf',       # (heading, speed, altitude)
+                        'position',          # 3D vector
+                        'velocity',          # 3D vector
+                        'fuel',              # seconds before crash
+                        'time_last_cmd',     # time of last received command
+                        'flags',             # flag object (see class `Flags`)
                        ]
 
     def __init__(self, **kwargs):
@@ -86,8 +89,10 @@ class Aeroplane(object):
             self.target_conf['heading'] = self.heading
             self.target_conf['speed'] = self.speed
             self.target_conf['altitude'] = self.altitude
-        if self.climb_limits == None:
-            self.climb_limits = (-100, 50)
+        if self.climb_rate_limits == None:
+            self.climb_rate_limits = (-100, 50)
+        if self.climb_rate_accels == None:
+            self.climb_rate_accels = (-20, 10)
         # Dummy to test varius sprites
         mag = self.velocity.magnitude()
         if mag < 150:
@@ -254,19 +259,25 @@ class Aeroplane(object):
         print('S:%d - H:%d - A:%d' % (self.speed, self.heading, self.altitude))
         if self.altitude != self.target_conf['altitude']:
             print(self.altitude, self.target_conf['altitude'])
-            index = self.altitude > self.target_conf['altitude']
-            v_acc = Vector3(0, 0, self.climb_limits[index])
-            print(v_acc)
+            index = self.altitude < self.target_conf['altitude']
+            z_acc = self.climb_rate_accels[index]*self.ping_in_seconds*pings
             # Non expedite climbs are limited at 50% of maximum rate
             if not self.flags.expedite:
-                v_acc *= 0.5
-            self.velocity += v_acc*self.ping_in_seconds*pings
+                z_acc *= 0.5
+            # Acceleration cannot produce a climb rate over or under the limits
+            min, max = self.climb_rate_limits
+            if min <= self.velocity.z + z_acc <= max:
+                self.velocity.z += z_acc
+            # if out of boundaries, uses min and max
+            else:
+                self.velocity.z = max if index else min
         if self.heading != self.target_conf['heading']:
             pass
         if self.speed != self.target_conf['speed']:
             pass
-        self._veer(pings)
+#        self._veer(pings)
         self.position += self.velocity*self.ping_in_seconds*pings
+        # TODO: asintotelic approach for avoiding overshooting.
         self.rect = sc(self.position.xy)
         # TODO: trail entries could happen only 1 in X times, to make dots
         # more spaced out
