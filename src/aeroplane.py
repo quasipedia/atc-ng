@@ -45,12 +45,11 @@ class Aeroplane(object):
                         'model',           # Type of plane (name)
                         'destination',     # Airport name
                         'entry_time',      # Time of entry in airspace
-                        'speed_limits',    # (min, max) XY projected speed
+                        'max_speed',       # max ground speed speed
                         'accel_limits',    # (decel, accel) XY projected accel
                         'max_altitude',    # max altitude
                         'climb_limits',    # (down, up) max climb rates
-                        'takeoff_speed',   # takeoff speed at liftoff
-                        'landing_speed',   # landing speed at touchdown
+                        'landing_speed',   # landing/takeoff speed
                         'max_g',           # maximum Gforce
                         #DYNAMIC
                         'target_conf',     # (heading, speed, altitude)
@@ -97,6 +96,20 @@ class Aeroplane(object):
         '''Return a random pseudo-ICAO flight number'''
         rc = lambda : chr(randint(65, 90))
         return ''.join([rc(), rc(), rc(), str(randint(1000, 9999))])
+
+    def __verify_feasibility(self, speed=None, altitude=None, heading=None):
+        '''
+        Verify if given speed and altitude are within aeroplane specifications.
+        Heading is a dummy variable, used to make possible to use this method
+        with any of the three attributes.
+        Return True or a message error.
+        '''
+        if speed and speed > self.max_speed:
+            return 'The target speed is beyond our aircraft specifications.'
+        if altitude and altitude  > self.max_altitude:
+            return 'The target altitude is above the maximum one for our ' +\
+                   'aircraft.'
+        return True
 
     @property
     def heading(self):
@@ -146,30 +159,44 @@ class Aeroplane(object):
             indicator = CHAR_DOWN
         return indicator
 
-    def execute_command(self, input):
+    def execute_command(self, commands):
         '''
         Execute commands.
         Input is a list of triplets each of them in the format:
-        [command, arguments (list), flags (list)]
+        [command, arguments (list), flags (list)].
+        Return True or a message error.
         '''
-        print('EXECUTED by %s' % self.icao)
-        if type(input[0]) != list:
-            command, args, flags = input
-            print(command, args, flags)
-        else:
-            print('alter target conf', input)
+        for line in commands:
+            command, args, flags = line
+            if command == 'heading':
+                arg = int(args[0])
+                feasible = self.__verify_feasibility(heading=arg)
+                if feasible != True:
+                    return feasible
+                self.target_conf['heading'] = arg
+            elif command == 'altitude':
+                arg = int(args[0])*100
+                self.target_conf['altitude'] = arg
+            elif command == 'speed':
+                arg = rint(int(args[0]) / 3.6)
+                self.target_conf['speed'] = arg
+            elif command == 'takeoff':
+                pass
+            elif command == 'land':
+                pass
+            elif command == 'circle':
+                pass
+            elif command == 'abort':
+                pass
+            else:
+                raise BaseException('Unknown command: %s' % command)
+            return True
 
     def queue_command(self, input):
         '''
         Add a command to the queue buffer.
         '''
         self.queued_commands.append(input)
-        print('QUEUED by %s' % self.icao)
-        if type(input[0]) != list:
-            command, args, flags = input
-            print(command, args, flags)
-        else:
-            print('alter target conf', input)
 
     def turn(self, pings):
         '''

@@ -63,6 +63,9 @@ PLANE_COMMANDS = {
                       'flags'    : {'lastonly': ['lastonly', 'last', 'l']}}
         }
 
+VALID_PLANE_COMMANDS_COMBOS = [('heading', 'altitude', 'speed'),
+                               ('circle', 'altitude', 'speed')]
+
 class Parser(object):
 
     '''
@@ -106,7 +109,7 @@ class Parser(object):
             num_h = int(heading)
         except ValueError:
             return False
-        return 0 <= num_h <= 360 and len(heading) == 3 and num_h % 10 == 0
+        return 0 <= num_h <= 360 and len(heading) == 3
 
     def _validate_altitude(self, altitude):
         '''
@@ -143,7 +146,7 @@ class Parser(object):
         '''
         Parameter can only be right (r) or left (l).
         '''
-        if direction.lower() not in ('r', 'right', 'l', 'left'):
+        if direction.lower() not in ('r', 'right', 'cw', 'l', 'left', 'ccw'):
             return False
         return True
 
@@ -194,7 +197,6 @@ class Parser(object):
             issued = self.bits.pop()
             # Special condensed syntax is allowed for H, A, S in the form
             # letter+digits without spaces
-            print(issued)
             decomposed = re.match(r'^(h|s|a)(\d{2,})$', issued)
             if decomposed:
                 c = decomposed.group(1)
@@ -249,17 +251,20 @@ class Parser(object):
         if len(parsed_commands) == 0:
             msg = 'No commands were issued for the plane!'
             return msg
-        # Verify the compatibility of stored commands: only heading, speed and
-        # altitude values can be combined in a single command.
+        # Verify the compatibility of stored commands.
         elif len(parsed_commands) != 1:
             command_list = [el[0] for el in parsed_commands]
-            if len(command_list) != len(set(command_list)):
+            command_set = set(command_list)
+            if len(command_list) != len(command_set):
                 msg = 'Repeated commands!'
                 return msg
-            for com in command_list:
-                if com not in ['heading', 'altitude', 'speed']:
-                    msg = 'Only heading, altitude and speed can be combined!'
-                    return msg
+            valid = False
+            for combo in VALID_PLANE_COMMANDS_COMBOS:
+                if command_set <= set(combo):
+                    valid = True
+            if not valid:
+                msg = 'These commands cannot be performed at the same time'
+                return msg
         return (callable_, parsed_commands)
 
     def parse_game_command(self, validate_only=False):
@@ -306,6 +311,7 @@ class CommandLine(object):
             for ap in self.aerospace.aeroports:
                 if ap.iata == context:
                     return [r.id for r in ap.runaways]
+            return []
         elif what == 'beacons':
             return [b.code for b in self.aerospace.beacons]
         elif what == 'game_commands':
@@ -334,7 +340,6 @@ class CommandLine(object):
 
     def process_keystroke(self, event):
         mods = pygame.key.get_mods()
-        print(mods, KMOD_NONE, KMOD_CTRL, KMOD_LCTRL, KMOD_RCTRL)
         if event.key == K_RETURN:
             self.parser.initialise(self.text)
             parsed = self.parser.parse()
@@ -363,38 +368,47 @@ class CommandLine(object):
                 self.chars.append(' ')
 
     def autocomplete(self):
-        splitted = self.text.split()
-        # get the root to be autocompleted
-        root = splitted[-1]
+        splitted = self.text.lower().split()
+        spl_len = len(splitted)
         what = None
         context = None
+        # get the last three bits, if available
+        root, pre, prepre = None, None, None
+        if spl_len > 0:
+            root = splitted[-1]
+        if spl_len > 1:
+            pre = splitted[-2]
+        if spl_len > 2:
+            prepre = splitted[-3]
         # identify what is the context of autocompletion
         if self.chars[0] == '/':
             what = 'game_commands'
-        elif len(splitted) == 2 and self.chars[0] == '.' or root == self.text:
+        elif spl_len == 2 and self.chars[0] == '.' or \
+             root == self.text.lower():
+            root = root.upper()
             what = 'planes'
-        elif len(splitted) > 1:
-            pre = splitted[-2].lower()
-            if self.parser._validate_icao(splitted[-2]):
+        elif pre:
+            if self.parser._validate_icao(pre):
                 what = 'plane_commands'
-            elif pre in PLANE_COMMANDS['land']['spellings']:
+            # the argument of circling can be 'L' (left) which could be
+            # understood as the shorthand for 'LAND'
+            elif pre in PLANE_COMMANDS['land']['spellings'] and \
+                 prepre not in PLANE_COMMANDS['circle']['spellings']:
                 what = 'aeroports'
             elif pre in PLANE_COMMANDS['heading']['spellings']:
                 what = 'beacons'
-            elif len(splitted) > 2:
-                if splitted[-3].lower() in PLANE_COMMANDS['land']['spellings']:
+            elif prepre:
+                if prepre in PLANE_COMMANDS['land']['spellings']:
                     what = 'runaways'
-                    context = splitted[-2]
+                    context = pre.upper()
                 elif (self.parser._validate_icao(splitted[0]) or \
                      self.parser._validate_icao(splitted[1])) and \
-                     splitted[-2].lower() not in PLANE_COMMANDS.keys():
+                     pre not in PLANE_COMMANDS.keys():
                     what = 'plane_commands'
-        print(what, context)
         if not what:
             return
         pool = self._get_list_of_existing(what, context)
-        print(pool)
-        matches = [i.upper() for i in pool if i.upper().find(root) == 0]
+        matches = [i.upper() for i in pool if i.find(root) == 0]
         if len(matches) == 1:
             match = matches[0]+' '
         elif len(matches) > 1:
