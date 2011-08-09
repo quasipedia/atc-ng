@@ -28,14 +28,20 @@ class Flags(object):
     '''
 
     def __init__(self):
+        self.reset()
+
+    def reset(self):
+        '''
+        Set all flags to their default value
+        '''
         self.expedite = False
-        self.long_turn = False
         self.up_cleared = False        # take off clearance
         self.down_cleared = False      # landing clearance
         self.priority = False
         self.circling = False
         self.locked = False            # The plane is under computer control
         self.collision = False         # The plane is on a collision path
+        self.busy = False              # The plane is executing a command
 
 class Aeroplane(object):
 
@@ -72,6 +78,9 @@ class Aeroplane(object):
                         'time_last_cmd',     # time of last received command
                         'flags',             # flag object (see class `Flags`)
                        ]
+
+    LEFT = CCW = -1
+    RIGHT = CW = +1
 
     def __init__(self, **kwargs):
         self.ping_in_seconds = PING_PERIOD / 1000.0
@@ -159,6 +168,14 @@ class Aeroplane(object):
             tmp[0] -= 360
         return tmp[0] <= value <= tmp[1]
 
+    def __shortest_veering_direction(self):
+        '''
+        Return self.LEFT or self.RIGHT according to whatever the shortest
+        veering to a certain course is.
+        '''
+        theta = (self.heading - self.target_conf['heading']) % 360
+        return self.LEFT if theta < 180 else self.RIGHT
+
     @property
     def heading(self):
         '''Current heading [CW degrees from North]'''
@@ -241,10 +258,11 @@ class Aeroplane(object):
             command, args, flags = line
             if 'expedite' in flags:
                 self.flags.expedite = True
-            if 'long_turn' in flags:
-                self.flags.long_turn = True
             if command == 'heading':
                 self.target_conf['heading'] = args[0]
+                self.veering_direction = self.__shortest_veering_direction()
+                if 'long_turn' in flags:
+                    self.veering_direction *= -1  #invert direction
             elif command == 'altitude':
                 feasible = self.__verify_feasibility(altitude=args[0])
                 if feasible != True:
@@ -257,14 +275,36 @@ class Aeroplane(object):
             elif command == 'land':
                 pass
             elif command == 'circle':
-                pass
+                param = args[0].lower()
+                if param in ('l', 'left', 'ccw'):
+                    self.veering_direction = self.LEFT
+                elif param in ('r', 'right', 'cw'):
+                    self.veering_direction = self.RIGHT
+                else:
+                    msg = 'Unknown parameter for circle command.'
+                    raise BaseException(msg)
+                self.flags.circling = True
             elif command == 'abort':
-                pass
+                self._abort_command('lastonly' in flags)
             else:
                 raise BaseException('Unknown command: %s' % command)
             return True
 
-    def _veer(self, direction, pings):
+    def _abort_command(self, last_only=False):
+        '''
+        Abort execution of a command (or the entire command buffer).
+        '''
+        if last_only == True and self.queued_commands:
+            self.queued_commands.pop()
+            return
+        self.target_conf['speed'] = self.speed
+        self.target_conf['altitude'] = self.altitude
+        self.target_conf['heading'] = self.heading
+        self.queued_commands = []
+        self.veering_direction = None
+        self.flags.reset()
+
+    def _veer(self, pings):
         '''
         Make the plane turn.
 
@@ -289,17 +329,17 @@ class Aeroplane(object):
             max_manouvering_g = self.max_g
         g_to_mks = lambda x : 9.807 * x
         acc_module = sqrt(g_to_mks(max_manouvering_g)**2-g_to_mks(1)**2)
-        angular_speed = acc_module/self.velocity.magnitude()
-        if direction == 'right':
-            angular_speed *= -1
-        elif direction != 'left':
-            msg = 'Direction of rotation can only be `left` or `right`'
-            raise BaseException(msg)
+        angular_speed = acc_module/self.velocity.magnitude() * \
+                        -self.veering_direction
         rotation_axis = Vector3(0,0,1)
         self.velocity = self.velocity.rotate_around(rotation_axis,
                              angular_speed*self.ping_in_seconds*pings)
 
     def update(self, pings):
+        '''
+        Update the plane status according to the elapsed time.
+        Pings = number of radar pings from last update.
+        '''
         # Store initial values
         old_altitude = self.altitude
         old_heading = self.heading
@@ -307,6 +347,16 @@ class Aeroplane(object):
         print('---')
         print('S:%d - H:%d - A:%d' % (self.speed, self.heading, self.altitude))
         print('Target: %s' % self.target_conf)
+        # Circling action affects heading only (can be combined with changes in
+        # speed and/or altitude)
+        if self.flags.circling:
+            if self.veering_direction == self.LEFT:
+                target = (self.heading - 179) % 360
+            elif self.veering_direction == self.RIGHT:
+                target = (self.heading + 179) % 360
+            else:
+                raise BaseException('Veering direction not set for circling.')
+            self.target_conf['heading'] = target
         if self.altitude != self.target_conf['altitude']:
             index = self.altitude < self.target_conf['altitude']
             z_acc = self.climb_rate_accels[index]*self.ping_in_seconds*pings
@@ -321,12 +371,7 @@ class Aeroplane(object):
             else:
                 self.velocity.z = max_ if index else min_
         if self.heading != self.target_conf['heading']:
-            # Find out in what direction the veering must happen
-            theta = (self.heading - self.target_conf['heading']) % 360
-            direction = True if theta < 180 else False
-            direction = not direction if self.flags.long_turn else direction
-            direction = 'left' if direction else 'right'
-            self._veer(direction, pings)
+            self._veer(pings)
         if self.speed != self.target_conf['speed']:
             index = self.speed < self.target_conf['speed']
             gr_acc = self.ground_accels[index]*self.ping_in_seconds*pings

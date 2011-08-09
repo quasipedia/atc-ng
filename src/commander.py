@@ -156,7 +156,7 @@ class Parser(object):
         '''
         if direction.lower() not in ('r', 'right', 'cw', 'l', 'left', 'ccw'):
             return False
-        return True
+        return [direction]
 
     def parse(self):
         '''
