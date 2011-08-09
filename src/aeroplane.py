@@ -5,7 +5,7 @@ Aeroplanes modelling of the ATC simulation game.
 '''
 
 from locals import *
-from math import sqrt, atan2, degrees
+from math import sqrt, atan2, degrees, radians, cos, sin
 from euclid import Vector3
 from collections import deque
 from random import randint
@@ -29,6 +29,7 @@ class Flags(object):
 
     def __init__(self):
         self.expedite = False
+        self.long_turn = False
         self.up_cleared = False        # take off clearance
         self.down_cleared = False      # landing clearance
         self.priority = False
@@ -80,8 +81,7 @@ class Aeroplane(object):
         if self.icao == None:
             self.icao = self.__random_icao()
         if self.position == None:
-            self.position = Vector3(randint(0, RADAR_RANGE*2),
-                                    randint(0, RADAR_RANGE*2), 0)
+            self.position = Vector3(RADAR_RANGE, RADAR_RANGE)
         if self.velocity == None:
             self.velocity = Vector3(randint(30,400), 0, 0)
         if self.target_conf == None:
@@ -93,6 +93,14 @@ class Aeroplane(object):
             self.climb_rate_limits = (-100, 50)
         if self.climb_rate_accels == None:
             self.climb_rate_accels = (-20, 10)
+        if self.max_altitude == None:
+            self.max_altitude = 10000
+        if self.ground_accels == None:
+            self.ground_accels = (-5, 10)
+        if self.landing_speed == None:
+            self.landing_speed = 100 / 3.6  #100kph
+        if self.max_speed == None:
+            self.max_speed = 2000
         # Dummy to test varius sprites
         mag = self.velocity.magnitude()
         if mag < 150:
@@ -126,6 +134,31 @@ class Aeroplane(object):
                    'aircraft.'
         return True
 
+    def __test_in_between(self, boundaries, value):
+        '''
+        Return True if value is between boundaries.
+        Boundaries : any two values (tuple, list)
+        Value: the value to be tested
+        '''
+        tmp = list(boundaries)
+        tmp.append(value)
+        tmp = [el for el in tmp]
+        tmp.sort()
+        return tmp[1] == value
+
+    def __test_heading_in_between(self, boundaries, value):
+        '''
+        This is a heading-specific implmentation of __test_in_between.
+        From a geometrical point of view, an angle is always between other two.
+        This method return True, if the tested value is between the *smallest*
+        angle between the other two.
+        '''
+        sort_a = lambda a,b : [a,b] if (a-b)%360 > (b-a)%360 else [b,a]
+        tmp = sort_a(*boundaries)
+        if tmp[0] > tmp[1]:
+            tmp[0] -= 360
+        return tmp[0] <= value <= tmp[1]
+
     @property
     def heading(self):
         '''Current heading [CW degrees from North]'''
@@ -137,8 +170,7 @@ class Aeroplane(object):
         Current ground speed [m/s].
         (That means speed as projected on the XY plane)
         '''
-        return int(round(sqrt(self.velocity.x**2 + self.velocity.y**2)))
-
+        return rint(sqrt(self.velocity.x**2 + self.velocity.y**2))
 
     @property
     def altitude(self):
@@ -209,12 +241,14 @@ class Aeroplane(object):
             command, args, flags = line
             if 'expedite' in flags:
                 self.flags.expedite = True
+            if 'long_turn' in flags:
+                self.flags.long_turn = True
             if command == 'heading':
-                feasible = self.__verify_feasibility(heading=args[0])
-                if feasible != True:
-                    return feasible
                 self.target_conf['heading'] = args[0]
             elif command == 'altitude':
+                feasible = self.__verify_feasibility(altitude=args[0])
+                if feasible != True:
+                    return feasible
                 self.target_conf['altitude'] = args[0]
             elif command == 'speed':
                 self.target_conf['speed'] = args[0]
@@ -230,7 +264,7 @@ class Aeroplane(object):
                 raise BaseException('Unknown command: %s' % command)
             return True
 
-    def _veer(self, pings):
+    def _veer(self, direction, pings):
         '''
         Make the plane turn.
 
@@ -246,38 +280,85 @@ class Aeroplane(object):
         transalates in C²=T²-G² → C=sqrt(T²-G²).
             But C=ω²r and ω=V/r so C=V²/(V/ω) → C=Vω → ω=C/V
         '''
+        # The tightness of the curve is given by the kind of situation the
+        # aeroplane is in.
+        max_manouvering_g = 1.15
+        if self.flags.expedite or self.flags.down_cleared:
+            max_manouvering_g = 1.41
+        if self.flags.collision:
+            max_manouvering_g = self.max_g
         g_to_mks = lambda x : 9.807 * x
-        acc_module = sqrt(g_to_mks(1.15)**2-g_to_mks(1)**2)
+        acc_module = sqrt(g_to_mks(max_manouvering_g)**2-g_to_mks(1)**2)
         angular_speed = acc_module/self.velocity.magnitude()
+        if direction == 'right':
+            angular_speed *= -1
+        elif direction != 'left':
+            msg = 'Direction of rotation can only be `left` or `right`'
+            raise BaseException(msg)
         rotation_axis = Vector3(0,0,1)
         self.velocity = self.velocity.rotate_around(rotation_axis,
                              angular_speed*self.ping_in_seconds*pings)
 
     def update(self, pings):
+        # Store initial values
+        old_altitude = self.altitude
+        old_heading = self.heading
+        old_speed = self.speed
         print('---')
-        print('Velocity: %s' % self.velocity)
         print('S:%d - H:%d - A:%d' % (self.speed, self.heading, self.altitude))
+        print('Target: %s' % self.target_conf)
         if self.altitude != self.target_conf['altitude']:
-            print(self.altitude, self.target_conf['altitude'])
             index = self.altitude < self.target_conf['altitude']
             z_acc = self.climb_rate_accels[index]*self.ping_in_seconds*pings
             # Non expedite climbs are limited at 50% of maximum rate
             if not self.flags.expedite:
                 z_acc *= 0.5
             # Acceleration cannot produce a climb rate over or under the limits
-            min, max = self.climb_rate_limits
-            if min <= self.velocity.z + z_acc <= max:
+            min_, max_ = self.climb_rate_limits
+            if min_ <= self.velocity.z + z_acc <= max_:
                 self.velocity.z += z_acc
             # if out of boundaries, uses min and max
             else:
-                self.velocity.z = max if index else min
+                self.velocity.z = max_ if index else min_
         if self.heading != self.target_conf['heading']:
-            pass
+            # Find out in what direction the veering must happen
+            theta = (self.heading - self.target_conf['heading']) % 360
+            direction = True if theta < 180 else False
+            direction = not direction if self.flags.long_turn else direction
+            direction = 'left' if direction else 'right'
+            self._veer(direction, pings)
         if self.speed != self.target_conf['speed']:
-            pass
-#        self._veer(pings)
+            index = self.speed < self.target_conf['speed']
+            gr_acc = self.ground_accels[index]*self.ping_in_seconds*pings
+            # Non expedite accelerations are limited at 50% of maximum accels
+            if not self.flags.expedite:
+                gr_acc *= 0.5
+            norm_velocity = Vector3(*self.velocity.xyz).normalized()
+            acc_vector = norm_velocity * gr_acc
+            # Acceleration cannot produce a speed over or under the limits
+            min_, max_ = self.landing_speed*1.5, self.max_speed
+            if min_ <= self.speed + gr_acc <= max_:
+                self.velocity += acc_vector
+            # if out of boundaries, uses min and max
+            else:
+                print('--> %s %s %s' % (max_, min_, index))
+                self.velocity = norm_velocity * (max_ if index else min_)
+            # Update position and prevent overshooting
+            print('VELOCITY: %s' % self.velocity)
         self.position += self.velocity*self.ping_in_seconds*pings
-        # TODO: asintotelic approach for avoiding overshooting.
+        # Altitude dampener
+        t_alt = self.target_conf['altitude']
+        if self.__test_in_between((old_altitude, self.altitude), t_alt):
+            self.position.z = t_alt
+            self.velocity.z = 0
+        # Heading dampener
+        t_head = self.target_conf['heading']
+        if self.__test_heading_in_between((old_heading, self.heading), t_head):
+            mag = self.velocity.magnitude()
+            theta = radians(90-t_head)
+            self.velocity.x = cos(theta)*mag
+            self.velocity.y = sin(theta)*mag
+        print('S:%d - H:%d - A:%d' % (self.speed, self.heading, self.altitude))
         self.rect = sc(self.position.xy)
         # TODO: trail entries could happen only 1 in X times, to make dots
         # more spaced out

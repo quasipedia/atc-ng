@@ -224,7 +224,7 @@ class Tag(SuperSprite):
         alt = str(rint(pl.altitude/100.0))
         alt += pl.variometer
         # Convert m/s to kph AND remove last digit, add accelerometer
-        spd = str(rint(pl.speed*0.36))
+        spd = str(rint(pl.speed*3.6))
         spd += pl.accelerometer
         lines.append('%s%s' % (alt,spd))
         self.image = self.render_lines(lines)

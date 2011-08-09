@@ -35,8 +35,8 @@ PLANE_COMMANDS = {
         'heading'  : {'spellings': ['heading', 'h', 'head'],
                       'arguments': 1,
                       'validator': '_validate_heading',
-                      'flags'    : {'expedite': ['expedite', 'x'],
-                                    'long'    : ['long', 'l']}},
+                      'flags'    : {'expedite' : ['expedite', 'x'],
+                                    'long_turn': ['l', 'long',]}},
         'altitude' : {'spellings': ['altitude', 'a', 'alt'],
                       'arguments': 1,
                       'validator': '_validate_altitude',
@@ -356,7 +356,8 @@ class CommandLine(object):
                 print('Validation failed with message: %s' % parsed)
             elif parsed:
                 callable_, args = parsed
-                callable_(args)
+                # TODO: multiline shell
+                print(callable_(args))
                 self.chars = []
         elif event.key == K_ESCAPE:
             self.chars = []
