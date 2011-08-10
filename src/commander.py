@@ -6,6 +6,9 @@ Provide functionality for entering commands and processing them.
 
 from locals import *
 from pygame.locals import *
+from collections import deque
+from random import randint
+from copy import copy
 import pygame.font
 import re
 import time
@@ -65,6 +68,18 @@ PLANE_COMMANDS = {
 
 VALID_PLANE_COMMANDS_COMBOS = [('heading', 'altitude', 'speed'),
                                ('circle', 'altitude', 'speed')]
+
+AFFIRMATIVE_EXEC_ANSWERS = ['Roger that. Executing.',
+                            'Affirmative, initiating maneuver now.',
+                            'Roger, we\'re on it.',
+                            'Copy that.',
+                            'Okie dokie artichokie!']
+
+AFFIRMATIVE_QUEUE_ANSWERS = ['Roger that. Queued.',
+                             'Affirmative, command queued for execution.',
+                             'We\'ll do that as soon as possible.',
+                             'Copy that, command queued']
+
 
 class Parser(object):
 
@@ -181,13 +196,13 @@ class Parser(object):
             if self._validate_icao(icao):
                 return self.parse_plane_commands(icao, to_queue=True)
             else:
-                msg = 'Invalid ICAO reference (append - %s)' % icao
+                msg = '"%s" is not a valid ICAO reference.' % icao.upper()
                 return msg
         # We're issuing a game command
         elif first == '/':
             return self.parse_game_command()
         else:
-            msg = 'Invalid ICAO reference (direct - %s)' % first
+            msg = '"%s" is not a valid ICAO reference.' % first.upper()
             return msg
 
     def parse_plane_commands(self, icao, to_queue=False):
@@ -223,7 +238,7 @@ class Parser(object):
                     command = v
                     break
             if not command_name or not command:
-                msg = 'Unrecognised bit, expected command: %s' % issued
+                msg = '"%s" is neither a command nor a flag.' % issued.upper()
                 return msg
             # Parse arguments
             args = []
@@ -231,14 +246,16 @@ class Parser(object):
                 try:
                     args.append(self.bits.pop())
                 except IndexError:
-                    msg = 'Not enough arguments for command %s' % command_name
+                    msg = 'Not enough arguments for command "%s".' % \
+                            command_name.upper()
                     return msg
             # Verify that arguments pass validation
             if command['validator']:
                 validator = getattr(self, command['validator'])
                 args = validator(*args)
                 if not args:
-                    msg = 'Parameters for %s failed validation' % command_name
+                    msg = 'Parameters for "%s" command failed validation.' % \
+                            command_name.upper()
                     return msg
             # Check for flags and parse them if present
             flags = []
@@ -258,21 +275,21 @@ class Parser(object):
             parsed_commands.append([command_name, args, flags])
         # Verify that some command has been entered
         if len(parsed_commands) == 0:
-            msg = 'No commands were issued for the plane!'
+            msg = 'No commands were issued to the plane.'
             return msg
         # Verify the compatibility of stored commands.
         elif len(parsed_commands) != 1:
             command_list = [el[0] for el in parsed_commands]
             command_set = set(command_list)
             if len(command_list) != len(command_set):
-                msg = 'Repeated commands!'
+                msg = 'You can\'t repeat commands in the same transmission.'
                 return msg
             valid = False
             for combo in VALID_PLANE_COMMANDS_COMBOS:
                 if command_set <= set(combo):
                     valid = True
             if not valid:
-                msg = 'These commands cannot be performed at the same time'
+                msg = 'These commands cannot be performed at the same time.'
                 return msg
         return (callable_, parsed_commands)
 
@@ -283,7 +300,7 @@ class Parser(object):
         elif command in GAME_COMMANDS['help']['spellings']:
             print('help')
         else:
-            msg = 'Invalid game command! (%s)' % command
+            msg = 'Invalid game command! (%s)' % command.upper()
             return msg
         return []
 
@@ -297,10 +314,30 @@ class CommandLine(object):
         self.chars = list('')
         self.surface = surface
         self.aerospace = aerospace
+        # Properties for handling multiline console and history browsing
+        self.command_history = []
+        self.console_lines = deque(maxlen=CONSOLE_LINES_NUM)
+        self.console_image = pygame.surface.Surface((0,0))
+        self.last_console_snapshot = copy(self.console_lines)
+        self.cmd_prefix = ' '.join((OUTBOUND_ID, PROMPT_SEPARATOR))
+        # Pygame font initialisation
         if not pygame.font.get_init():
             pygame.font.init()
-        self.textbox = pygame.font.Font('../data/ex_modenine.ttf', FONT_HEIGHT)
+        # Font size calculations
+        small_size = CLI_RECT.h * 0.9 / \
+                     (CONSOLE_LINES_NUM + 1.0/CONSOLE_FONT_SIZE_RATIO)
+        large_size = rint(small_size / CONSOLE_FONT_SIZE_RATIO)
+        small_size = rint(small_size)
+        file_ = '../data/ex_modenine.ttf'
+        self.large_f = pygame.font.Font(file_, large_size)
+        self.small_f = pygame.font.Font(file_, small_size)
         self.parser = Parser(aerospace)
+
+    def __randomel(self, list_):
+        '''
+        Return the random element of a list
+        '''
+        return list_[randint(0, len(list_)-1)]
 
     def _get_list_of_existing(self, what, context=None):
         '''
@@ -346,41 +383,6 @@ class CommandLine(object):
     @property
     def text(self):
         return ''.join(self.chars)
-
-    def process_keystroke(self, event):
-        mods = pygame.key.get_mods()
-        if event.key == K_RETURN:
-            self.parser.initialise(self.text)
-            parsed = self.parser.parse()
-            if type(parsed) not in (tuple, list):
-                print('Validation failed with message: %s' % parsed)
-            elif parsed:
-                callable_, args = parsed
-                # TODO: multiline shell
-                print(callable_(args))
-                self.chars = []
-        elif event.key == K_ESCAPE:
-            self.chars = []
-        elif event.key == K_BACKSPACE and self.chars:
-            self.chars.pop()  #one char is taken away in any case
-            if mods & KMOD_LCTRL:
-                while self.chars and self.chars.pop() != ' ':
-                    pass
-        elif event.key == K_TAB:
-            self.autocomplete()
-        elif event.unicode in VALID_CHARS:
-            # No unintentional spaces (issued by appending empty chars due
-            # to modifiers keys)
-            if event.unicode == '':
-                return
-            # No leading spaces, no double spaces
-            if event.unicode == ' ' and \
-               (len(self.chars) == 0 or self.chars[-1] == ' '):
-                return
-            self.chars.append(event.unicode.upper())
-            # command modifiers from commands
-            if event.unicode in './':
-                self.chars.append(' ')
 
     def autocomplete(self):
         splitted = self.text.lower().split()
@@ -432,13 +434,99 @@ class CommandLine(object):
             return
         self.chars.extend(list(match[len(root):]))
 
+    def process_keystroke(self, event):
+        mods = pygame.key.get_mods()
+        if event.key == K_RETURN:
+            self.parser.initialise(self.text)
+            parsed = self.parser.parse()
+            # If an empty line has been parsed, skip everything
+            if parsed == []:
+                return
+            # Fail to parse generate a string (an iterable if successful)
+            if type(parsed) == unicode:
+                answer_prefix = 'You are doing it wrong! '
+                self.console_lines.append([RED, answer_prefix+parsed])
+            else:
+                # Successfully parsed commands are echoed on console and added
+                # to command history...
+                self.console_lines.append([WHITE,
+                                        ' '.join((self.cmd_prefix,self.text))])
+                self.command_history.append(self.text)
+                # ...executed...
+                callable_, args = parsed
+                ret = callable_(args)
+                # ...their answer is displayed on the console...
+                fname = callable_.__name__
+                colour = GREEN
+                if fname in ('execute_command', 'queue_command'):
+                    icao = callable_.im_self.icao
+                    answer_prefix = ' '.join((icao, PROMPT_SEPARATOR))
+                    if ret == True:
+                        if fname == 'execute_command':
+                            answer = self.__randomel(AFFIRMATIVE_EXEC_ANSWERS)
+                        elif fname == 'queue_command':
+                            answer = self.__randomel(AFFIRMATIVE_QUEUE_ANSWERS)
+                    else:
+                        answer = ret
+                        colour = RED
+                else:
+                    #TODO: game commands processing
+                    pass
+                self.console_lines.append([colour,
+                                           ' '.join((answer_prefix,answer))])
+                # ...and the command line is finally emptied for a new command
+                self.chars = []
+        elif event.key == K_ESCAPE:
+            self.chars = []
+        elif event.key == K_BACKSPACE and self.chars:
+            self.chars.pop()  #one char is taken away in any case
+            if mods & KMOD_LCTRL:
+                while self.chars and self.chars.pop() != ' ':
+                    pass
+        elif event.key == K_TAB:
+            self.autocomplete()
+        elif event.unicode in VALID_CHARS:
+            # No unintentional spaces (issued by appending empty chars due
+            # to modifiers keys)
+            if event.unicode == '':
+                return
+            # No leading spaces, no double spaces
+            if event.unicode == ' ' and \
+               (len(self.chars) == 0 or self.chars[-1] == ' '):
+                return
+            self.chars.append(event.unicode.upper())
+            # command modifiers from commands
+            if event.unicode in './':
+                self.chars.append(' ')
+
+    def _render_console_lines(self):
+        '''
+        Return the image of the rendered multiline text.
+        Lines are passed in the format: [color_of_text, text].
+        '''
+        lines = self.console_lines
+        font_height = self.small_f.get_height()
+        surfaces = [self.small_f.render(txt, True, col) for col, txt in lines]
+        maxwidth = max([s.get_width() for s in surfaces])
+        result = pygame.surface.Surface((maxwidth, len(lines)*font_height),
+                                        SRCALPHA)
+        for i in range(len(lines)):
+            result.blit(surfaces[i], (0,i*font_height))
+        return result
+
     def draw(self):
         # Basic blinking of cursor
         cursor = '_' if int(time.time()*2) % 2 else ''
-        image = self.textbox.render(self.text + cursor, True, WHITE, BLACK)
-        iw, ih = image.get_size()
+        # Re-drawing of the console lines is only done if the console lines
+        # have changed since last iteration
+        if self.last_console_snapshot != self.console_lines:
+            self.last_console_snapshot = copy(self.console_lines)
+            self.console_image = self._render_console_lines()
+        image = self.large_f.render(self.text + cursor, True, WHITE, BLACK)
         sw, sh = self.surface.get_size()
-        x = sw*0.02
-        y = (sh - ih)/2
+        x = sw*0.01
+        y = sh*0.03
         self.surface.fill(BLACK)
-        self.surface.blit(image, (x,y))
+        self.surface.blit(self.console_image, (x,y))
+        self.surface.blit(image,
+                          (x, 2*y+self.small_f.get_height()*CONSOLE_LINES_NUM))

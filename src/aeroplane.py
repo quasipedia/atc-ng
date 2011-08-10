@@ -35,8 +35,9 @@ class Flags(object):
         Set all flags to their default value
         '''
         self.expedite = False
-        self.up_cleared = False        # take off clearance
-        self.down_cleared = False      # landing clearance
+        self.cleared_up = False        # take off clearance
+        self.cleared_down = False      # landing clearance
+        self.cleared_beacon = False    # clearance to reach beacon
         self.priority = False
         self.circling = False
         self.locked = False            # The plane is under computer control
@@ -129,7 +130,7 @@ class Aeroplane(object):
         rc = lambda : chr(randint(65, 90))
         return ''.join([rc(), rc(), rc(), str(randint(1000, 9999))])
 
-    def __verify_feasibility(self, speed=None, altitude=None, heading=None):
+    def __verify_feasibility(self, speed=None, altitude=None):
         '''
         Verify if given speed and altitude are within aeroplane specifications.
         Heading is a dummy variable, used to make possible to use this method
@@ -167,6 +168,15 @@ class Aeroplane(object):
         if tmp[0] > tmp[1]:
             tmp[0] -= 360
         return tmp[0] <= value <= tmp[1]
+
+    def __test_target_conf_reached(self):
+        '''
+        Return True if the current plane configuration matches the target one.
+        '''
+        tc = self.target_conf
+        return self.heading == tc['heading'] and \
+               self.altitude == tc['altitude'] and \
+               self.speed == tc['speed']
 
     def __shortest_veering_direction(self):
         '''
@@ -230,22 +240,35 @@ class Aeroplane(object):
         sprite sheets). Highest priority statuses override lower priority ones.
         '''
         value = CONTROLLED
-        if self.queued_commands or self.flags.circling or \
-           self.flags.down_cleared or self.flags.up_cleared:
+        fl = self.flags
+        if fl.busy or self.queued_commands or fl.circling or \
+           fl.cleared_down or fl.cleared_up or fl.cleared_beacon:
             value = INSTRUCTED
-        if self.flags.priority:
+        if fl.priority:
             value = PRIORITIZED
-        if self.flags.collision:
+        if fl.collision:
             value = COLLISION
-        if self.flags.locked:
+        if fl.locked:
             value = NON_CONTROLLED
         return value
 
-    def queue_command(self, input):
+    def queue_command(self, commands):
         '''
         Add a command to the queue buffer.
         '''
+        # Only valid commands must be queued!
+        for line in commands:
+            command, args, flags = line
+            if command == 'altitude':
+                feasible = self.__verify_feasibility(altitude=args[0])
+                if feasible != True:
+                    return feasible
+            elif command == 'speed':
+                feasible = self.__verify_feasibility(speed=args[0])
+                if feasible != True:
+                    return feasible
         self.queued_commands.append(input)
+        return True
 
     def execute_command(self, commands):
         '''
@@ -254,6 +277,8 @@ class Aeroplane(object):
         [command, arguments (list), flags (list)].
         Return True or a message error.
         '''
+        if self.flags.busy == True and commands[0][0] != 'abort':
+            return 'Still maneuvering, please specify abort/append command'
         for line in commands:
             command, args, flags = line
             if 'expedite' in flags:
@@ -286,8 +311,10 @@ class Aeroplane(object):
                 self.flags.circling = True
             elif command == 'abort':
                 self._abort_command('lastonly' in flags)
+                return True  #need to skip setting flag.busy to True!
             else:
                 raise BaseException('Unknown command: %s' % command)
+            self.flags.busy = True
             return True
 
     def _abort_command(self, last_only=False):
@@ -323,7 +350,7 @@ class Aeroplane(object):
         # The tightness of the curve is given by the kind of situation the
         # aeroplane is in.
         max_manouvering_g = 1.15
-        if self.flags.expedite or self.flags.down_cleared:
+        if self.flags.expedite or self.flags.cleared_down:
             max_manouvering_g = 1.41
         if self.flags.collision:
             max_manouvering_g = self.max_g
@@ -403,6 +430,11 @@ class Aeroplane(object):
             theta = radians(90-t_head)
             self.velocity.x = cos(theta)*mag
             self.velocity.y = sin(theta)*mag
+        # Update busy flag
+        fl = self.flags
+        if self.__test_target_conf_reached() and not \
+           (fl.cleared_beacon, fl.cleared_down, fl.cleared_up):
+            fl.busy = False
         print('S:%d - H:%d - A:%d' % (self.speed, self.heading, self.altitude))
         self.rect = sc(self.position.xy)
         # TODO: trail entries could happen only 1 in X times, to make dots

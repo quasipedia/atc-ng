@@ -23,10 +23,17 @@ PING_PERIOD = 3000              # milliseconds between radar pings
 MAX_FRAMERATE = 60              # FPS
 
 # Dimensions
-#WINDOW_SIZE = (1024, 768)       # in pixels
 WINDOW_SIZE = (1200, 750)       # in pixels
-CLI_HEIGHT = 0.07               # as a percentage of windows height
 RADAR_RANGE = 40000             # radius in kilometres --> 80x80km = space
+
+# Console
+CONSOLE_HEIGHT = 0.10           # as a percentage of windows height
+CONSOLE_LINES_NUM = 3
+CONSOLE_FONT_SIZE_RATIO = 0.60  # as a percentage of CLI
+VALID_CHARS = \
+    'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890./ '
+OUTBOUND_ID = 'TOWER'
+PROMPT_SEPARATOR = '>>>'
 
 # Colours
 WHITE = (255,255,255)
@@ -34,6 +41,7 @@ GRAY = (128,128,128)
 MAGENTA = (255,0,255)
 YELLOW = (255,255,0)
 RED = (255,0,0)
+GREEN = (0,255,0)
 BLACK = (0,0,0)
 
 # Sprites
@@ -49,10 +57,6 @@ PRIORITIZED = 3
 COLLISION = 4
 STATUS_COLORS = [WHITE, GRAY, MAGENTA, YELLOW, RED]
 
-# Commandline
-VALID_CHARS = \
-    'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890./ '
-
 # Fonts
 # These are conventional chars that have been mapped in the font file to
 # match arrow up and arrow down
@@ -62,13 +66,12 @@ HUD_INFO_FONT_SIZE = 12
 
 # Derivative values
 RADAR_RECT = pygame.rect.Rect(
-             (WINDOW_SIZE[0]-WINDOW_SIZE[1]*(1-CLI_HEIGHT))/2, 0,
-              WINDOW_SIZE[1]*(1-CLI_HEIGHT), WINDOW_SIZE[1]*(1-CLI_HEIGHT))
+     (WINDOW_SIZE[0]-WINDOW_SIZE[1]*(1-CONSOLE_HEIGHT))/2, 0,
+      WINDOW_SIZE[1]*(1-CONSOLE_HEIGHT), WINDOW_SIZE[1]*(1-CONSOLE_HEIGHT))
 METRES_PER_PIXELS = RADAR_RANGE*2.0/RADAR_RECT.width
 
 CLI_RECT = pygame.rect.Rect(RADAR_RECT.x, RADAR_RECT.h+2,
                             RADAR_RECT.w, WINDOW_SIZE[1]-RADAR_RECT.h-2)
-FONT_HEIGHT = int(round(CLI_RECT.h * 0.5))
 
 def rint(float_):
     '''
