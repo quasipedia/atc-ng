@@ -224,7 +224,7 @@ class Tag(SuperSprite):
         alt = str(rint(pl.altitude/100.0))
         alt += pl.variometer
         # Convert m/s to kph AND remove last digit, add accelerometer
-        spd = str(rint(pl.speed*3.6))
+        spd = str(rint(pl.speed*0.36)*10)  #rounds the last digit
         spd += pl.accelerometer
         lines.append('%s%s' % (alt,spd))
         self.image = self.render_lines(lines)
@@ -338,7 +338,8 @@ class AeroplaneIcon(SuperSprite):
             # (North rather than East).
             heading *= -1
             self.image = self.rotoscale(img, heading, SPRITE_SCALING, 15)
-        self.rect = get_rect_at_centered_pos(self.image, self.data_source.trail[0])
+        self.rect = \
+            get_rect_at_centered_pos(self.image, self.data_source.trail[0])
 
 
 # Initialisation of the sprite classes

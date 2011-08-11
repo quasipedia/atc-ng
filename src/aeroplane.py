@@ -225,11 +225,11 @@ class Aeroplane(object):
         '''
         Show weather the plane is currently increasing or decreasing speed.
         '''
-        tspeed = self.target_conf['speed']
+        t_speed = self.target_conf['speed']
         indicator = ' '
-        if tspeed > self.speed:
+        if t_speed > self.speed:
             indicator = CHAR_UP
-        elif self.velocity.z < self.speed:
+        elif t_speed < self.speed:
             indicator = CHAR_DOWN
         return indicator
 
@@ -250,6 +250,7 @@ class Aeroplane(object):
             value = COLLISION
         if fl.locked:
             value = NON_CONTROLLED
+        print('vvvvvvvvvvvvv', value)
         return value
 
     def queue_command(self, commands):
@@ -294,6 +295,9 @@ class Aeroplane(object):
                     return feasible
                 self.target_conf['altitude'] = args[0]
             elif command == 'speed':
+                feasible = self.__verify_feasibility(speed=args[0])
+                if feasible != True:
+                    return feasible
                 self.target_conf['speed'] = args[0]
             elif command == 'takeoff':
                 pass
@@ -315,7 +319,7 @@ class Aeroplane(object):
             else:
                 raise BaseException('Unknown command: %s' % command)
             self.flags.busy = True
-            return True
+        return True
 
     def _abort_command(self, last_only=False):
         '''
@@ -384,7 +388,10 @@ class Aeroplane(object):
             else:
                 raise BaseException('Veering direction not set for circling.')
             self.target_conf['heading'] = target
+        if self.heading != self.target_conf['heading']:
+            self._veer(pings)
         if self.altitude != self.target_conf['altitude']:
+            # Descending or ascending?
             index = self.altitude < self.target_conf['altitude']
             z_acc = self.climb_rate_accels[index]*self.ping_in_seconds*pings
             # Non expedite climbs are limited at 50% of maximum rate
@@ -397,8 +404,6 @@ class Aeroplane(object):
             # if out of boundaries, uses min and max
             else:
                 self.velocity.z = max_ if index else min_
-        if self.heading != self.target_conf['heading']:
-            self._veer(pings)
         if self.speed != self.target_conf['speed']:
             index = self.speed < self.target_conf['speed']
             gr_acc = self.ground_accels[index]*self.ping_in_seconds*pings
@@ -418,22 +423,27 @@ class Aeroplane(object):
             # Update position and prevent overshooting
             print('VELOCITY: %s' % self.velocity)
         self.position += self.velocity*self.ping_in_seconds*pings
-        # Altitude dampener
-        t_alt = self.target_conf['altitude']
-        if self.__test_in_between((old_altitude, self.altitude), t_alt):
-            self.position.z = t_alt
-            self.velocity.z = 0
-        # Heading dampener
+        # Heading dampener (act on velocity vector)
         t_head = self.target_conf['heading']
         if self.__test_heading_in_between((old_heading, self.heading), t_head):
             mag = self.velocity.magnitude()
             theta = radians(90-t_head)
             self.velocity.x = cos(theta)*mag
             self.velocity.y = sin(theta)*mag
+        # Speed dampener (act on velocity vector)
+        t_speed = self.target_conf['speed']
+        if self.__test_in_between((old_speed, self.speed), t_speed):
+            mag = t_speed
+            self.velocity = self.velocity.normalized() * t_speed
+        # Altitude dampener (act on position vector)
+        t_alt = self.target_conf['altitude']
+        if self.__test_in_between((old_altitude, self.altitude), t_alt):
+            self.position.z = t_alt
+            self.velocity.z = 0
         # Update busy flag
         fl = self.flags
         if self.__test_target_conf_reached() and not \
-           (fl.cleared_beacon, fl.cleared_down, fl.cleared_up):
+           (fl.cleared_beacon or fl.cleared_down or fl.cleared_up):
             fl.busy = False
         print('S:%d - H:%d - A:%d' % (self.speed, self.heading, self.altitude))
         self.rect = sc(self.position.xy)

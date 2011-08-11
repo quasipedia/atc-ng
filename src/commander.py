@@ -443,7 +443,7 @@ class CommandLine(object):
             if parsed == []:
                 return
             # Fail to parse generate a string (an iterable if successful)
-            if type(parsed) == unicode:
+            if type(parsed) in (unicode, str):
                 answer_prefix = 'You are doing it wrong! '
                 self.console_lines.append([RED, answer_prefix+parsed])
             else:
@@ -453,6 +453,7 @@ class CommandLine(object):
                                         ' '.join((self.cmd_prefix,self.text))])
                 self.command_history.append(self.text)
                 # ...executed...
+                print(parsed, type(parsed))
                 callable_, args = parsed
                 ret = callable_(args)
                 # ...their answer is displayed on the console...

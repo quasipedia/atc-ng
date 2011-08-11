@@ -27,8 +27,8 @@ WINDOW_SIZE = (1200, 750)       # in pixels
 RADAR_RANGE = 40000             # radius in kilometres --> 80x80km = space
 
 # Console
-CONSOLE_HEIGHT = 0.10           # as a percentage of windows height
-CONSOLE_LINES_NUM = 3
+CONSOLE_HEIGHT = 0.14           # as a percentage of windows height
+CONSOLE_LINES_NUM = 5
 CONSOLE_FONT_SIZE_RATIO = 0.60  # as a percentage of CLI
 VALID_CHARS = \
     'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890./ '
