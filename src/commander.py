@@ -277,14 +277,22 @@ class Parser(object):
         if len(parsed_commands) == 0:
             msg = 'No commands were issued to the plane.'
             return msg
-        # Verify the compatibility of stored commands.
+        # FINAL SEMANTIC CHECKS
+        command_list = [el[0] for el in parsed_commands]
+        command_set = set(command_list)
+        # If they are to be queued, does it makes sense?
+        if callable_.__name__ == 'queue_command' and \
+                   'abort' in command_list:
+            msg = 'You can\'t queue abortion of a command.'
+            return msg
+        # If several commands are issued at once, verify they are compatible
         elif len(parsed_commands) != 1:
-            command_list = [el[0] for el in parsed_commands]
-            command_set = set(command_list)
+            # No duplicates!
             if len(command_list) != len(command_set):
                 msg = 'You can\'t repeat commands in the same transmission.'
                 return msg
             valid = False
+            # Can be logically mixed
             for combo in VALID_PLANE_COMMANDS_COMBOS:
                 if command_set <= set(combo):
                     valid = True
@@ -316,6 +324,7 @@ class CommandLine(object):
         self.aerospace = aerospace
         # Properties for handling multiline console and history browsing
         self.command_history = []
+        self.history_ptr = 0
         self.console_lines = deque(maxlen=CONSOLE_LINES_NUM)
         self.console_image = pygame.surface.Surface((0,0))
         self.last_console_snapshot = copy(self.console_lines)
@@ -451,9 +460,8 @@ class CommandLine(object):
                 # to command history...
                 self.console_lines.append([WHITE,
                                         ' '.join((self.cmd_prefix,self.text))])
-                self.command_history.append(self.text)
+                self.command_history.insert(0, self.text)
                 # ...executed...
-                print(parsed, type(parsed))
                 callable_, args = parsed
                 ret = callable_(args)
                 # ...their answer is displayed on the console...
@@ -486,6 +494,17 @@ class CommandLine(object):
                     pass
         elif event.key == K_TAB:
             self.autocomplete()
+        elif event.key == K_UP and \
+                            self.history_ptr < len(self.command_history):
+            self.chars = list(self.command_history[self.history_ptr])
+            self.history_ptr += 1
+        elif event.key == K_DOWN:
+            if self.history_ptr > 1:
+                self.history_ptr -= 1
+                self.chars = list(self.command_history[self.history_ptr-1])
+            elif self.history_ptr == 1:
+                self.chars = []
+                self.history_ptr = 0
         elif event.unicode in VALID_CHARS:
             # No unintentional spaces (issued by appending empty chars due
             # to modifiers keys)

@@ -110,7 +110,9 @@ class Aeroplane(object):
         if self.landing_speed == None:
             self.landing_speed = 100 / 3.6  #100kph
         if self.max_speed == None:
-            self.max_speed = 2000
+            self.max_speed = 800
+        # Derived values
+        self.min_speed = self.landing_speed*1.5
         # Dummy to test varius sprites
         mag = self.velocity.magnitude()
         if mag < 150:
@@ -137,9 +139,12 @@ class Aeroplane(object):
         with any of the three attributes.
         Return True or a message error.
         '''
-        if speed and speed > self.max_speed:
-            return 'The target speed is beyond our aircraft specifications.'
-        if altitude and altitude  > self.max_altitude:
+        if speed != None and not self.min_speed < speed < self.max_speed:
+            mi = rint(self.min_speed * 3.6)
+            ma = rint(self.max_speed * 3.6)
+            return 'Our aircraft can only cruise between %d and %d kph.' % \
+                    (mi, ma)
+        if altitude != None and altitude  > self.max_altitude:
             return 'The target altitude is above the maximum one for our ' +\
                    'aircraft.'
         return True
@@ -250,7 +255,6 @@ class Aeroplane(object):
             value = COLLISION
         if fl.locked:
             value = NON_CONTROLLED
-        print('vvvvvvvvvvvvv', value)
         return value
 
     def queue_command(self, commands):
@@ -268,7 +272,16 @@ class Aeroplane(object):
                 feasible = self.__verify_feasibility(speed=args[0])
                 if feasible != True:
                     return feasible
-        self.queued_commands.append(input)
+        # Queuing can only be performed after commands whose implementation
+        # will eventually finish...
+        if self.flags.circling:
+            msg = 'This makes no sense... when should we stop circling?!'
+            return msg
+        # And before the end of the flight!
+        if self.flags.cleared_down:
+            msg = 'Once landed, the flight is over!'
+            return msg
+        self.queued_commands.append(commands)
         return True
 
     def execute_command(self, commands):
@@ -413,15 +426,13 @@ class Aeroplane(object):
             norm_velocity = Vector3(*self.velocity.xyz).normalized()
             acc_vector = norm_velocity * gr_acc
             # Acceleration cannot produce a speed over or under the limits
-            min_, max_ = self.landing_speed*1.5, self.max_speed
+            min_, max_ = self.min_speed, self.max_speed
             if min_ <= self.speed + gr_acc <= max_:
                 self.velocity += acc_vector
             # if out of boundaries, uses min and max
             else:
-                print('--> %s %s %s' % (max_, min_, index))
                 self.velocity = norm_velocity * (max_ if index else min_)
             # Update position and prevent overshooting
-            print('VELOCITY: %s' % self.velocity)
         self.position += self.velocity*self.ping_in_seconds*pings
         # Heading dampener (act on velocity vector)
         t_head = self.target_conf['heading']
@@ -440,11 +451,14 @@ class Aeroplane(object):
         if self.__test_in_between((old_altitude, self.altitude), t_alt):
             self.position.z = t_alt
             self.velocity.z = 0
-        # Update busy flag
+        # Update busy flag or start execution of next command
         fl = self.flags
         if self.__test_target_conf_reached() and not \
-           (fl.cleared_beacon or fl.cleared_down or fl.cleared_up):
-            fl.busy = False
+                      (fl.cleared_beacon or fl.cleared_down or fl.cleared_up):
+            fl.busy = False  #execute commands will check this flag
+            fl.expedite = False  #reset
+            if self.queued_commands:
+                self.execute_command(self.queued_commands.pop(0))
         print('S:%d - H:%d - A:%d' % (self.speed, self.heading, self.altitude))
         self.rect = sc(self.position.xy)
         # TODO: trail entries could happen only 1 in X times, to make dots
