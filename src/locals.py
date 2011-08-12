@@ -73,9 +73,10 @@ RADAR_RECT = pygame.rect.Rect(
      (WINDOW_SIZE[0]-WINDOW_SIZE[1]*(1-CONSOLE_HEIGHT))/2, 0,
       WINDOW_SIZE[1]*(1-CONSOLE_HEIGHT), WINDOW_SIZE[1]*(1-CONSOLE_HEIGHT))
 METRES_PER_PIXELS = RADAR_RANGE*2.0/RADAR_RECT.width
-
 CLI_RECT = pygame.rect.Rect(RADAR_RECT.x, RADAR_RECT.h+2,
                             RADAR_RECT.w, WINDOW_SIZE[1]-RADAR_RECT.h-2)
+STRIPS_RECT = pygame.rect.Rect(0,0, (WINDOW_SIZE[0] - RADAR_RECT.w - 2) / 2,
+     WINDOW_SIZE[1])  # -2 for the lines separating BUI elements
 
 def rint(float_):
     '''

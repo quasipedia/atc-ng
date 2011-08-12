@@ -90,6 +90,7 @@ class Aerospace(object):
         record['sprites'].append(tag_c)
         # Storage of plane info in internal dictionary
         self.__planes[plane.icao] = record
+        return plane
 
     def remove_plane(self, icao):
         '''
@@ -175,14 +176,13 @@ class Aerospace(object):
         about to collide with another one and take appropriate counter-
         measures.
         '''
-        planes = [v['plane'] for v in self.__planes.values()]
         # Reset all collision data
-        for p in planes:
+        for p in self.aeroplanes:
             p.flags.collision = False
             p.colliding_planes = []
             p.set_target_conf_to_current()
         # Recalculate it
-        for p1, p2 in combinations(planes, 2):
+        for p1, p2 in combinations(self.aeroplanes, 2):
             distance = p1.position - p2.position
             if abs(distance.z) < VERTICAL_CLEARANCE and \
                distance.x**2 + distance.y**2 < HORIZONTAL_CLEARANCE**2:

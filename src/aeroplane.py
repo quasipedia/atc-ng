@@ -9,6 +9,7 @@ from math import sqrt, atan2, degrees, radians, cos, sin
 from euclid import Vector3
 from collections import deque
 from random import randint
+from time import time
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -111,6 +112,7 @@ class Aeroplane(object):
             self.max_speed = 800
         if self.max_g == None:
             self.max_g = 3
+        self.time_last_cmd = time()
         # Derived values
         self.min_speed = self.landing_speed*1.5
         # Dummy to test varius sprites
@@ -343,6 +345,7 @@ class Aeroplane(object):
             else:
                 raise BaseException('Unknown command: %s' % command)
             self.flags.busy = True
+        self.time_last_cmd = time()
         return True
 
     def _abort_command(self, last_only=False):

@@ -3,7 +3,7 @@
 '''
 Provides the sprite classes used in the radar window.
 
-These are: aeroplanes, trailing dots, labels.
+These are: aeroplanes, trailing dots, labels (tags) and tags connectors.
 '''
 
 from locals import *
