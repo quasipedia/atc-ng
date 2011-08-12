@@ -10,6 +10,7 @@ Amongst others:
 '''
 
 from locals import *
+from euclid import Vector3
 import pygame.draw
 import aerospace
 import commander
@@ -44,8 +45,15 @@ class GameLogic(object):
         self.__quick_start()
 
     def __quick_start(self):
-        for i in range(1):
-            self.aerospace.add_plane()
+        d = RADAR_RANGE/9
+        self.aerospace.add_plane(position=Vector3(RADAR_RANGE-d,RADAR_RANGE),
+                                 velocity=Vector3(170,0,0))
+        self.aerospace.add_plane(position=Vector3(RADAR_RANGE+d,RADAR_RANGE),
+                                 velocity=Vector3(-70,0,0))
+        self.aerospace.add_plane(position=Vector3(RADAR_RANGE,RADAR_RANGE-d),
+                                 velocity=Vector3(0,370,0))
+        self.aerospace.add_plane(position=Vector3(RADAR_RANGE,RADAR_RANGE+d),
+                                 velocity=Vector3(0,-290,0))
 
     def key_pressed(self, key):
         self.cli.process_keystroke(key)

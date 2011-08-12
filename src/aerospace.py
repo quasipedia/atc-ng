@@ -8,6 +8,7 @@ World modelling and representation for the ATC game.
 '''
 
 from locals import *
+from itertools import combinations
 import pygame.sprite
 import pygame.surface
 import aeroplane
@@ -64,7 +65,7 @@ class Aerospace(object):
         # This record will contain all info relative to a given plane
         record = {}
         # Aeroplane object
-        plane = aeroplane.Aeroplane()
+        plane = aeroplane.Aeroplane(**kwargs)
         record['plane'] = plane
         record['sprites'] = []
         # Icon sprite
@@ -143,25 +144,6 @@ class Aerospace(object):
             if x < 0 or x > s.width or y < 0 or y > s.height:
                 self.remove_plane(icao)
 
-    def update(self, pings):
-        for plane in self.__planes.values():
-            plane['plane'].update(pings)
-        self.flying_sprites.update()
-        self.kill_escaped()
-        self.place_tags()
-        for tag in self.tags:
-            tag.connector.generate()
-
-    def draw(self):
-        self.flying_sprites.clear(self.surface, self.bkground)
-        self.flying_sprites.draw(self.surface)
-
-    def ping(self):
-        '''
-        Execute a ping of the radar.
-        '''
-        pass
-
     @property
     def aeroplanes(self):
         '''
@@ -186,6 +168,40 @@ class Aerospace(object):
         Return a list of the available airports on the map.
         '''
         return []
+
+    def acas(self):
+        '''
+        ACAS = Airborne Collision Avoidance System. Verify if any plane is
+        about to collide with another one and take appropriate counter-
+        measures.
+        '''
+        planes = [v['plane'] for v in self.__planes.values()]
+        # Reset all collision data
+        for p in planes:
+            p.flags.collision = False
+            p.colliding_planes = []
+            p.set_target_conf_to_current()
+        # Recalculate it
+        for p1, p2 in combinations(planes, 2):
+            distance = p1.position - p2.position
+            if abs(distance.z) < VERTICAL_CLEARANCE and \
+               distance.x**2 + distance.y**2 < HORIZONTAL_CLEARANCE**2:
+                p1.set_aversion(p2)
+                p2.set_aversion(p1)
+
+    def update(self, pings):
+        for plane in self.__planes.values():
+            plane['plane'].update(pings)
+        self.acas()
+        self.flying_sprites.update()
+        self.kill_escaped()
+        self.place_tags()
+        for tag in self.tags:
+            tag.connector.generate()
+
+    def draw(self):
+        self.flying_sprites.clear(self.surface, self.bkground)
+        self.flying_sprites.draw(self.surface)
 
 
 

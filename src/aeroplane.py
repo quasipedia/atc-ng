@@ -90,17 +90,15 @@ class Aeroplane(object):
             setattr(self, property, value)
         if self.icao == None:
             self.icao = self.__random_icao()
-        if self.position == None:
+        if self.position is None:
             self.position = Vector3(RADAR_RANGE, RADAR_RANGE)
-        if self.velocity == None:
+        if self.velocity is None:
             self.velocity = Vector3(randint(30,400), 0, 0)
         if self.target_conf == None:
             self.target_conf = {}
-            self.target_conf['heading'] = self.heading
-            self.target_conf['speed'] = self.speed
-            self.target_conf['altitude'] = self.altitude
+            self.set_target_conf_to_current()
         if self.climb_rate_limits == None:
-            self.climb_rate_limits = (-100, 50)
+            self.climb_rate_limits = (-30, 15)
         if self.climb_rate_accels == None:
             self.climb_rate_accels = (-20, 10)
         if self.max_altitude == None:
@@ -111,6 +109,8 @@ class Aeroplane(object):
             self.landing_speed = 100 / 3.6  #100kph
         if self.max_speed == None:
             self.max_speed = 800
+        if self.max_g == None:
+            self.max_g = 3
         # Derived values
         self.min_speed = self.landing_speed*1.5
         # Dummy to test varius sprites
@@ -126,6 +126,8 @@ class Aeroplane(object):
         self.trail = deque([sc(self.position.xy)] * TRAIL_LENGTH, TRAIL_LENGTH)
         # Initialise the command queue
         self.queued_commands = []
+        # Initialise the colliding planes registry
+        self.colliding_planes = []
 
     def __random_icao(self):
         '''Return a random pseudo-ICAO flight number'''
@@ -190,6 +192,15 @@ class Aeroplane(object):
         '''
         theta = (self.heading - self.target_conf['heading']) % 360
         return self.LEFT if theta < 180 else self.RIGHT
+
+    def set_target_conf_to_current(self):
+        '''
+        Set the target configuration for the plane to the current heading,
+        speed and altitude.
+        '''
+        self.target_conf['speed'] = self.speed
+        self.target_conf['altitude'] = self.altitude
+        self.target_conf['heading'] = self.heading
 
     @property
     def heading(self):
@@ -341,12 +352,43 @@ class Aeroplane(object):
         if last_only == True and self.queued_commands:
             self.queued_commands.pop()
             return
-        self.target_conf['speed'] = self.speed
-        self.target_conf['altitude'] = self.altitude
-        self.target_conf['heading'] = self.heading
+        self.set_target_conf_to_current()
         self.queued_commands = []
         self.veering_direction = None
         self.flags.reset()
+
+    def set_aversion(self, other_plane):
+        '''
+        Instruct the plane to avoid collision with `other_plane`
+        '''
+        # Aversion is an emergency, and voids any other order and order queue
+        self.flags.reset()
+        self.queued_commands = []
+        self.colliding_planes.append(other_plane)
+        self.flags.collision = True
+
+    def _set_aversion_course(self):
+        '''
+        Calculate the best course to avoid the colliding plane(s).
+        This is done by:
+        - Reducing speed to the minimum for increased manoeuvrability
+        - Calculating opposite vectors to colliding planes and assigning to
+          them a magnitude which is proportional to their distance.
+        - Setting the course for the resulting vector.
+        '''
+        # Calculate the avoidance vector
+        vectors = [self.position - p.position for p in self.colliding_planes]
+        vectors = [v.normalized()/abs(v) for v in vectors]
+        vector = reduce(lambda x,y : x+y, vectors)
+        # Set the target configuration
+        self.flags.expedite = True
+        tc = self.target_conf
+        if vector.z == 0:
+            vector.z = randint(0,1)  #if two planes fly at the same level...
+        tc['altitude'] = self.max_altitude if vector.z > 0 else 0
+        tc['speed'] = self.min_speed
+        tc['heading'] = (90-degrees(atan2(vector.y, vector.x)))%360
+        self.veering_direction = self.__shortest_veering_direction()
 
     def _veer(self, pings):
         '''
@@ -388,9 +430,9 @@ class Aeroplane(object):
         old_altitude = self.altitude
         old_heading = self.heading
         old_speed = self.speed
-        print('---')
-        print('S:%d - H:%d - A:%d' % (self.speed, self.heading, self.altitude))
-        print('Target: %s' % self.target_conf)
+        # In case of imminent collision:
+        if self.flags.collision:
+            self._set_aversion_course()
         # Circling action affects heading only (can be combined with changes in
         # speed and/or altitude)
         if self.flags.circling:
@@ -459,7 +501,6 @@ class Aeroplane(object):
             fl.expedite = False  #reset
             if self.queued_commands:
                 self.execute_command(self.queued_commands.pop(0))
-        print('S:%d - H:%d - A:%d' % (self.speed, self.heading, self.altitude))
         self.rect = sc(self.position.xy)
         # TODO: trail entries could happen only 1 in X times, to make dots
         # more spaced out

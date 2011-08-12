@@ -35,6 +35,10 @@ VALID_CHARS = \
 OUTBOUND_ID = 'TOWER'
 PROMPT_SEPARATOR = '>>>'
 
+# Game logic
+VERTICAL_CLEARANCE = 500        # minimum distance in metres between planes
+HORIZONTAL_CLEARANCE = 5000     # minimum distance in metres between planes
+
 # Colours
 WHITE = (255,255,255)
 GRAY = (128,128,128)
