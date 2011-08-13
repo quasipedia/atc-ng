@@ -23,9 +23,8 @@ class StripsGroup(pygame.sprite.RenderUpdates):
     def draw(self, surface):
         cmp = lambda a,b : rint(b.plane.time_last_cmd - a.plane.time_last_cmd)
         ordered = sorted(self.sprites(), cmp)
-        y = 0
+        y = 1
         for sprite in ordered:
-            print y
             sprite.rect.y = y
             y += sprite.rect.h
         super(StripsGroup, self).draw(surface)
@@ -45,8 +44,8 @@ class FlightStrip(pygame.sprite.Sprite):
         w, h = self.image.get_size()
         self.image.fill(BLACK)
         border_rect = pygame.rect.Rect(1, 1, w-2, h-2)
-        pygame.draw.rect(self.image, WHITE, border_rect, 1)
-        self.image.blit(self.fontobj.render(plane.icao, True, WHITE), (3,3))
+        pygame.draw.rect(self.image, PALE_YELLOW, border_rect)
+        self.image.blit(self.fontobj.render(plane.icao, True, BLACK), (3,3))
         self.rect = pygame.rect.Rect(0, 0, w, h)
 
     @classmethod
