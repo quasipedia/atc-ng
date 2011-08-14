@@ -1,0 +1,28 @@
+# [FRA] Stockholm-Arlanda Aeroport, Stockholm Sweden
+#
+# ©2011 Mac Ryan - Licensed under GPL v.3
+#
+# This file is intended to work with the ATC-NG game available at
+# https://github.com/quasipedia/atc-ng
+
+aeroport:
+
+  iata        : FRA
+  name        : Frankfurt am Main
+
+runways:
+
+- orientation : 0
+  length      : 4000
+  width       : 60
+  centre_pos  : [0,0]
+
+- orientation : 70
+  length      : 4000
+  width       : 60
+  centre_pos  : [2440,2460]
+
+- orientation : 70
+  length      : 4000
+  width       : 60
+  centre_pos  : [2440,1880]

@@ -10,6 +10,7 @@ from euclid import Vector3
 from collections import deque
 from random import randint
 from time import time
+import yaml
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -58,8 +59,11 @@ class Aeroplane(object):
     See the class `Flag` to see what status flag a plane can have.
     '''
 
+    ALL_ICAO_CODES = yaml.load(open('../descriptions/airline-codes.yml'))
+
     KNOWN_PROPERTIES = [#STATIC / game logic
                         'icao',              # Three-letter code and flight n.
+                        'callsign',          # Radio callsign
                         'model',             # Type of plane (name)
                         'destination',       # Airport name
                         'entry_time',        # Time of entry in airspace
@@ -115,6 +119,8 @@ class Aeroplane(object):
         self.time_last_cmd = time()
         # Derived values
         self.min_speed = self.landing_speed*1.5
+        tmp = self.ALL_ICAO_CODES[self.icao[:3]]['callsign']
+        self.callsign = ' '.join((tmp, self.icao[3:])) if tmp else self.icao
         # Dummy to test varius sprites
         mag = self.velocity.magnitude()
         if mag < 150:
@@ -133,8 +139,9 @@ class Aeroplane(object):
 
     def __random_icao(self):
         '''Return a random pseudo-ICAO flight number'''
-        rc = lambda : chr(randint(65, 90))
-        return ''.join([rc(), rc(), rc(), str(randint(1000, 9999))])
+        keys = self.ALL_ICAO_CODES.keys()
+        rand_key = lambda : keys[randint(0,len(keys)-1)]
+        return ''.join((rand_key(), str(randint(1000, 9999))))
 
     def __verify_feasibility(self, speed=None, altitude=None):
         '''

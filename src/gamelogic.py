@@ -17,6 +17,7 @@ import aerospace
 import aeroport
 import commander
 import guisprites
+import yaml
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -64,17 +65,16 @@ class GameLogic(object):
         for plane in self.aerospace.aeroplanes:
             self.strips.add(guisprites.FlightStrip(plane))
         # AEROPORTS
-        rws = [aeroport.AsphaltStrip(10, length=3300, width=70,
-                                     centre_pos=(0,0)),
-               aeroport.AsphaltStrip(10, length=2500, width=70,
-                                     centre_pos=(2100,-1500)),
-               aeroport.AsphaltStrip(80, length=2500, width=70,
-                                     centre_pos=(2150,1000))]
-        port = aeroport.Aeroport((RADAR_RANGE/2, RADAR_RANGE/2), 'ARN',
-                                 'Stockholm-Arlanda', rws)
-        self.aerospace.add_aeroport(port)
-        self.__add_aeroport_map(port)
-        port.del_cached_images()
+        pos1 = (RADAR_RANGE/2, RADAR_RANGE/2)
+        pos2 = (RADAR_RANGE*1.5, RADAR_RANGE*1.5)
+        for iata, pos in (('ARN',pos1), ('FRA',pos2)):
+            data = yaml.load(open('../descriptions/aeroports/%s.yml' % iata))
+            rws = [aeroport.AsphaltStrip(**rw) for rw in data['runways']]
+            port = aeroport.Aeroport(pos,
+                                     asphalt_strips=rws, **data['aeroport'])
+            self.aerospace.add_aeroport(port)
+            self.__add_aeroport_map(port)
+            port.del_cached_images()
 
     def __add_aeroport_map(self, port):
         '''

@@ -390,9 +390,15 @@ class CommandLine(object):
 
     @property
     def text(self):
+        '''
+        The text presently on the commandline.
+        '''
         return ''.join(self.chars)
 
     def autocomplete(self):
+        '''
+        Autocomplete the word-stub under the cursor.
+        '''
         splitted = self.text.lower().split()
         spl_len = len(splitted)
         what = None
@@ -443,6 +449,9 @@ class CommandLine(object):
         self.chars.extend(list(match[len(root):]))
 
     def process_keystroke(self, event):
+        '''
+        React to keystrokes.
+        '''
         mods = pygame.key.get_mods()
         if event.key == K_RETURN:
             self.parser.initialise(self.text)
@@ -467,8 +476,8 @@ class CommandLine(object):
                 fname = callable_.__name__
                 colour = GREEN
                 if fname in ('execute_command', 'queue_command'):
-                    icao = callable_.im_self.icao
-                    answer_prefix = ' '.join((icao, PROMPT_SEPARATOR))
+                    callsign = callable_.im_self.callsign
+                    answer_prefix = ' '.join((callsign, PROMPT_SEPARATOR))
                     if ret == True:
                         if fname == 'execute_command':
                             answer = self.__randomel(AFFIRMATIVE_EXEC_ANSWERS)

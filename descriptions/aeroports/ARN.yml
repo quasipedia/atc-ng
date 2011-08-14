@@ -1,0 +1,28 @@
+# [ARN] Stockholm-Arlanda Aeroport, Stockholm Sweden
+#
+# ©2011 Mac Ryan - Licensed under GPL v.3
+#
+# This file is intended to work with the ATC-NG game available at
+# https://github.com/quasipedia/atc-ng
+
+aeroport:
+
+  iata        : ARN
+  name        : Stockholm-Arlanda
+
+runways:
+
+- orientation : 10
+  length      : 3300
+  width       : 70
+  centre_pos  : [0,0]
+
+- orientation : 10
+  length      : 2500
+  width       : 70
+  centre_pos  : [2100,-1500]
+
+- orientation : 80
+  length      : 2500
+  width       : 70
+  centre_pos  : [2150,1000]

@@ -11,6 +11,7 @@ import pygame.font
 from pygame.locals import *
 import pygame.surface
 import pygame.transform
+import yaml
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -30,7 +31,7 @@ class AsphaltStrip(object):
     27.
     '''
 
-    def __init__(self, orientation, length=1000, centre_pos=(0, 0), width=30):
+    def __init__(self, orientation=0, length=1500, centre_pos=(0,0), width=50):
         if orientation % 10 != 0:
             raise BaseException('Runways must be at multiples of 10°.')
         orientation %= 180  #standardise orientation to 0-180 degrees
