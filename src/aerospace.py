@@ -40,6 +40,7 @@ class Aerospace(object):
     def __init__(self, surface):
         self.surface = surface
         self.bkground = pygame.surface.Surface((RADAR_RECT.w, RADAR_RECT.h))
+        self.surface.blit(self.bkground, (0,0))  #for the future...
         self.flying_sprites = pygame.sprite.LayeredUpdates()
         self.top_layer = pygame.sprite.Group()
         self.tags = pygame.sprite.Group()
@@ -100,12 +101,18 @@ class Aerospace(object):
             sprite.kill()
         del self.__planes[icao]
 
-    def add_aeroport(self, iata, runaways):
+    def add_aeroport(self, a_port):
         '''
         Add aeroports to the aerospace.
-        There is no need for a `remove` function
         '''
-        self.__aeroports[iata] = aeroport.Aeroport(iata, runaways)
+        self.__aeroports[a_port.iata] = a_port
+        a_image = a_port.get_image(scale=1.0/METRES_PER_PIXELS,
+                                   with_labels=False)
+        print(a_image)
+        for a in range(3):  #blitting multiple times increases visibility
+            self.bkground.blit(a_image, sc(a_port.centre_pos.xy))
+        self.surface.blit(self.bkground, (0,0))
+        print(sc(a_port.centre_pos.xy))
 
     def connect_tags(self):
         '''

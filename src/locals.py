@@ -63,6 +63,7 @@ COLLISION = 4
 STATUS_COLORS = [WHITE, GRAY, MAGENTA, YELLOW, RED]
 
 # Fonts
+MAIN_FONT = '../data/ex_modenine.ttf'
 # These are conventional chars that have been mapped in the font file to
 # match arrow up and arrow down
 CHAR_UP = '^'
@@ -76,8 +77,12 @@ RADAR_RECT = pygame.rect.Rect(
 METRES_PER_PIXELS = RADAR_RANGE*2.0/RADAR_RECT.width
 CLI_RECT = pygame.rect.Rect(RADAR_RECT.x, RADAR_RECT.h+2,
                             RADAR_RECT.w, WINDOW_SIZE[1]-RADAR_RECT.h-2)
-STRIPS_RECT = pygame.rect.Rect(0,0, (WINDOW_SIZE[0] - RADAR_RECT.w - 2) / 2,
-     WINDOW_SIZE[1])  # -2 for the lines separating BUI elements
+STRIPS_RECT = pygame.rect.Rect(0, 0,
+                    # -2 for the lines separating BUI elements
+                    (WINDOW_SIZE[0] - RADAR_RECT.w - 2) / 2, WINDOW_SIZE[1])
+MAPS_RECT = pygame.rect.Rect(RADAR_RECT.x + RADAR_RECT.w + 2, 0,
+                    # -2 for the lines separating BUI elements
+                    (WINDOW_SIZE[0] - RADAR_RECT.w - 2) / 2, WINDOW_SIZE[1])  # -2 for the lines separating BUI elements
 
 def rint(float_):
     '''

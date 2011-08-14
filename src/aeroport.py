@@ -4,8 +4,13 @@
 Aeroports modelling of the ATC simulation game.
 '''
 
+from locals import *
 from euclid import Vector3
 from math import radians
+import pygame.font
+from pygame.locals import *
+import pygame.surface
+import pygame.transform
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -16,6 +21,25 @@ __email__ = "quasipedia@gmail.com"
 __status__ = "Development"
 
 
+class AsphaltStrip(object):
+
+    '''
+    Base class used as a building element for aeroports. Each AsphaltStrip()
+    object will generate two landing runways (the two direction one can land on
+    it). Example: if the orientation is 90° the landing runaways will be 09 and
+    27.
+    '''
+
+    def __init__(self, orientation, length=1000, centre_pos=(0, 0), width=30):
+        if orientation % 10 != 0:
+            raise BaseException('Runways must be at multiples of 10°.')
+        orientation %= 180  #standardise orientation to 0-180 degrees
+        self.orientation = orientation         #in degrees
+        self.length = length                   #in metres
+        self.width = width                     #in metres
+        self.centre_pos = Vector3(*centre_pos) #in mt from aribitrary point
+
+
 class Aeroport(object):
 
     '''
@@ -23,11 +47,14 @@ class Aeroport(object):
     here and not in the Runway class.
     '''
 
-    def __init__(self, centre_pos, iata, asphalt_strips):
+    def __init__(self, centre_pos, iata, name, asphalt_strips):
         self.iata = iata
+        self.name = name
         self.asphalt_strips = asphalt_strips
         self.centre_pos = Vector3(*centre_pos)
         self.__define_points()
+        self.__plain_image = None
+        self.__labelled_image = None
 
     def __sort_left_to_right(self, keys, runways):
         '''
@@ -57,7 +84,6 @@ class Aeroport(object):
         runways = {}
         # First create all runaways with temp names in the form `XX_n`...
         for n, strip in enumerate(self.asphalt_strips):
-            abs_centre = self.centre_pos + strip.centre_pos
             for rot in (strip.orientation, 180+strip.orientation):
                 tmp = {}
                 offset = Vector3(1,0,0)
@@ -65,8 +91,8 @@ class Aeroport(object):
                 offset = offset.rotate_around(Vector3(0,0,1), r_ang)
                 tmp['ils'] = offset
                 offset *= strip.length / 2
-                tmp['location'] = (abs_centre + offset).xyz
-                tmp['to_point'] = abs_centre
+                tmp['location'] = strip.centre_pos + offset
+                tmp['to_point'] = strip.centre_pos
                 runways['%s_%d' % (str(rot/10).zfill(2), n)] = tmp
         # ...then change the names to the permanent one in the form XXL|C|R
         self.runways = {}
@@ -90,21 +116,70 @@ class Aeroport(object):
                 new_key = new_keys[n]
                 self.runways[new_key] = runways[old_key]
 
+    def get_image(self, square_side=None, scale=None, with_labels=False):
+        '''
+        Return a pygame squared surface with the map of the aeroport.
+        A master image is stored internally at 1mt:1px scale, either argument
+        is provided, the method will return either the bounding image scaled
+        as requested, either a squared image with the side measuring
+        `square_side` pixels.
+        '''
+        # Helper function that blits on the canvas fixing the y axis and using
+        # the centre of the blitted image as reference point
+        def my_blit(dest, source, pos):
+            x,y = pos
+            x,y = x-source.get_width()/2, y+source.get_height()/2
+            y = -(y-dest.get_height())
+            dest.blit(source, (x,y))
+        if bool(square_side) == bool(scale):
+            msg = 'Either `square_side` XOR `scale` MUST be specified'
+            raise BaseException(msg)
+        # The master images hasn't yet been generated...
+        if not self.__plain_image or not self.__labelled_image:
+            strips = self.asphalt_strips
+            xes = [s.centre_pos[0] for s in strips]
+            ys = [s.centre_pos[1] for s in strips]
+            min_x, max_x = min(xes), max(xes)
+            min_y, max_y = min(ys), max(ys)
+            max_len = max([s.length for s in strips])
+            width = max_x-min_x+2*max_len
+            height = max_y-min_y+2*max_len
+            trasl = Vector3(max_len-min_x, max_len-min_y)
+            a_canvas = pygame.surface.Surface((width, height), SRCALPHA)
+            for strip in strips:
+                size = (strip.width, strip.length)
+                image = pygame.surface.Surface(size, SRCALPHA)
+                image.fill(GRAY)
+                image = pygame.transform.rotate(image, -strip.orientation)
+                my_blit(a_canvas, image, (strip.centre_pos+trasl).xy)
+            # Store the label-less image
+            self.__plain_image = a_canvas.subsurface(
+                                 a_canvas.get_bounding_rect()).copy()
+            # Add the the labels
+            pi = self.__plain_image
+            font_size = max(pi.get_width(), pi.get_height()) / 16
+            fontobj = pygame.font.Font(MAIN_FONT, font_size)
+            for k, v in self.runways.items():
+                label = fontobj.render(k, True, WHITE)
+                loc = v['location'] + trasl + \
+                      v['ils'].normalized() * font_size * 1.2
+                my_blit(a_canvas, label, loc.xy)
+            self.__labelled_image = a_canvas.subsurface(
+                                    a_canvas.get_bounding_rect()).copy()
+        # THIS IS THE BIT THAT RUNS AT EACH CALL
+        img = (self.__plain_image if with_labels == False
+                                  else self.__labelled_image).copy()
+        w, h = img.get_width(), img.get_height()
+        if square_side:
+            ratio = float(square_side)/max(w,h)
+            tmp = pygame.transform.smoothscale(img,
+                                               (rint(w*ratio), rint(h*ratio)))
+            w, h = tmp.get_width(), tmp.get_height()
+            pos = ((square_side-w)/2, (square_side-h)/2, )
+            img = pygame.surface.Surface((square_side, square_side), SRCALPHA)
+            img.blit(tmp, pos)
+        if scale:
+            img = pygame.transform.smoothscale(img,
+                                               (rint(w*scale), rint(h*scale)))
+        return img
 
-class AsphaltStrip(object):
-
-    '''
-    Base class used as a building element for aeroports. Each AsphaltStrip()
-    object will generate two landing runways (the two direction one can land on
-    it). Example: if the orientation is 90° the landing runaways will be 09 and
-    27.
-    '''
-
-    def __init__(self, orientation, length=1000, centre_pos=(0, 0), width=30):
-        if orientation % 10 != 0:
-            raise BaseException('Runways must be at multiples of 10°.')
-        orientation %= 180  #standardise orientation to 0-180 degrees
-        self.orientation = orientation         #in degrees
-        self.length = length                   #in metres
-        self.width = width                     #in metres
-        self.centre_pos = Vector3(*centre_pos) #mt. relative to the port centre

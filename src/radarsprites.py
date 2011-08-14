@@ -166,8 +166,7 @@ class Tag(SuperSprite):
 
     @classmethod
     def initialise(cls):
-        cls.fontobj = pygame.font.Font('../data/ex_modenine.ttf',
-                                        HUD_INFO_FONT_SIZE)
+        cls.fontobj = pygame.font.Font(MAIN_FONT, HUD_INFO_FONT_SIZE)
         cls.default_angle = 45
         cls.default_radius = 50
         cls.initialised = True

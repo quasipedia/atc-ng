@@ -14,6 +14,7 @@ from euclid import Vector3
 import pygame.draw
 import pygame.sprite
 import aerospace
+import aeroport
 import commander
 import guisprites
 
@@ -38,6 +39,7 @@ class GameLogic(object):
         self.radar_surface = surface.subsurface(RADAR_RECT)
         self.cli_surface = surface.subsurface(CLI_RECT)
         self.strips_surface = surface.subsurface(STRIPS_RECT)
+        self.maps_surface = surface.subsurface(MAPS_RECT)
         x, y, w, h = RADAR_RECT
         pygame.draw.line(surface, WHITE, (x-1, y), (x-1, WINDOW_SIZE[1]))
         pygame.draw.line(surface, WHITE, (x+w+1, y), (x+w+1, WINDOW_SIZE[1]))
@@ -49,6 +51,7 @@ class GameLogic(object):
         self.__quick_start()
 
     def __quick_start(self):
+        # PLANES
         d = RADAR_RANGE/9
         self.aerospace.add_plane(position=Vector3(RADAR_RANGE-d,RADAR_RANGE),
                                  velocity=Vector3(170,0,0))
@@ -60,6 +63,18 @@ class GameLogic(object):
                                  velocity=Vector3(0,-290,0))
         for plane in self.aerospace.aeroplanes:
             self.strips.add(guisprites.FlightStrip(plane))
+        # AEROPORTS
+        rws = [aeroport.AsphaltStrip(10, length=3300, width=70,
+                                     centre_pos=(0,0)),
+               aeroport.AsphaltStrip(10, length=2500, width=70,
+                                     centre_pos=(2100,-1500)),
+               aeroport.AsphaltStrip(80, length=2500, width=70,
+                                     centre_pos=(2150,1000))]
+        port = aeroport.Aeroport((RADAR_RANGE, RADAR_RANGE), 'ARN',
+                                 'Arlanda (Stockholm, SE)', rws)
+        self.aerospace.add_aeroport(port)
+        self.maps_surface.blit(port.get_image(square_side=MAPS_RECT.w,
+                                              with_labels=True), (0,0))
 
     def key_pressed(self, key):
         self.cli.process_keystroke(key)

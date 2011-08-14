@@ -337,9 +337,8 @@ class CommandLine(object):
                      (CONSOLE_LINES_NUM + 1.0/CONSOLE_FONT_SIZE_RATIO)
         large_size = rint(small_size / CONSOLE_FONT_SIZE_RATIO)
         small_size = rint(small_size)
-        file_ = '../data/ex_modenine.ttf'
-        self.large_f = pygame.font.Font(file_, large_size)
-        self.small_f = pygame.font.Font(file_, small_size)
+        self.large_f = pygame.font.Font(MAIN_FONT, large_size)
+        self.small_f = pygame.font.Font(MAIN_FONT, small_size)
         self.parser = Parser(aerospace)
 
     def __randomel(self, list_):

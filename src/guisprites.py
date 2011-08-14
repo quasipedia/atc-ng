@@ -55,7 +55,7 @@ class FlightStrip(pygame.sprite.Sprite):
         '''
         size = 1
         while True:
-            fontobj = pygame.font.Font('../data/ex_modenine.ttf', size)
+            fontobj = pygame.font.Font(MAIN_FONT, size)
             w,h = fontobj.render('XXX0000', True, WHITE).get_size()
             if w > STRIPS_RECT.w/2 - 10:
                 break
