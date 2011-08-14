@@ -47,11 +47,11 @@ class Aeroport(object):
     here and not in the Runway class.
     '''
 
-    def __init__(self, centre_pos, iata, name, asphalt_strips):
+    def __init__(self, location, iata, name, asphalt_strips):
         self.iata = iata
         self.name = name
         self.asphalt_strips = asphalt_strips
-        self.centre_pos = Vector3(*centre_pos)
+        self.location = Vector3(*location)
         self.__define_points()
         self.__plain_image = None
         self.__labelled_image = None
@@ -183,3 +183,10 @@ class Aeroport(object):
                                                (rint(w*scale), rint(h*scale)))
         return img
 
+    def del_cached_images(self):
+        '''
+        Cached images are BIG. It's a good idea to flush them when they are not
+        to be used again.
+        '''
+        self.__plain_image = None
+        self.__labelled_image = None

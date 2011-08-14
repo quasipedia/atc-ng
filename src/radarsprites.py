@@ -336,7 +336,8 @@ class AeroplaneIcon(SuperSprite):
             # offset is compensated by the orientation of the original sprite
             # (North rather than East).
             heading *= -1
-            self.image = self.rotoscale(img, heading, SPRITE_SCALING, 15)
+            self.image = self.rotoscale(img, heading, SPRITE_SCALING, 
+                                                      MIN_PLANE_ICON_SIZE)
         self.rect = \
             get_rect_at_centered_pos(self.image, self.data_source.trail[0])
 

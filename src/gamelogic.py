@@ -70,11 +70,33 @@ class GameLogic(object):
                                      centre_pos=(2100,-1500)),
                aeroport.AsphaltStrip(80, length=2500, width=70,
                                      centre_pos=(2150,1000))]
-        port = aeroport.Aeroport((RADAR_RANGE, RADAR_RANGE), 'ARN',
-                                 'Arlanda (Stockholm, SE)', rws)
+        port = aeroport.Aeroport((RADAR_RANGE/2, RADAR_RANGE/2), 'ARN',
+                                 'Stockholm-Arlanda', rws)
         self.aerospace.add_aeroport(port)
-        self.maps_surface.blit(port.get_image(square_side=MAPS_RECT.w,
-                                              with_labels=True), (0,0))
+        self.__add_aeroport_map(port)
+        port.del_cached_images()
+
+    def __add_aeroport_map(self, port):
+        '''
+        Add an aeroport map to the game screen.
+        '''
+        margin = 7
+        # Prepare the label and get its size
+        fontobj = pygame.font.Font(MAIN_FONT, margin*2)
+        text = '%s ] %s' % (port.iata, port.name)
+        label = fontobj.render(text, True, WHITE)
+        w, h = label.get_width(), label.get_height()
+        # Blit frame
+        r = pygame.rect.Rect(1,1,MAPS_RECT.w-2,MAPS_RECT.w+2*margin+h-2)
+        pygame.draw.rect(self.maps_surface, WHITE, r, 1)
+        # Blit Banner for highlighting the name
+        r = pygame.rect.Rect(2,2,MAPS_RECT.w-4,2*margin+h)
+        pygame.draw.rect(self.maps_surface, GRAY, r)
+        # Blit label
+        self.maps_surface.blit(label, (margin, margin+2))
+        # Blit map
+        self.maps_surface.blit(port.get_image(square_side=MAPS_RECT.w-4*margin,
+                  with_labels=True), (2*margin,4*margin+h))
 
     def key_pressed(self, key):
         self.cli.process_keystroke(key)

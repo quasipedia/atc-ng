@@ -24,7 +24,9 @@ MAX_FRAMERATE = 60              # FPS
 
 # Dimensions
 WINDOW_SIZE = (1200, 750)       # in pixels
+#WINDOW_SIZE = (1800, 1125)      # in pixels
 RADAR_RANGE = 40000             # radius in kilometres --> 80x80km = space
+RADAR_RING_STEP = 10000         # space between radar rings
 
 # Console
 CONSOLE_HEIGHT = 0.14           # as a percentage of windows height
@@ -42,6 +44,7 @@ HORIZONTAL_CLEARANCE = 5000     # minimum distance in metres between planes
 # Colours
 WHITE = (255,255,255)
 GRAY = (128,128,128)
+DARK_GRAY = (50,50,50)
 MAGENTA = (255,0,255)
 YELLOW = (255,255,0)
 PALE_YELLOW = (255,255,224)
@@ -52,6 +55,7 @@ BLACK = (0,0,0)
 # Sprites
 TRAIL_LENGTH = 15               # number of dots in the trail
 SPRITE_SCALING = 0.1            # scaling factor (used for antialiasing)
+MIN_PLANE_ICON_SIZE = 10        # minimum size of aeroplan icons in pixels
 
 # Aeroplane states and colors
 PLANE_STATES_NUM = 5            # number fo possible states for a plane
@@ -68,7 +72,7 @@ MAIN_FONT = '../data/ex_modenine.ttf'
 # match arrow up and arrow down
 CHAR_UP = '^'
 CHAR_DOWN = '\\'
-HUD_INFO_FONT_SIZE = 12
+HUD_INFO_FONT_SIZE = 12    # Font size for textual info on radar screen
 
 # Derivative values
 RADAR_RECT = pygame.rect.Rect(

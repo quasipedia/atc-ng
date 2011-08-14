@@ -9,6 +9,7 @@ World modelling and representation for the ATC game.
 
 from locals import *
 from itertools import combinations
+from euclid import Vector3
 import pygame.sprite
 import pygame.surface
 import aeroplane
@@ -40,7 +41,12 @@ class Aerospace(object):
     def __init__(self, surface):
         self.surface = surface
         self.bkground = pygame.surface.Surface((RADAR_RECT.w, RADAR_RECT.h))
-        self.surface.blit(self.bkground, (0,0))  #for the future...
+        centre = sc((RADAR_RANGE, RADAR_RANGE))
+        for radius in range(RADAR_RING_STEP, rint(RADAR_RANGE*2**0.5),
+                            RADAR_RING_STEP):
+            radius /= METRES_PER_PIXELS
+            pygame.draw.circle(self.bkground,DARK_GRAY,centre,rint(radius),1)
+        self.surface.blit(self.bkground, (0,0))
         self.flying_sprites = pygame.sprite.LayeredUpdates()
         self.top_layer = pygame.sprite.Group()
         self.tags = pygame.sprite.Group()
@@ -108,11 +114,19 @@ class Aerospace(object):
         self.__aeroports[a_port.iata] = a_port
         a_image = a_port.get_image(scale=1.0/METRES_PER_PIXELS,
                                    with_labels=False)
-        print(a_image)
+        # Place aeroport on radar
+        offset = Vector3(-a_image.get_width()/2, -a_image.get_height()/2).xy
+        centre = sc(a_port.location.xy)
+        pos = (centre[0]+offset[0], centre[1]+offset[1])
         for a in range(3):  #blitting multiple times increases visibility
-            self.bkground.blit(a_image, sc(a_port.centre_pos.xy))
+            self.bkground.blit(a_image, pos)
+        # Draw IATA name
+        fontobj = pygame.font.Font(MAIN_FONT, HUD_INFO_FONT_SIZE)
+        label = fontobj.render(a_port.iata, True, GREEN)
+        pos = centre[0]-label.get_width()/2, centre[1]-label.get_height()/2
+        self.bkground.blit(label, pos)
+        # Update radar
         self.surface.blit(self.bkground, (0,0))
-        print(sc(a_port.centre_pos.xy))
 
     def connect_tags(self):
         '''
@@ -185,9 +199,10 @@ class Aerospace(object):
         '''
         # Reset all collision data
         for p in self.aeroplanes:
-            p.flags.collision = False
-            p.colliding_planes = []
-            p.set_target_conf_to_current()
+            if p.flags.collision == True:
+                p.flags.collision = False
+                p.colliding_planes = []
+                p.set_target_conf_to_current()
         # Recalculate it
         for p1, p2 in combinations(self.aeroplanes, 2):
             distance = p1.position - p2.position
