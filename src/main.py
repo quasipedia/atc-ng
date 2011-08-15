@@ -21,6 +21,9 @@ __maintainer__ = "Mac Ryan"
 __email__ = "quasipedia@gmail.com"
 __status__ = "Development"
 
+#TODO: move euclide, openanything to /libs
+#TODO: check that positioning of aeroports on radar is accurate
+
 class MainWindow(object):
 
     def __init__(self):
@@ -48,14 +51,6 @@ class MainWindow(object):
                 self.game_logic.machine_state = MS_QUIT
             elif event.type == KEYDOWN:
                 self.game_logic.key_pressed(event)
-#            elif event.type == KEYUP:
-#                if event.key == K_ESCAPE:
-#                    self.running = False
-#                self.keyUp(event.key)
-#            elif event.type == MOUSEBUTTONUP:
-#                self.mouseUp(event.button, event.pos)
-#            elif event.type == MOUSEMOTION:
-#                self.mouseMotion(event.buttons, event.pos, event.rel)
 
     def main_loop(self):
         '''

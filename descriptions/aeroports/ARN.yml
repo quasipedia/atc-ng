@@ -9,8 +9,9 @@ aeroport:
 
   iata        : ARN
   name        : Stockholm-Arlanda
+  geolocation : [59°38'35.80"N, 17°56'30.95"E]
 
-runways:
+strips:
 
 - orientation : 10
   length      : 3300

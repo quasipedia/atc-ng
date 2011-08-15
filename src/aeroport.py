@@ -48,14 +48,27 @@ class Aeroport(object):
     here and not in the Runway class.
     '''
 
-    def __init__(self, location, iata, name, asphalt_strips):
+    def __init__(self, location=None, iata=None, name=None, strips=None,
+                       geolocation=None):
         self.iata = iata
         self.name = name
-        self.asphalt_strips = asphalt_strips
-        self.location = Vector3(*location)
+        self.strips = strips
+        self.location = location
+        self.geolocation = geolocation
         self.__define_points()
         self.__plain_image = None
         self.__labelled_image = None
+
+    @property
+    def location(self):
+        return self._location
+        
+    @location.setter
+    def location(self, value):
+        if not value:
+            self._location = None
+        else:
+            self._location = Vector3(*value)
 
     def __sort_left_to_right(self, keys, runways):
         '''
@@ -84,7 +97,7 @@ class Aeroport(object):
         '''
         runways = {}
         # First create all runaways with temp names in the form `XX_n`...
-        for n, strip in enumerate(self.asphalt_strips):
+        for n, strip in enumerate(self.strips):
             for rot in (strip.orientation, 180+strip.orientation):
                 tmp = {}
                 offset = Vector3(1,0,0)
@@ -150,7 +163,7 @@ class Aeroport(object):
             raise BaseException(msg)
         # The master images hasn't yet been generated...
         if not self.__plain_image or not self.__labelled_image:
-            strips = self.asphalt_strips
+            strips = self.strips
             xes = [s.centre_pos[0] for s in strips]
             ys = [s.centre_pos[1] for s in strips]
             min_x, max_x = min(xes), max(xes)

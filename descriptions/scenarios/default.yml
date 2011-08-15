@@ -1,0 +1,43 @@
+# Default scneario for the ATC-NG game.
+#
+# ©2011 Mac Ryan - Licensed under GPL v.3
+#
+# This file is intended to work with the ATC-NG game available at
+# https://github.com/quasipedia/atc-ng
+
+name         : Development scenario
+description  : A test scenario that will eventually evolve to be the default
+               one, it aims to showcase all the features (elements) that can
+               be possibly included on radar.
+radar_range  : 40000
+
+aeroports:
+
+- real_iata  : FRA
+  new_iata   : MAC
+  new_name   : Mac's home airoport
+  location   : [60000, 10000]
+
+- real_iata  : ARN
+  new_iata   : NAD
+  new_name   : Nadia's home airoport
+  location   : [50000, 50000]
+
+gates:
+
+- radial     : 0
+  alignment  : 45
+  width      : 4000
+
+- radial     : 135
+  alignment  : 135
+  width      : 8000
+
+- radial     : 270
+  alignment  : 90
+  width      : 1000
+
+beacons:
+
+- id         : BC1
+  location   : [10000, 70000]

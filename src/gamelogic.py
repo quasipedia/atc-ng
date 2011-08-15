@@ -18,8 +18,7 @@ import aerospace
 import aeroport
 import commander
 import guisprites
-import yaml
-import airlinehandler
+import yamlhandlers as yh
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -38,7 +37,7 @@ class GameLogic(object):
     '''
 
     def __init__(self, surface):
-        self.airline_handler = airlinehandler.Handler()
+        self.airline_handler = yh.AirlinesHandler()
         self.machine_state = MS_RUN
         # Surfaces
         self.global_surface = surface
@@ -57,44 +56,12 @@ class GameLogic(object):
         self.ms_from_last_ping = PING_PERIOD+1  #force update on first run
         self.strips = guisprites.StripsGroup()
         self.maps = []
-        self.__quick_start()
-
-    def __quick_start(self):
-        # AEROPORTS
-        pos1 = (RADAR_RANGE/2, RADAR_RANGE/2)
-        pos2 = (RADAR_RANGE*1.5, RADAR_RANGE*1.5)
-        for iata, pos in (('ARN',pos1), ('FRA',pos2)):
-            data = yaml.load(open('../descriptions/aeroports/%s.yml' % iata))
-            rws = [aeroport.AsphaltStrip(**rw) for rw in data['runways']]
-            port = aeroport.Aeroport(pos,
-                                     asphalt_strips=rws, **data['aeroport'])
-            self.aerospace.add_aeroport(port)
-            self.__add_aeroport_map(port)
-            port.del_cached_images()
-        self.draw_maps()
-        # PLANES
-        d = RADAR_RANGE/9
-        rfn = self.airline_handler.random_flight
-        self.aerospace.add_plane(position=Vector3(RADAR_RANGE-d,RADAR_RANGE),
-                                 velocity=Vector3(170,0,0),
-                                 origin='ARN', destination='FRA', **rfn())
-        self.aerospace.add_plane(position=Vector3(RADAR_RANGE+d,RADAR_RANGE),
-                                 velocity=Vector3(-70,0,0),
-                                 origin='ARN', destination='ARN', **rfn())
-        self.aerospace.add_plane(position=Vector3(RADAR_RANGE,RADAR_RANGE-d),
-                                 velocity=Vector3(0,370,0),
-                                 origin='ARN', destination='EX1', **rfn())
-        self.aerospace.add_plane(position=Vector3(RADAR_RANGE,RADAR_RANGE+d),
-                                 velocity=Vector3(0,-290,0),
-                                 origin='ARN', destination='EX2', **rfn())
-        for plane in self.aerospace.aeroplanes:
-            status = INBOUND if plane.destination in \
-                     self.aerospace.aeroports.keys() else OUTBOUND
-            self.strips.add(guisprites.FlightStrip(plane, status))
+        self.parse_scenario()
+        self.set_challenge()
 
     def __add_aeroport_map(self, port):
         '''
-        Add an aeroport map to the maps collection.
+        Add an aeroport map to the map collection.
         '''
         margin = 7
         a_map = pygame.surface.Surface((MAPS_RECT.w, MAPS_RECT.h), SRCALPHA)
@@ -123,7 +90,48 @@ class GameLogic(object):
         a_map = a_map.subsurface(a_map.get_bounding_rect()).copy()
         self.maps.append(a_map)
 
+    def parse_scenario(self, fname=None):
+        '''
+        Parse and render a scenario.
+        '''
+        if fname == None:
+            fname = 'default'
+        scene = yh.ScenarioHandler(fname)
+        scene.adjust_settings()
+        # AEROPORTS
+        for port in scene.aeroports:
+            self.aerospace.add_aeroport(port)
+            self.__add_aeroport_map(port)
+            port.del_cached_images()
+        self.draw_maps()
+
+    def set_challenge(self):
+        '''
+        Start the challenge (place planes on the radar).
+        '''
+        d = RADAR_RANGE/9
+        rfn = self.airline_handler.random_flight
+        self.aerospace.add_plane(position=Vector3(RADAR_RANGE-d,RADAR_RANGE),
+                                 velocity=Vector3(170,0,0),
+                                 origin='ARN', destination='FRA', **rfn())
+        self.aerospace.add_plane(position=Vector3(RADAR_RANGE+d,RADAR_RANGE),
+                                 velocity=Vector3(-70,0,0),
+                                 origin='ARN', destination='ARN', **rfn())
+        self.aerospace.add_plane(position=Vector3(RADAR_RANGE,RADAR_RANGE-d),
+                                 velocity=Vector3(0,370,0),
+                                 origin='ARN', destination='EX1', **rfn())
+        self.aerospace.add_plane(position=Vector3(RADAR_RANGE,RADAR_RANGE+d),
+                                 velocity=Vector3(0,-290,0),
+                                 origin='ARN', destination='EX2', **rfn())
+        for plane in self.aerospace.aeroplanes:
+            status = INBOUND if plane.destination in \
+                     self.aerospace.aeroports.keys() else OUTBOUND
+            self.strips.add(guisprites.FlightStrip(plane, status))
+
     def draw_maps(self):
+        '''
+        Draw the maps in the map collection in the map column (right side).
+        '''
         x = y = 1
         for map_ in self.maps:
             self.maps_surface.blit(map_, (x, y))

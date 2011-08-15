@@ -307,6 +307,8 @@ class Aeroplane(object):
         '''
         if self.flags.busy == True and commands[0][0] != 'abort':
             return 'Still maneuvering, please specify abort/append command'
+        if self.flags.collision == True:
+            return '...'
         for line in commands:
             command, args, flags = line
             if 'expedite' in flags:

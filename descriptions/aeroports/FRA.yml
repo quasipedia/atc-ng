@@ -9,8 +9,9 @@ aeroport:
 
   iata        : FRA
   name        : Frankfurt am Main
+  geolocation : [50° 1'9.90"N, 8°33'40.79"E]
 
-runways:
+strips:
 
 - orientation : 0
   length      : 4000
