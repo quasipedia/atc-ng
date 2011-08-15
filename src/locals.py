@@ -28,6 +28,8 @@ PING_PERIOD = 3000              # milliseconds between radar pings
 MAX_FRAMERATE = 60              # FPS
 
 # Dimensions
+#WINDOW_SIZE = (1024, 768)       # in pixels
+#WINDOW_SIZE = (800, 500)       # in pixels
 WINDOW_SIZE = (1200, 750)       # in pixels
 #WINDOW_SIZE = (1800, 1125)      # in pixels
 RADAR_RANGE = 40000             # radius in kilometres --> 80x80km = space
@@ -43,6 +45,8 @@ OUTBOUND_ID = 'TOWER'
 PROMPT_SEPARATOR = '>>>'
 
 # Game logic
+OUTBOUND = 0
+INBOUND = 1
 VERTICAL_CLEARANCE = 500        # minimum distance in metres between planes
 HORIZONTAL_CLEARANCE = 5000     # minimum distance in metres between planes
 
@@ -54,7 +58,10 @@ MAGENTA = (255,0,255)
 YELLOW = (255,255,0)
 PALE_YELLOW = (255,255,224)
 RED = (255,0,0)
+PALE_RED = (255,224,224)
 GREEN = (0,255,0)
+PALE_GREEN = (224,255,224)
+DARK_GREEN = (0,150,0)
 BLACK = (0,0,0)
 
 # Sprites
@@ -91,8 +98,8 @@ STRIPS_RECT = pygame.rect.Rect(0, 0,
                     # -2 for the lines separating BUI elements
                     (WINDOW_SIZE[0] - RADAR_RECT.w - 2) / 2, WINDOW_SIZE[1])
 MAPS_RECT = pygame.rect.Rect(RADAR_RECT.x + RADAR_RECT.w + 2, 0,
-                    # -2 for the lines separating BUI elements
-                    (WINDOW_SIZE[0] - RADAR_RECT.w - 2) / 2, WINDOW_SIZE[1])  # -2 for the lines separating BUI elements
+        # -3 for the lines separating BUI elements
+        (WINDOW_SIZE[0] - RADAR_RECT.w - STRIPS_RECT.w - 3), WINDOW_SIZE[1])
 
 def rint(float_):
     '''

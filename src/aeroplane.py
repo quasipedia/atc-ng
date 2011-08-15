@@ -64,7 +64,8 @@ class Aeroplane(object):
                         'icao',              # Three-letter code and flight n.
                         'callsign',          # Radio callsign
                         'model',             # Type of plane (name)
-                        'destination',       # Airport name
+                        'origin',       # Airport/exit name
+                        'destination',       # Airport/exit name
                         'entry_time',        # Time of entry in airspace
                         #STATIC / vertical modelling
                         'max_altitude',      # max altitude
@@ -115,6 +116,8 @@ class Aeroplane(object):
             self.max_speed = 800
         if self.max_g == None:
             self.max_g = 3
+        if self.fuel == None:
+            self.fuel = randint(100,200)
         self.time_last_cmd = time()
         # Derived values
         self.min_speed = self.landing_speed*1.5
@@ -506,3 +509,5 @@ class Aeroplane(object):
         # TODO: trail entries could happen only 1 in X times, to make dots
         # more spaced out
         self.trail.appendleft(sc(self.position.xy))
+        # Decrease fuel consumption
+        self.fuel -= 1 if self.fuel else 0

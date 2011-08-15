@@ -58,19 +58,6 @@ class GameLogic(object):
         self.__quick_start()
 
     def __quick_start(self):
-        # PLANES
-        d = RADAR_RANGE/9
-        rfn = self.airline_handler.random_flight
-        self.aerospace.add_plane(position=Vector3(RADAR_RANGE-d,RADAR_RANGE),
-                                 velocity=Vector3(170,0,0), **rfn())
-        self.aerospace.add_plane(position=Vector3(RADAR_RANGE+d,RADAR_RANGE),
-                                 velocity=Vector3(-70,0,0), **rfn())
-        self.aerospace.add_plane(position=Vector3(RADAR_RANGE,RADAR_RANGE-d),
-                                 velocity=Vector3(0,370,0), **rfn())
-        self.aerospace.add_plane(position=Vector3(RADAR_RANGE,RADAR_RANGE+d),
-                                 velocity=Vector3(0,-290,0), **rfn())
-        for plane in self.aerospace.aeroplanes:
-            self.strips.add(guisprites.FlightStrip(plane))
         # AEROPORTS
         pos1 = (RADAR_RANGE/2, RADAR_RANGE/2)
         pos2 = (RADAR_RANGE*1.5, RADAR_RANGE*1.5)
@@ -83,6 +70,25 @@ class GameLogic(object):
             self.__add_aeroport_map(port)
             port.del_cached_images()
         self.draw_maps()
+        # PLANES
+        d = RADAR_RANGE/9
+        rfn = self.airline_handler.random_flight
+        self.aerospace.add_plane(position=Vector3(RADAR_RANGE-d,RADAR_RANGE),
+                                 velocity=Vector3(170,0,0),
+                                 origin='ARN', destination='FRA', **rfn())
+        self.aerospace.add_plane(position=Vector3(RADAR_RANGE+d,RADAR_RANGE),
+                                 velocity=Vector3(-70,0,0),
+                                 origin='ARN', destination='ARN', **rfn())
+        self.aerospace.add_plane(position=Vector3(RADAR_RANGE,RADAR_RANGE-d),
+                                 velocity=Vector3(0,370,0),
+                                 origin='ARN', destination='EX1', **rfn())
+        self.aerospace.add_plane(position=Vector3(RADAR_RANGE,RADAR_RANGE+d),
+                                 velocity=Vector3(0,-290,0),
+                                 origin='ARN', destination='EX2', **rfn())
+        for plane in self.aerospace.aeroplanes:
+            status = INBOUND if plane.destination in \
+                     self.aerospace.aeroports.keys() else OUTBOUND
+            self.strips.add(guisprites.FlightStrip(plane, status))
 
     def __add_aeroport_map(self, port):
         '''
@@ -94,11 +100,12 @@ class GameLogic(object):
         fontobj = pygame.font.Font(MAIN_FONT, margin*2)
         text = '%s ] %s' % (port.iata, port.name)
         label = fontobj.render(text, True, WHITE)
+        #TODO: ellipsis if name too long
         w, h = label.get_width(), label.get_height()
         # Blit frame
         r = pygame.rect.Rect(1,1,MAPS_RECT.w-2,MAPS_RECT.w+2*margin+h-2)
         pygame.draw.rect(a_map, WHITE, r, 1)
-        # Blit Banner for highlighting the name
+        # Blit Banner for highlighting the label
         r = pygame.rect.Rect(2,2,MAPS_RECT.w-4,2*margin+h)
         pygame.draw.rect(a_map, GRAY, r)
         # Blit label

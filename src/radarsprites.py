@@ -83,7 +83,7 @@ class SuperSprite(pygame.sprite.Sprite):
         new_surface = pygame.surface.Surface((area.width, area.height),
                                              flags=SRCALPHA)
         new_surface.blit(image, (0,0), area)
-        return new_surface
+        return image.subsurface(area).copy()
 
     @classmethod
     def rotoscale(cls, image, angle=0, factor=1, px_limit=1):
@@ -336,7 +336,7 @@ class AeroplaneIcon(SuperSprite):
             # offset is compensated by the orientation of the original sprite
             # (North rather than East).
             heading *= -1
-            self.image = self.rotoscale(img, heading, SPRITE_SCALING, 
+            self.image = self.rotoscale(img, heading, SPRITE_SCALING,
                                                       MIN_PLANE_ICON_SIZE)
         self.rect = \
             get_rect_at_centered_pos(self.image, self.data_source.trail[0])
