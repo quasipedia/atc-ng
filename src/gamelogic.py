@@ -11,13 +11,15 @@ Amongst others:
 
 from locals import *
 from euclid import Vector3
+from pygame.locals import *
 import pygame.draw
-import pygame.sprite
+import pygame.surface
 import aerospace
 import aeroport
 import commander
 import guisprites
 import yaml
+import airlinehandler
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -36,6 +38,8 @@ class GameLogic(object):
     '''
 
     def __init__(self, surface):
+        self.airline_handler = airlinehandler.Handler()
+        self.machine_state = MS_RUN
         self.global_surface = surface
         self.radar_surface = surface.subsurface(RADAR_RECT)
         self.cli_surface = surface.subsurface(CLI_RECT)
@@ -46,22 +50,25 @@ class GameLogic(object):
         pygame.draw.line(surface, WHITE, (x+w+1, y), (x+w+1, WINDOW_SIZE[1]))
         pygame.draw.line(surface, WHITE, (x-1, y+h+1), (x+w+1, y+h+1))
         self.aerospace = aerospace.Aerospace(self.radar_surface)
-        self.cli = commander.CommandLine(self.cli_surface, self.aerospace)
+        self.cli = commander.CommandLine(self.cli_surface, self.aerospace,
+                                         self.game_commands_processor)
         self.ms_from_last_ping = PING_PERIOD+1  #force update on first run
         self.strips = guisprites.StripsGroup()
+        self.maps = []
         self.__quick_start()
 
     def __quick_start(self):
         # PLANES
         d = RADAR_RANGE/9
+        rfn = self.airline_handler.random_flight
         self.aerospace.add_plane(position=Vector3(RADAR_RANGE-d,RADAR_RANGE),
-                                 velocity=Vector3(170,0,0))
+                                 velocity=Vector3(170,0,0), **rfn())
         self.aerospace.add_plane(position=Vector3(RADAR_RANGE+d,RADAR_RANGE),
-                                 velocity=Vector3(-70,0,0))
+                                 velocity=Vector3(-70,0,0), **rfn())
         self.aerospace.add_plane(position=Vector3(RADAR_RANGE,RADAR_RANGE-d),
-                                 velocity=Vector3(0,370,0))
+                                 velocity=Vector3(0,370,0), **rfn())
         self.aerospace.add_plane(position=Vector3(RADAR_RANGE,RADAR_RANGE+d),
-                                 velocity=Vector3(0,-290,0))
+                                 velocity=Vector3(0,-290,0), **rfn())
         for plane in self.aerospace.aeroplanes:
             self.strips.add(guisprites.FlightStrip(plane))
         # AEROPORTS
@@ -75,12 +82,14 @@ class GameLogic(object):
             self.aerospace.add_aeroport(port)
             self.__add_aeroport_map(port)
             port.del_cached_images()
+        self.draw_maps()
 
     def __add_aeroport_map(self, port):
         '''
-        Add an aeroport map to the game screen.
+        Add an aeroport map to the maps collection.
         '''
         margin = 7
+        a_map = pygame.surface.Surface((MAPS_RECT.w, MAPS_RECT.h), SRCALPHA)
         # Prepare the label and get its size
         fontobj = pygame.font.Font(MAIN_FONT, margin*2)
         text = '%s ] %s' % (port.iata, port.name)
@@ -88,15 +97,31 @@ class GameLogic(object):
         w, h = label.get_width(), label.get_height()
         # Blit frame
         r = pygame.rect.Rect(1,1,MAPS_RECT.w-2,MAPS_RECT.w+2*margin+h-2)
-        pygame.draw.rect(self.maps_surface, WHITE, r, 1)
+        pygame.draw.rect(a_map, WHITE, r, 1)
         # Blit Banner for highlighting the name
         r = pygame.rect.Rect(2,2,MAPS_RECT.w-4,2*margin+h)
-        pygame.draw.rect(self.maps_surface, GRAY, r)
+        pygame.draw.rect(a_map, GRAY, r)
         # Blit label
-        self.maps_surface.blit(label, (margin, margin+2))
+        a_map.blit(label, (margin, margin+2))
         # Blit map
-        self.maps_surface.blit(port.get_image(square_side=MAPS_RECT.w-4*margin,
-                  with_labels=True), (2*margin,4*margin+h))
+        a_map.blit(port.get_image(square_side=MAPS_RECT.w-4*margin,
+                   with_labels=True), (2*margin,4*margin+h))
+        a_map = a_map.subsurface(a_map.get_bounding_rect()).copy()
+        self.maps.append(a_map)
+
+    def draw_maps(self):
+        x = y = 1
+        for map_ in self.maps:
+            self.maps_surface.blit(map_, (x, y))
+            y += map_.get_height()+1
+
+    def game_commands_processor(self, command):
+        '''
+        Execute a game command.
+        '''
+        cname, args = command
+        if cname == 'quit':
+            self.machine_state = MS_QUIT
 
     def key_pressed(self, key):
         self.cli.process_keystroke(key)

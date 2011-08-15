@@ -87,8 +87,9 @@ class Parser(object):
     Parse a command line (validate and execute it).
     '''
 
-    def __init__(self, aerospace):
+    def __init__(self, aerospace, game_commands_processor):
         self.aerospace = aerospace
+        self.game_commands_processor = game_commands_processor
         self.initialise()
 
     def initialise(self, sentence=''):
@@ -175,12 +176,11 @@ class Parser(object):
 
     def parse(self):
         '''
-        Validate/Parse the command line.
-        Returns a list of parsed commands in case of success, or a string with
-        an error message in case of failure.
+        Validate/Parse the command line. Returns a list of parsed commands in
+        case of success, or a string with an error message in case of failure.
         The parsed commands list is structured with a callable object and a
         list that should be given as input for it:
-        [[callable_, [arg1, arg2...]], [callable_, [arg1, arg2]]]
+        [command, [arg1, arg2, ...], [flag1, flag2, ...]]
         '''
         if len(self.sentence) == 0:
             return []
@@ -301,16 +301,21 @@ class Parser(object):
                 return msg
         return (callable_, parsed_commands)
 
-    def parse_game_command(self, validate_only=False):
-        command = self.bits.pop()
-        if command in GAME_COMMANDS['quit']['spellings']:
-            print('quit')
-        elif command in GAME_COMMANDS['help']['spellings']:
-            print('help')
+    def parse_game_command(self):
+        issued = self.bits.pop()
+        command_name = None
+        command = None
+        for k, v in GAME_COMMANDS.items():
+            if issued in v['spellings']:
+                command_name = k
+                command = v
+                break
+        if command:
+            args = self.bits
         else:
             msg = 'Invalid game command! (%s)' % command.upper()
             return msg
-        return []
+        return (self.game_commands_processor, [command_name, args])
 
 class CommandLine(object):
 
@@ -318,7 +323,7 @@ class CommandLine(object):
     This class manage the command string composition, validation, etc...
     '''
 
-    def __init__(self, surface, aerospace):
+    def __init__(self, surface, aerospace, game_commands_processor):
         self.chars = list('')
         self.surface = surface
         self.aerospace = aerospace
@@ -339,7 +344,7 @@ class CommandLine(object):
         small_size = rint(small_size)
         self.large_f = pygame.font.Font(MAIN_FONT, large_size)
         self.small_f = pygame.font.Font(MAIN_FONT, small_size)
-        self.parser = Parser(aerospace)
+        self.parser = Parser(aerospace, game_commands_processor)
 
     def __randomel(self, list_):
         '''
@@ -448,51 +453,55 @@ class CommandLine(object):
             return
         self.chars.extend(list(match[len(root):]))
 
+    def do_parsing(self):
+        '''
+        Parse the input on the commandline.
+        '''
+        self.parser.initialise(self.text)
+        parsed = self.parser.parse()
+        # If an empty line has been parsed, skip everything
+        if parsed == []:
+            return
+        # Parsing outcome: an iterable if successful OR a string if failure
+        if type(parsed) in (unicode, str):
+            answer_prefix = 'ERROR: '
+            self.console_lines.append([RED, answer_prefix+parsed])
+        else:
+            # Successfully parsed commands are executed...
+            callable_, args = parsed
+            ret = callable_(args)
+            fname = callable_.__name__
+            # ...if they are aeroplane commands, they get additional console
+            # and command-history processing...
+            if fname in ('execute_command', 'queue_command'):
+                # Processing of command
+                self.console_lines.append([WHITE,
+                                    ' '.join((self.cmd_prefix,self.text))])
+                self.command_history.insert(0, self.text)
+                # Processing of the answer
+                colour = GREEN
+                callsign = callable_.im_self.callsign
+                answer_prefix = ' '.join((callsign, PROMPT_SEPARATOR))
+                if ret == True:
+                    if fname == 'execute_command':
+                        answer = self.__randomel(AFFIRMATIVE_EXEC_ANSWERS)
+                    elif fname == 'queue_command':
+                        answer = self.__randomel(AFFIRMATIVE_QUEUE_ANSWERS)
+                else:
+                    answer = ret
+                    colour = RED
+                self.console_lines.append([colour,
+                                           ' '.join((answer_prefix,answer))])
+            # ...and the command line is finally emptied for a new command
+            self.chars = []
+
     def process_keystroke(self, event):
         '''
         React to keystrokes.
         '''
         mods = pygame.key.get_mods()
         if event.key == K_RETURN:
-            self.parser.initialise(self.text)
-            parsed = self.parser.parse()
-            # If an empty line has been parsed, skip everything
-            if parsed == []:
-                return
-            # Fail to parse generate a string (an iterable if successful)
-            if type(parsed) in (unicode, str):
-                answer_prefix = 'You are doing it wrong! '
-                self.console_lines.append([RED, answer_prefix+parsed])
-            else:
-                # Successfully parsed commands are echoed on console and added
-                # to command history...
-                self.console_lines.append([WHITE,
-                                        ' '.join((self.cmd_prefix,self.text))])
-                self.command_history.insert(0, self.text)
-                # ...executed...
-                callable_, args = parsed
-                ret = callable_(args)
-                # ...their answer is displayed on the console...
-                fname = callable_.__name__
-                colour = GREEN
-                if fname in ('execute_command', 'queue_command'):
-                    callsign = callable_.im_self.callsign
-                    answer_prefix = ' '.join((callsign, PROMPT_SEPARATOR))
-                    if ret == True:
-                        if fname == 'execute_command':
-                            answer = self.__randomel(AFFIRMATIVE_EXEC_ANSWERS)
-                        elif fname == 'queue_command':
-                            answer = self.__randomel(AFFIRMATIVE_QUEUE_ANSWERS)
-                    else:
-                        answer = ret
-                        colour = RED
-                else:
-                    #TODO: game commands processing
-                    pass
-                self.console_lines.append([colour,
-                                           ' '.join((answer_prefix,answer))])
-                # ...and the command line is finally emptied for a new command
-                self.chars = []
+            self.do_parsing()
         elif event.key == K_ESCAPE:
             self.chars = []
         elif event.key == K_BACKSPACE and self.chars:

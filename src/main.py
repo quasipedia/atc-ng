@@ -45,7 +45,7 @@ class MainWindow(object):
         '''
         for event in pygame.event.get():
             if event.type == QUIT:
-                self.running = False
+                self.game_logic.machine_state = MS_QUIT
             elif event.type == KEYDOWN:
                 self.game_logic.key_pressed(event)
 #            elif event.type == KEYUP:
@@ -63,9 +63,7 @@ class MainWindow(object):
         The mainloop is active until the machine state "running" is set to
         False.
         '''
-        self.running = True
-
-        while self.running:
+        while self.game_logic.machine_state == MS_RUN:
             pygame.display.set_caption("FPS: %i" % self.clock.get_fps())
             self.handle_events()
             self.game_logic.update(self.clock.get_time())

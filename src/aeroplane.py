@@ -12,6 +12,7 @@ from random import randint
 from time import time
 import yaml
 
+
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
 #__credits__ = ["Name Lastname", "Name Lastname"]
@@ -59,8 +60,6 @@ class Aeroplane(object):
     See the class `Flag` to see what status flag a plane can have.
     '''
 
-    ALL_ICAO_CODES = yaml.load(open('../descriptions/airline-codes.yml'))
-
     KNOWN_PROPERTIES = [#STATIC / game logic
                         'icao',              # Three-letter code and flight n.
                         'callsign',          # Radio callsign
@@ -94,7 +93,7 @@ class Aeroplane(object):
             value = kwargs[property] if kwargs.has_key(property) else None
             setattr(self, property, value)
         if self.icao == None:
-            self.icao = self.__random_icao()
+            raise BaseException('An ICAO id must be always specified.')
         if self.position is None:
             self.position = Vector3(RADAR_RANGE, RADAR_RANGE)
         if self.velocity is None:
@@ -119,8 +118,6 @@ class Aeroplane(object):
         self.time_last_cmd = time()
         # Derived values
         self.min_speed = self.landing_speed*1.5
-        tmp = self.ALL_ICAO_CODES[self.icao[:3]]['callsign']
-        self.callsign = ' '.join((tmp, self.icao[3:])) if tmp else self.icao
         # Dummy to test varius sprites
         mag = self.velocity.magnitude()
         if mag < 150:
@@ -136,12 +133,6 @@ class Aeroplane(object):
         self.queued_commands = []
         # Initialise the colliding planes registry
         self.colliding_planes = []
-
-    def __random_icao(self):
-        '''Return a random pseudo-ICAO flight number'''
-        keys = self.ALL_ICAO_CODES.keys()
-        rand_key = lambda : keys[randint(0,len(keys)-1)]
-        return ''.join((rand_key(), str(randint(1000, 9999))))
 
     def __verify_feasibility(self, speed=None, altitude=None):
         '''
@@ -308,7 +299,7 @@ class Aeroplane(object):
         '''
         Execute commands.
         Input is a list of triplets each of them in the format:
-        [command, arguments (list), flags (list)].
+        [command, [arg1, arg2, ...], [flag1, flag2, ...]].
         Return True or a message error.
         '''
         if self.flags.busy == True and commands[0][0] != 'abort':

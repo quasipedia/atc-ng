@@ -120,7 +120,7 @@ class Aeroport(object):
     def get_image(self, square_side=None, scale=None, with_labels=False):
         '''
         Return a pygame squared surface with the map of the aeroport.
-        A master image is stored internally at 1mt:1px scale, either argument
+        A master image is stored internally at 10mt:1px scale, either argument
         is provided, the method will return either the bounding image scaled
         as requested, either a squared image with the side measuring
         `square_side` pixels.
@@ -132,6 +132,19 @@ class Aeroport(object):
             x,y = x-source.get_width()/2, y+source.get_height()/2
             y = -(y-dest.get_height())
             dest.blit(source, (x,y))
+        # Because of processing speed and memory usage is wise to generate the
+        # master images already partially scaled down. Here's the helper func
+        # [note that it convert scalars, iterables, and a series of values]
+        def r(*args):
+            tmp = lambda n : rint(n/AEROPORT_MASTER_IMG_SCALING)
+            ret = []
+            for arg in args:
+                if type(arg) in (tuple, list):
+                    ret.append([tmp(v) for v in arg])
+                else:
+                    ret.append(tmp(arg))
+            return ret[0] if len(ret) == 1 else ret
+        # End of helper functions!!
         if bool(square_side) == bool(scale):
             msg = 'Either `square_side` XOR `scale` MUST be specified'
             raise BaseException(msg)
@@ -146,25 +159,26 @@ class Aeroport(object):
             width = max_x-min_x+2*max_len
             height = max_y-min_y+2*max_len
             trasl = Vector3(max_len-min_x, max_len-min_y)
-            a_canvas = pygame.surface.Surface((width, height), SRCALPHA)
+            a_canvas = pygame.surface.Surface(r(width, height), SRCALPHA)  #r
             for strip in strips:
                 size = (strip.width, strip.length)
-                image = pygame.surface.Surface(size, SRCALPHA)
+                image = pygame.surface.Surface(r(size), SRCALPHA)  #r
                 image.fill(GRAY)
                 image = pygame.transform.rotate(image, -strip.orientation)
-                my_blit(a_canvas, image, (strip.centre_pos+trasl).xy)
+                my_blit(a_canvas, image, r((strip.centre_pos+trasl).xy))  #r
             # Store the label-less image
             self.__plain_image = a_canvas.subsurface(
                                  a_canvas.get_bounding_rect()).copy()
             # Add the the labels
             pi = self.__plain_image
-            font_size = max(pi.get_width(), pi.get_height()) / 16
+            font_size = rint(max(pi.get_width(), pi.get_height()) / 16.0)
             fontobj = pygame.font.Font(MAIN_FONT, font_size)
             for k, v in self.runways.items():
                 label = fontobj.render(k, True, WHITE)
                 loc = v['location'] + trasl + \
-                      v['ils'].normalized() * font_size * 1.2
-                my_blit(a_canvas, label, loc.xy)
+                      v['ils'].normalized() * font_size * \
+                      AEROPORT_MASTER_IMG_SCALING * 1.2
+                my_blit(a_canvas, label, r(loc.xy))  #r
             self.__labelled_image = a_canvas.subsurface(
                                     a_canvas.get_bounding_rect()).copy()
         # THIS IS THE BIT THAT RUNS AT EACH CALL
@@ -180,6 +194,7 @@ class Aeroport(object):
             img = pygame.surface.Surface((square_side, square_side), SRCALPHA)
             img.blit(tmp, pos)
         if scale:
+            scale *= AEROPORT_MASTER_IMG_SCALING
             img = pygame.transform.smoothscale(img,
                                                (rint(w*scale), rint(h*scale)))
         return img

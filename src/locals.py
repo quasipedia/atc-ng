@@ -18,6 +18,11 @@ __email__ = "quasipedia@gmail.com"
 __status__ = "Development"
 
 
+# State-machine constants
+MS_QUIT   = 0
+MS_RUN    = 1
+MS_PAUSED = 2
+
 # Timing
 PING_PERIOD = 3000              # milliseconds between radar pings
 MAX_FRAMERATE = 60              # FPS
@@ -53,9 +58,10 @@ GREEN = (0,255,0)
 BLACK = (0,0,0)
 
 # Sprites
-TRAIL_LENGTH = 15               # number of dots in the trail
-SPRITE_SCALING = 0.1            # scaling factor (used for antialiasing)
-MIN_PLANE_ICON_SIZE = 10        # minimum size of aeroplan icons in pixels
+TRAIL_LENGTH = 15                 # number of dots in the trail
+SPRITE_SCALING = 0.1              # scaling factor (used for antialiasing)
+MIN_PLANE_ICON_SIZE = 10          # minimum size of aeroplan icons in pixels
+AEROPORT_MASTER_IMG_SCALING = 10  # scaling of master images for aeroports
 
 # Aeroplane states and colors
 PLANE_STATES_NUM = 5            # number fo possible states for a plane
