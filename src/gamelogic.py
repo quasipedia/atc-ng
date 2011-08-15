@@ -40,10 +40,12 @@ class GameLogic(object):
     def __init__(self, surface):
         self.airline_handler = airlinehandler.Handler()
         self.machine_state = MS_RUN
+        # Surfaces
         self.global_surface = surface
         self.radar_surface = surface.subsurface(RADAR_RECT)
         self.cli_surface = surface.subsurface(CLI_RECT)
         self.strips_surface = surface.subsurface(STRIPS_RECT)
+        self.strips_bkground = self.strips_surface.copy()
         self.maps_surface = surface.subsurface(MAPS_RECT)
         x, y, w, h = RADAR_RECT
         pygame.draw.line(surface, WHITE, (x-1, y), (x-1, WINDOW_SIZE[1]))
@@ -99,9 +101,14 @@ class GameLogic(object):
         # Prepare the label and get its size
         fontobj = pygame.font.Font(MAIN_FONT, margin*2)
         text = '%s ] %s' % (port.iata, port.name)
-        label = fontobj.render(text, True, WHITE)
-        #TODO: ellipsis if name too long
-        w, h = label.get_width(), label.get_height()
+        ellipsis = ''
+        while True:
+            label = fontobj.render(text+ellipsis, True, WHITE)
+            w, h = label.get_width(), label.get_height()
+            if w < MAPS_RECT.w - 2*margin:
+                break
+            text = text[:-1]
+            ellipsis = '...'
         # Blit frame
         r = pygame.rect.Rect(1,1,MAPS_RECT.w-2,MAPS_RECT.w+2*margin+h-2)
         pygame.draw.rect(a_map, WHITE, r, 1)
@@ -139,6 +146,8 @@ class GameLogic(object):
             pings = self.ms_from_last_ping / PING_PERIOD
             self.ms_from_last_ping %= PING_PERIOD
             self.aerospace.update(pings)
+        self.strips.update()
+        self.strips.clear(self.strips_surface, self.strips_bkground)
         self.strips.draw(self.strips_surface)
 
     def draw(self):

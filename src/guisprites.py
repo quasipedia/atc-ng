@@ -21,15 +21,12 @@ __status__ = "Development"
 
 class StripsGroup(pygame.sprite.RenderUpdates):
 
-    def draw(self, surface):
+    def update(self, *args):
         cmp = lambda a,b : rint(b.plane.time_last_cmd - a.plane.time_last_cmd)
         ordered = sorted(self.sprites(), cmp)
-        y = 1
-        for sprite in ordered:
+        for i, sprite in enumerate(ordered):
+            sprite.target_y = i*FlightStrip.strip_h
             sprite.update()
-            sprite.rect.y = y
-            y += sprite.rect.h
-        super(StripsGroup, self).draw(surface)
 
 class FlightStrip(pygame.sprite.Sprite):
 
@@ -125,3 +122,5 @@ class FlightStrip(pygame.sprite.Sprite):
         img = self.render_text('small', color, fuel_msg)
         self.image.blit(img, (STRIPS_RECT.w*0.60,
                               self.strip_h-self.offset-img.get_height()))
+        self.rect.y += cmp(self.target_y, self.rect.y) * \
+                       min(3, abs(self.rect.y - self.target_y))

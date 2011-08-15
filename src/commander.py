@@ -163,8 +163,8 @@ class Parser(object):
         Valid landings indicate the three-letters airport code and the runaway
         in the format 00X, where 0 represent a digit and X a letter (R,L or C)
         '''
-        return (not (None == re.match(r'^[a-zA-Z]{3}$', iata)) and
-                not (None == re.match(r'^\d{2}(L|C|R)?$', runaway)))
+        return (not (None == re.match(r'^[A-Z]{3}$', iata.upper())) and
+                not (None == re.match(r'^\d{2}(L|C|R)?$', runaway.upper())))
 
     def _validate_circle(self, direction):
         '''
@@ -364,12 +364,12 @@ class CommandLine(object):
         elif what == 'plane_commands':
             return [key for key in PLANE_COMMANDS.keys()]
         elif what == 'aeroports':
-            return [a.iata for a in self.aerospace.aeroports]
+            return [iata for iata in self.aerospace.aeroports.keys()]
         elif what == 'runaways':
             assert context != None  #Context must be the name of the aeroport
-            for ap in self.aerospace.aeroports:
-                if ap.iata == context:
-                    return [r.id for r in ap.runaways]
+            for iata, ap in self.aerospace.aeroports.items():
+                if iata == context:
+                    return [r for r in ap.runways.keys()]
             return []
         elif what == 'beacons':
             return [b.code for b in self.aerospace.beacons]
@@ -444,7 +444,7 @@ class CommandLine(object):
         if not what:
             return
         pool = self._get_list_of_existing(what, context)
-        matches = [i.upper() for i in pool if i.find(root) == 0]
+        matches = [i.upper() for i in pool if i.upper().find(root.upper())==0]
         if len(matches) == 1:
             match = matches[0]+' '
         elif len(matches) > 1:
