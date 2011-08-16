@@ -14,6 +14,7 @@ module.
 from random import randint
 import re
 import aeroport
+import waypoints
 import os.path as path
 # Yaml imports. It tries to use the faster C version of the loader.
 from yaml import load
@@ -164,13 +165,13 @@ class ScenarioHandler(YamlHandler):
         # Gates
         self.gates = []
         for item in self._data['gates']:
-            gate = None
+            gate = waypoints.Gate(**item)
             self.gates.append(gate)
         # Beacons
         self.beacons = []
         for item in self._data['beacons']:
-            gate = None
-            self.gates.append(gate)
+            beacon = None
+            self.beacons.append(beacon)
 
     def adjust_settings(self):
         pass

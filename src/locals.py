@@ -58,6 +58,7 @@ MAGENTA = (255,0,255)
 YELLOW = (255,255,0)
 PALE_YELLOW = (255,255,224)
 RED = (255,0,0)
+DARK_RED = (150,0,0)
 PALE_RED = (255,224,224)
 GREEN = (0,255,0)
 PALE_GREEN = (224,255,224)
@@ -97,9 +98,9 @@ CLI_RECT = pygame.rect.Rect(RADAR_RECT.x, RADAR_RECT.h+2,
 STRIPS_RECT = pygame.rect.Rect(0, 0,
                     # -2 for the lines separating BUI elements
                     (WINDOW_SIZE[0] - RADAR_RECT.w - 2) / 2, WINDOW_SIZE[1])
-MAPS_RECT = pygame.rect.Rect(RADAR_RECT.x + RADAR_RECT.w + 2, 0,
+MAPS_RECT = pygame.rect.Rect(RADAR_RECT.x + RADAR_RECT.w + 1, 0,
         # -3 for the lines separating BUI elements
-        (WINDOW_SIZE[0] - RADAR_RECT.w - STRIPS_RECT.w - 3), WINDOW_SIZE[1])
+        (WINDOW_SIZE[0] - RADAR_RECT.w - STRIPS_RECT.w - 2), WINDOW_SIZE[1])
 
 def rint(float_):
     '''

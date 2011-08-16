@@ -25,17 +25,25 @@ aeroports:
 
 gates:
 
-- radial     : 0
+- name       : EX0
+  radial     : 0
+  alignment  : 0
+  width      : 10000
+
+- name       : EX1
+  radial     : 45
   alignment  : 45
-  width      : 4000
+  width      : 10000
 
-- radial     : 135
-  alignment  : 135
-  width      : 8000
+- name       : EX2
+  radial     : 200
+  alignment  : 200
+  width      : 10000
 
-- radial     : 270
+- name       : EX3
+  radial     : 270
   alignment  : 90
-  width      : 1000
+  width      : 10000
 
 beacons:
 

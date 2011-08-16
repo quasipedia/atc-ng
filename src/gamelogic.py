@@ -48,8 +48,8 @@ class GameLogic(object):
         self.maps_surface = surface.subsurface(MAPS_RECT)
         x, y, w, h = RADAR_RECT
         pygame.draw.line(surface, WHITE, (x-1, y), (x-1, WINDOW_SIZE[1]))
-        pygame.draw.line(surface, WHITE, (x+w+1, y), (x+w+1, WINDOW_SIZE[1]))
-        pygame.draw.line(surface, WHITE, (x-1, y+h+1), (x+w+1, y+h+1))
+        pygame.draw.line(surface, WHITE, (x+w, y), (x+w, WINDOW_SIZE[1]))
+        pygame.draw.line(surface, WHITE, (x-1, y+h), (x+w, y+h))
         self.aerospace = aerospace.Aerospace(self.radar_surface)
         self.cli = commander.CommandLine(self.cli_surface, self.aerospace,
                                          self.game_commands_processor)
@@ -57,7 +57,7 @@ class GameLogic(object):
         self.strips = guisprites.StripsGroup()
         self.maps = []
         self.parse_scenario()
-        self.set_challenge()
+#        self.set_challenge()
 
     def __add_aeroport_map(self, port):
         '''
@@ -104,6 +104,9 @@ class GameLogic(object):
             self.__add_aeroport_map(port)
             port.del_cached_images()
         self.draw_maps()
+        # GATES
+        for gate in scene.gates:
+            gate.draw(self.radar_surface)
 
     def set_challenge(self):
         '''
