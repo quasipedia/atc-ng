@@ -40,13 +40,11 @@ class Aerospace(object):
 
     def __init__(self, surface):
         self.surface = surface
-        self.bkground = pygame.surface.Surface((RADAR_RECT.w, RADAR_RECT.h))
         centre = sc((RADAR_RANGE, RADAR_RANGE))
         for radius in range(RADAR_RING_STEP, rint(RADAR_RANGE*2**0.5),
                             RADAR_RING_STEP):
             radius /= METRES_PER_PIXELS
-            pygame.draw.circle(self.bkground,DARK_GRAY,centre,rint(radius),1)
-        self.surface.blit(self.bkground, (0,0))
+            pygame.draw.circle(self.surface,DARK_GRAY,centre,rint(radius),1)
         self.flying_sprites = pygame.sprite.LayeredUpdates()
         self.top_layer = pygame.sprite.Group()
         self.tags = pygame.sprite.Group()
@@ -109,7 +107,7 @@ class Aerospace(object):
 
     def add_aeroport(self, a_port):
         '''
-        Add aeroports to the aerospace.
+        Add an aeroport to the aerospace.
         '''
         self.__aeroports[a_port.iata] = a_port
         a_image = a_port.get_image(scale=1.0/METRES_PER_PIXELS,
@@ -118,15 +116,25 @@ class Aerospace(object):
         offset = Vector3(-a_image.get_width()/2, -a_image.get_height()/2).xy
         centre = sc(a_port.location.xy)
         pos = (centre[0]+offset[0], centre[1]+offset[1])
-        for a in range(3):  #blitting multiple times increases visibility
-            self.bkground.blit(a_image, pos)
+        for a in range(1):  #blitting multiple times increases visibility
+            self.surface.blit(a_image, pos)
         # Draw IATA name
         fontobj = pygame.font.Font(MAIN_FONT, HUD_INFO_FONT_SIZE)
         label = fontobj.render(a_port.iata, True, GREEN)
         pos = centre[0]-label.get_width()/2, centre[1]-label.get_height()/2
-        self.bkground.blit(label, pos)
-        # Update radar
-        self.surface.blit(self.bkground, (0,0))
+        self.surface.blit(label, pos)
+
+    def add_gate(self, gate):
+        '''
+        Add a gate to the aerospace.
+        '''
+        gate.draw(self.surface)
+
+    def add_beacon(self, beacon):
+        '''
+        Add a gate to the aerospace.
+        '''
+        beacon.draw(self.surface)
 
     def connect_tags(self):
         '''

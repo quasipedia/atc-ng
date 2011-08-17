@@ -27,13 +27,13 @@ class Gate(object):
     Basically all entering and exiting planes should do so from a gate.
     '''
 
-    def __init__(self, name, radial, alignment, width):
+    def __init__(self, name, radial, heading, width):
         self.name = name
         self.radial = radial % 360
-        self.aligment = alignment % 180
+        self.heading = heading
         self.width = width
 
-    def draw(self, radar_surface):
+    def draw(self, surface):
         '''
         Blit self on radar surface.
         '''
@@ -50,22 +50,36 @@ class Gate(object):
         y = ss * (rr if side >= 0 else rr/ca * sa) + rr
         x, y = sc((x, y))
         # GATE
+        # In order to facilitate blitting information on the orientation of the
+        # gate, we create the image already rotated 90° clockwise by swapping
+        # width and height...
         gate_width_px = rint(self.width/METRES_PER_PIXELS)
         gate_length_px = RADAR_RECT.h/4
         aaf = 5  #anti-alias factor
-        g_img = pygame.surface.Surface((gate_width_px*aaf,
-                                        gate_length_px*aaf), SRCALPHA)
-        pygame.draw.line(g_img, GRAY, (aaf, 0),
-                                  (aaf, gate_length_px*aaf), aaf)
-        pygame.draw.line(g_img, GRAY, (gate_width_px*aaf-aaf, 0),
-                                  (gate_width_px*aaf-aaf, gate_length_px*aaf), aaf)
-        g_img = pygame.transform.rotate(g_img, -self.aligment)
+        g_img = pygame.surface.Surface((gate_length_px*aaf,
+                                        gate_width_px*aaf), SRCALPHA)
+        # boundaries of the gate
+        pygame.draw.line(g_img, GRAY, (0, aaf),
+                              (gate_length_px*aaf, aaf), aaf)
+        pygame.draw.line(g_img, GRAY, (0, gate_width_px*aaf-aaf),
+                              (gate_length_px*aaf, gate_width_px*aaf-aaf), aaf)
+        # info on orientation
+        fontobj = pygame.font.Font(MAIN_FONT, HUD_INFO_FONT_SIZE*aaf)
+        label = fontobj.render(str(self.heading).zfill(3), True, GRAY)
+        label = label.subsurface(label.get_bounding_rect())
+        w, h = label.get_size()
+        ypsilon = rint(gate_width_px*aaf/2.0-h/2)
+        g_img.blit(label, (0, ypsilon))
+        g_img.blit(label, (gate_length_px*aaf-w, ypsilon))
+        # tranformation and blitting
+        rotang = 90 if 0<= self.heading < 180 else 270
+        g_img = pygame.transform.rotate(g_img, rotang-self.heading)
         g_img = g_img.subsurface(g_img.get_bounding_rect()).copy()
         r = g_img.get_rect()
         g_img = pygame.transform.smoothscale(g_img, (rint(r.w*1.0/aaf),
                                                      rint(r.h*1.0/aaf)))
         g_rect = g_img.get_rect()
-        radar_surface.blit(g_img, (x-g_rect.centerx, y-g_rect.centery))
+        surface.blit(g_img, (x-g_rect.centerx, y-g_rect.centery))
         # LABEL
         fontobj = pygame.font.Font(MAIN_FONT, HUD_INFO_FONT_SIZE)
         label = fontobj.render(self.name, True, RED)
@@ -77,4 +91,33 @@ class Gate(object):
             side = 0
         x += (signed_offset(x) if side <=0 else 0) - w/2
         y += (signed_offset(y) if side >=0 else 0) - h/2
-        radar_surface.blit(label, (x,y))
+        surface.blit(label, (x,y))
+
+
+class Beacon(object):
+
+    '''
+    A beacon is a point on the ground that is known to aeroplanes and can be
+    used to set heading for. [AZA0019 HEADING NDB4]
+    '''
+
+    def __init__(self, id, location):
+        self.id = id
+        self.location = location
+
+    def draw(self, surface):
+        pos = sc(self.location)
+        pygame.draw.circle(surface, GRAY, pos, 2)
+        pygame.draw.circle(surface, GRAY, pos, 6, 1)
+        fontobj = pygame.font.Font(MAIN_FONT, HUD_INFO_FONT_SIZE)
+        label = fontobj.render(self.id, True, BLUE)
+        label = label.subsurface(label.get_bounding_rect()).copy()
+        w, h = label.get_size()
+        x, y = pos
+        # In order to keep the crammed central space free, beacons labels are
+        # always placed towards the edges of the radar screen, if possible.
+        offsets = [rint(6+w/3), -rint(6+w/3)-w]
+        index = x < RADAR_RECT.w/2
+        if not (0 < x+offsets[index] and x+offsets[index]+w < RADAR_RECT.w):
+            index = not index
+        surface.blit(label, (x+offsets[index], y-h/2))

@@ -28,10 +28,15 @@ PING_PERIOD = 3000              # milliseconds between radar pings
 MAX_FRAMERATE = 60              # FPS
 
 # Dimensions
+# 4:3
 #WINDOW_SIZE = (1024, 768)       # in pixels
-#WINDOW_SIZE = (800, 500)       # in pixels
+# 16:10
+#WINDOW_SIZE = (800, 500)        # in pixels
 WINDOW_SIZE = (1200, 750)       # in pixels
 #WINDOW_SIZE = (1800, 1125)      # in pixels
+#WINDOW_SIZE = (1920, 1200)      # in pixels
+# 16:9
+#WINDOW_SIZE = (1280, 720)      # in pixels
 RADAR_RANGE = 40000             # radius in kilometres --> 80x80km = space
 RADAR_RING_STEP = 10000         # space between radar rings
 
@@ -53,7 +58,7 @@ HORIZONTAL_CLEARANCE = 5000     # minimum distance in metres between planes
 # Colours
 WHITE = (255,255,255)
 GRAY = (128,128,128)
-DARK_GRAY = (50,50,50)
+DARK_GRAY = (20,20,20)
 MAGENTA = (255,0,255)
 YELLOW = (255,255,0)
 PALE_YELLOW = (255,255,224)
@@ -63,6 +68,8 @@ PALE_RED = (255,224,224)
 GREEN = (0,255,0)
 PALE_GREEN = (224,255,224)
 DARK_GREEN = (0,150,0)
+BLUE = (0,0,255)
+DARK_BLUE = (0,0,150)
 BLACK = (0,0,0)
 
 # Sprites

@@ -27,25 +27,28 @@ gates:
 
 - name       : EX0
   radial     : 0
-  alignment  : 0
+  heading    : 0
   width      : 10000
 
 - name       : EX1
   radial     : 45
-  alignment  : 45
+  heading    : 45
   width      : 10000
 
 - name       : EX2
   radial     : 200
-  alignment  : 200
+  heading    : 200
   width      : 10000
 
 - name       : EX3
   radial     : 270
-  alignment  : 90
+  heading    : 270
   width      : 10000
 
 beacons:
 
-- id         : BC1
+- id         : NDB1
   location   : [10000, 70000]
+
+- id         : NDB2
+  location   : [65000, 32000]

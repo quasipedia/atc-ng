@@ -57,7 +57,7 @@ class GameLogic(object):
         self.strips = guisprites.StripsGroup()
         self.maps = []
         self.parse_scenario()
-#        self.set_challenge()
+        self.set_challenge()
 
     def __add_aeroport_map(self, port):
         '''
@@ -106,7 +106,12 @@ class GameLogic(object):
         self.draw_maps()
         # GATES
         for gate in scene.gates:
-            gate.draw(self.radar_surface)
+            self.aerospace.add_gate(gate)
+        # BEACONS
+        for beacon in scene.beacons:
+            self.aerospace.add_beacon(beacon)
+        # Update the background of the aerospace
+        self.aerospace.bkground = self.aerospace.surface.copy()
 
     def set_challenge(self):
         '''

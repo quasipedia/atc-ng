@@ -170,7 +170,7 @@ class ScenarioHandler(YamlHandler):
         # Beacons
         self.beacons = []
         for item in self._data['beacons']:
-            beacon = None
+            beacon = waypoints.Beacon(**item)
             self.beacons.append(beacon)
 
     def adjust_settings(self):

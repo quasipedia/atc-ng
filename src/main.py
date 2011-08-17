@@ -29,7 +29,13 @@ class MainWindow(object):
     def __init__(self):
         # Initialisation of pygame environment
         pygame.init()
-        self.screen = pygame.display.set_mode(WINDOW_SIZE)
+        #TODO: Remove this in final, as it is specific to developer's machine
+        if WINDOW_SIZE == (1920, 1200):
+            self.screen = pygame.display.set_mode(WINDOW_SIZE,
+                                                  pygame.FULLSCREEN)
+        else:
+            self.screen = pygame.display.set_mode(WINDOW_SIZE)
+#            pygame.display.toggle_fullscreen()
         self.screen.fill(BLACK)
         pygame.display.flip()
         # Create timer
