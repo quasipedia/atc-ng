@@ -9,7 +9,7 @@ Amongst others:
     - invokes AI support for planes in emergency
 '''
 
-from locals import *
+from settings import *
 from lib.euclid import Vector3
 from pygame.locals import *
 import pygame.draw
@@ -169,5 +169,3 @@ class GameLogic(object):
     def draw(self):
         self.aerospace.draw()
         self.cli.draw()
-
-

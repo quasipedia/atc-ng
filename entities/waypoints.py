@@ -4,7 +4,7 @@
 Code for the ATC-NG waypoints (entry/exit gates and beacons)
 '''
 
-from engine.locals import *
+from engine.settings import *
 from math import sin, cos, radians
 from pygame.locals import *
 import pygame.draw

@@ -7,7 +7,7 @@ World modelling and representation for the ATC game.
 - Represent the radar.
 '''
 
-from locals import *
+from settings import *
 from itertools import combinations
 from lib.euclid import Vector3
 import pygame.sprite
@@ -232,6 +232,3 @@ class Aerospace(object):
     def draw(self):
         self.flying_sprites.clear(self.surface, self.bkground)
         self.flying_sprites.draw(self.surface)
-
-
-

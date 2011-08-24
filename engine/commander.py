@@ -4,7 +4,7 @@
 Provide functionality for entering commands and processing them.
 '''
 
-from locals import *
+from settings import *
 from pygame.locals import *
 from collections import deque
 from random import randint

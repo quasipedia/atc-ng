@@ -4,7 +4,7 @@
 Aeroports modelling of the ATC simulation game.
 '''
 
-from engine.locals import *
+from engine.settings import *
 from lib.euclid import Vector3
 from math import radians
 import pygame.font

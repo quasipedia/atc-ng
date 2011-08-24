@@ -6,7 +6,7 @@ Provides the sprite classes used in the radar window.
 These are: flight strips, aeroport maps,
 '''
 
-from locals import *
+from engine.settings import *
 from pygame.locals import *
 import pygame.sprite
 
