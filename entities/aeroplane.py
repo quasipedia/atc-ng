@@ -6,7 +6,7 @@ Aeroplanes modelling of the ATC simulation game.
 
 from engine.settings import *
 from math import sqrt, atan2, degrees, radians, cos, sin
-from euclid import Vector3
+from lib.euclid import Vector3
 from collections import deque
 from random import randint
 from time import time
