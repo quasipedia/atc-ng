@@ -16,7 +16,8 @@ import pygame.image
 import pygame.font
 import os
 from math import sin, cos, radians
-from euclid import Vector2
+from lib.euclid import Vector2
+from pkg_resources import resource_stream
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -43,12 +44,12 @@ class SuperSprite(pygame.sprite.Sprite):
             cls.initialised = True
 
     @classmethod
-    def load_sprite_sheet(cls, fname, colorkey=False, directory='../data'):
+    def load_sprite_sheet(cls, fname, colorkey=False, directory='data'):
         '''
         Return the specified sprite sheet as loaded surface.
         '''
-        fname = os.path.join(directory, fname)
-        sheet = pygame.image.load(fname)
+        data = resource_stream(__name__, os.path.join(directory, fname))
+        sheet = pygame.image.load(data)
         if colorkey:
             if colorkey == -1:
             # If the colour key is -1, set it to colour of upper left corner

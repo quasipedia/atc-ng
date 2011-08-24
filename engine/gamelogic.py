@@ -10,15 +10,15 @@ Amongst others:
 '''
 
 from locals import *
-from euclid import Vector3
+from lib.euclid import Vector3
 from pygame.locals import *
 import pygame.draw
 import pygame.surface
 import aerospace
-import aeroport
 import commander
-import guisprites
-import yamlhandlers as yh
+import sprites.guisprites
+import entities.aeroport
+import entities.yamlhandlers as yh
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -54,7 +54,7 @@ class GameLogic(object):
         self.cli = commander.CommandLine(self.cli_surface, self.aerospace,
                                          self.game_commands_processor)
         self.ms_from_last_ping = PING_PERIOD+1  #force update on first run
-        self.strips = guisprites.StripsGroup()
+        self.strips = sprites.guisprites.StripsGroup()
         self.maps = []
         self.parse_scenario()
         self.set_challenge()
@@ -134,7 +134,7 @@ class GameLogic(object):
         for plane in self.aerospace.aeroplanes:
             status = INBOUND if plane.destination in \
                      self.aerospace.aeroports.keys() else OUTBOUND
-            self.strips.add(guisprites.FlightStrip(plane, status))
+            self.strips.add(sprites.guisprites.FlightStrip(plane, status))
 
     def draw_maps(self):
         '''

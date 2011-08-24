@@ -6,7 +6,9 @@ Globals variables and helper functions for the ATC game.
 Typical usage: "from globals import *"
 '''
 
+import os
 import pygame.rect
+from pkg_resources import resource_filename
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -88,7 +90,9 @@ COLLISION = 4
 STATUS_COLORS = [WHITE, GRAY, MAGENTA, YELLOW, RED]
 
 # Fonts
-MAIN_FONT = '../data/ex_modenine.ttf'
+#TODO: need to have locals defined some other way!!!
+MAIN_FONT = resource_filename(__name__,
+                              os.path.join('data', 'ex_modenine.ttf'))
 # These are conventional chars that have been mapped in the font file to
 # match arrow up and arrow down
 CHAR_UP = '^'

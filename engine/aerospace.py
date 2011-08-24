@@ -9,12 +9,12 @@ World modelling and representation for the ATC game.
 
 from locals import *
 from itertools import combinations
-from euclid import Vector3
+from lib.euclid import Vector3
 import pygame.sprite
 import pygame.surface
-import aeroplane
-import aeroport
-import radarsprites
+import entities.aeroplane
+import entities.aeroport
+import sprites.radarsprites
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -70,27 +70,27 @@ class Aerospace(object):
         # This record will contain all info relative to a given plane
         record = {}
         # Aeroplane object
-        plane = aeroplane.Aeroplane(**kwargs)
+        plane = entities.aeroplane.Aeroplane(**kwargs)
         record['plane'] = plane
         record['sprites'] = []
         # Icon sprite
-        icon = radarsprites.AeroplaneIcon(plane, plane.model)
+        icon = sprites.radarsprites.AeroplaneIcon(plane, plane.model)
         self.flying_sprites.add(icon, layer=0)
         self.top_layer.add(icon)
         record['sprites'].append(icon)
         # Trail dots sprites
         for time_shift in range(1, TRAIL_LENGTH):
-            dot = radarsprites.TrailingDot(plane, time_shift)
+            dot = sprites.radarsprites.TrailingDot(plane, time_shift)
             self.flying_sprites.add(dot, layer=time_shift)
             record['sprites'].append(dot)
         # Plane tag
-        tag = radarsprites.Tag(plane, self.surface.get_rect())
+        tag = sprites.radarsprites.Tag(plane, self.surface.get_rect())
         self.flying_sprites.add(tag, layer=0)
         self.top_layer.add(tag)
         self.tags.add(tag)
         record['sprites'].append(tag)
         # Tag connector
-        tag_c = radarsprites.TagConnector(tag)
+        tag_c = sprites.radarsprites.TagConnector(tag)
         self.flying_sprites.add(tag_c, layer=0)
         record['sprites'].append(tag_c)
         # Storage of plane info in internal dictionary

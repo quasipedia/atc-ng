@@ -4,8 +4,8 @@
 Aeroports modelling of the ATC simulation game.
 '''
 
-from locals import *
-from euclid import Vector3
+from engine.locals import *
+from lib.euclid import Vector3
 from math import radians
 import pygame.font
 from pygame.locals import *
@@ -62,7 +62,7 @@ class Aeroport(object):
     @property
     def location(self):
         return self._location
-        
+
     @location.setter
     def location(self, value):
         if not value:

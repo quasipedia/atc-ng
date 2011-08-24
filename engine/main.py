@@ -23,6 +23,7 @@ __status__ = "Development"
 
 #TODO: move euclide, openanything to /libs
 #TODO: check that positioning of aeroports on radar is accurate
+#TODO: verify .deb package with `lintian`
 
 class MainWindow(object):
 
@@ -72,5 +73,8 @@ class MainWindow(object):
             pygame.display.flip()
             self.clock.tick(MAX_FRAMERATE)
 
-if __name__ == '__main__':
+def main():
     MainWindow().main_loop()
+
+if __name__ == '__main__':
+    main()

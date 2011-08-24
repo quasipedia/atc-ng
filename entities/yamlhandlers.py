@@ -13,9 +13,10 @@ module.
 # Regular imports
 from random import randint
 import re
-import aeroport
-import waypoints
+import entities.aeroport
+import entities.waypoints
 import os.path as path
+from pkg_resources import resource_stream
 # Yaml imports. It tries to use the faster C version of the loader.
 from yaml import load
 try:
@@ -38,15 +39,16 @@ class YamlHandler(object):
     Ancestor class for handlers that provide some helper method.
     '''
 
-    DIRECTORY = path.join('..', 'descriptions')
+    DIRECTORY = 'data'
     EXT = '.yml'
 
     def load(self, fname):
         '''
         Load a yaml file and store it in the self._data property.
         '''
-        fname = path.join(self.DIRECTORY, fname + self.EXT)
-        self._data = load(open(fname), Loader=Loader)
+        data = resource_stream(__name__,
+                               path.join(self.DIRECTORY, fname + self.EXT))
+        self._data = load(data, Loader=Loader)
 
 
 class AirlinesHandler(YamlHandler):
@@ -140,9 +142,10 @@ class AeroportHandler(YamlHandler):
     def __init__(self, iata):
         self.DIRECTORY = path.join(self.DIRECTORY, 'aeroports')
         self.load(iata)
-        strips = [aeroport.AsphaltStrip(**rw) for rw in self._data['strips']]
+        strips = [entities.aeroport.AsphaltStrip(**rw)
+                  for rw in self._data['strips']]
         self.aeroport = \
-            aeroport.Aeroport(strips=strips, **self._data['aeroport'])
+            entities.aeroport.Aeroport(strips=strips, **self._data['aeroport'])
 
 
 class ScenarioHandler(YamlHandler):
@@ -165,12 +168,12 @@ class ScenarioHandler(YamlHandler):
         # Gates
         self.gates = []
         for item in self._data['gates']:
-            gate = waypoints.Gate(**item)
+            gate = entities.waypoints.Gate(**item)
             self.gates.append(gate)
         # Beacons
         self.beacons = []
         for item in self._data['beacons']:
-            beacon = waypoints.Beacon(**item)
+            beacon = entities.waypoints.Beacon(**item)
             self.beacons.append(beacon)
 
     def adjust_settings(self):
