@@ -9,7 +9,7 @@ Amongst others:
     - invokes AI support for planes in emergency
 '''
 
-from settings import *
+from engine.settings import *
 from lib.euclid import Vector3
 from pygame.locals import *
 import pygame.draw

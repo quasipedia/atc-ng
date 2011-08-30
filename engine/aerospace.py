@@ -7,7 +7,7 @@ World modelling and representation for the ATC game.
 - Represent the radar.
 '''
 
-from settings import *
+from engine.settings import *
 from itertools import combinations
 from lib.euclid import Vector3
 import pygame.sprite

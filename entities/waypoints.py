@@ -64,7 +64,6 @@ class Gate(object):
         pygame.draw.line(g_img, GRAY, (0, gate_width_px*aaf-aaf),
                               (gate_length_px*aaf, gate_width_px*aaf-aaf), aaf)
         # info on orientation
-        print(MAIN_FONT)
         fontobj = pygame.font.Font(MAIN_FONT, HUD_INFO_FONT_SIZE*aaf)
         label = fontobj.render(str(self.heading).zfill(3), True, GRAY)
         label = label.subsurface(label.get_bounding_rect())

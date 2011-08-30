@@ -4,7 +4,7 @@
 Provide functionality for entering commands and processing them.
 '''
 
-from settings import *
+from engine.settings import *
 from pygame.locals import *
 from collections import deque
 from random import randint
@@ -302,7 +302,11 @@ class Parser(object):
         return (callable_, parsed_commands)
 
     def parse_game_command(self):
-        issued = self.bits.pop()
+        try:
+            issued = self.bits.pop()
+        except IndexError:  # Empty bits --> No command issued
+            msg = 'What is the command?'
+            return msg
         command_name = None
         command = None
         for k, v in GAME_COMMANDS.items():
@@ -405,6 +409,8 @@ class CommandLine(object):
         Autocomplete the word-stub under the cursor.
         '''
         splitted = self.text.lower().split()
+        if not splitted:
+            return  #early exit for empty line
         spl_len = len(splitted)
         what = None
         context = None

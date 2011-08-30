@@ -9,7 +9,7 @@ there". It's implemented in python (with pygame).
 This module sole purpose is to initialise and manage the pygame environment.
 '''
 
-from settings import *
+from engine.settings import *
 from pygame.locals import *
 import pygame.display
 
