@@ -11,7 +11,7 @@ make clean
 make html
 mkdir /tmp/atc-docs
 cp -R _build/html/* /tmp/atc-docs/
-rm -Rf _build/
+make clean
 
 # switch to GitHub pages repository and imports the build
 cd ..
@@ -19,10 +19,11 @@ git checkout gh-pages
 rm -Rdf *
 cp -R /tmp/atc-docs/* .
 rm -Rf /tmp/atc-docs
+touch .nojekyll
 
 # track changes and pushes them to the server
-git add *.html *.js objects.inv _static/* _sources/*
-git commit -m "automatic documentation generation"
+git add . .nojekyll
+git commit -a -m "Automatic Documentation Build"
 git push
 
 # revert to normal editing mode
