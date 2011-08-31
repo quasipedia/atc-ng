@@ -5,8 +5,6 @@
 git stash
 
 # make a clean build of the html files and moves it out of the way
-rm -Rf _build/
-mkdir _build
 make clean
 make html
 mkdir /tmp/atc-docs
