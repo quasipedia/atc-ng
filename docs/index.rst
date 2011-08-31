@@ -5,7 +5,7 @@
 
 Welcome to ATC-NG's documentation!
 ====================================================================
-ATC-NG stands for _Air Traffic Controller - Next Generation_ and it is a game
+ATC-NG stands for *Air Traffic Controller - Next Generation* and it is a game
 inspired by the classic text-only *atc* game from the early eightees.
 
 Currently the game is in **alpha state**: some of the final functionality is

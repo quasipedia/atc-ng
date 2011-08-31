@@ -9,9 +9,12 @@ from pygame.locals import *
 from collections import deque
 from random import randint
 from copy import copy
+from pkg_resources import resource_stream
 import pygame.font
 import re
 import time
+import yaml
+import os.path as path
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -34,37 +37,8 @@ GAME_COMMANDS = {'quit' : {'spellings': ['quit', 'q'],
                            }
                  }
 
-PLANE_COMMANDS = {
-        'heading'  : {'spellings': ['heading', 'h', 'head'],
-                      'arguments': 1,
-                      'validator': '_validate_heading',
-                      'flags'    : {'expedite' : ['expedite', 'x'],
-                                    'long_turn': ['l', 'long',]}},
-        'altitude' : {'spellings': ['altitude', 'a', 'alt'],
-                      'arguments': 1,
-                      'validator': '_validate_altitude',
-                      'flags'    : {'expedite': ['expedite', 'x']}},
-        'speed'    : {'spellings': ['speed', 's', 'sp'],
-                      'arguments': 1,
-                      'validator': '_validate_speed',
-                      'flags'    : {'expedite': ['expedite', 'x']}},
-        'takeoff' : {'spellings': ['takeoff', 'to', 'up', 'fly'],
-                      'arguments': 1,
-                      'validator': '_validate_altitude',
-                      'flags'    : {'expedite': ['expedite', 'x']}},
-        'land'     : {'spellings': ['land', 'l', 'down'],
-                      'arguments': 2,
-                      'validator': '_validate_land',
-                      'flags'    : []},
-        'circle'   : {'spellings': ['circle', 'c', 'hold'],
-                      'arguments': 1,
-                      'validator': '_validate_circle',
-                      'flags'    : []},
-        'abort'    : {'spellings': ['abort', 'purge'],
-                      'arguments': 0,
-                      'validator': None,
-                      'flags'    : {'lastonly': ['lastonly', 'last', 'l']}}
-        }
+data = resource_stream(__name__, path.join('data', 'pcommands.yml'))
+PLANE_COMMANDS = yaml.load(data)
 
 VALID_PLANE_COMMANDS_COMBOS = [('heading', 'altitude', 'speed'),
                                ('circle', 'altitude', 'speed')]

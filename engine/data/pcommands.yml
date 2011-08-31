@@ -1,0 +1,93 @@
+# [ARN] Stockholm-Arlanda Aeroport, Stockholm Sweden
+#
+# ©2011 Mac Ryan - Licensed under GPL v.3
+#
+# This file is intended to work with the ATC-NG game available at
+# https://github.com/quasipedia/atc-ng
+
+abort:
+  spellings: [abort, purge]
+  arguments: 0
+  flags:
+    lastonly: [lastonly, last, l]
+  validator: null
+  description: Abort command
+  examples: |
+
+    >>> QFA1234 ABORT
+    >>> DLH5678 PURGE LAST
+
+altitude:
+  spellings: [altitude, a, alt]
+  arguments: 1
+  flags:
+    expedite: [expedite, x]
+  validator: _validate_altitude
+  description: >
+    The ``ALTITUDE`` command changes the flying altitude above of an aeroplane.
+    Altitude is expressed in hundreds of metres above sea level. The
+    ``EXPEDITE`` flag doubles the speed at which an aeroplane climbs or
+    descends.
+  examples: |
+
+    >>> QFA1234 ALTITUDE 55
+    >>> DLH5678 ALTITUDE 80 X
+
+circle:
+  spellings: [circle, c, hold]
+  arguments: 1
+  flags: []
+  validator: _validate_circle
+  description: Hold position by circling
+  examples: |
+
+    >>> QFA1234 ALTITUDE 55
+    >>> DLH5678 ALTITUDE 80 X
+
+heading:
+  spellings: [heading, h, head]
+  arguments: 1
+  flags:
+    expedite: [expedite, x]
+    long_turn: [l, long]
+  validator: _validate_heading
+  description: Change the heading of an aeroplane
+  examples: |
+
+    >>> QFA1234 ALTITUDE 55
+    >>> DLH5678 ALTITUDE 80 X
+
+land:
+  spellings: [land, l, down]
+  arguments: 2
+  flags: []
+  validator: _validate_land
+  description: Land the aeroplane
+  examples: |
+
+    >>> QFA1234 ALTITUDE 55
+    >>> DLH5678 ALTITUDE 80 X
+
+speed:
+  spellings: [speed, s, sp]
+  arguments: 1
+  flags:
+    expedite: [expedite, x]
+  validator: _validate_speed
+  description: Change the speed of an aeroplane
+  examples: |
+
+    >>> QFA1234 ALTITUDE 55
+    >>> DLH5678 ALTITUDE 80 X
+
+takeoff:
+  spellings: [takeoff, to, up, fly]
+  arguments: 1
+  flags:
+    expedite: [expedite, x]
+  validator: _validate_altitude
+  description: Makes an aeroplane airborne
+  examples: |
+
+    >>> QFA1234 ALTITUDE 55
+    >>> DLH5678 ALTITUDE 80 X
