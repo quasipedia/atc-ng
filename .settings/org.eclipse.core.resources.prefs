@@ -1,0 +1,6 @@
+#Wed Aug 31 13:14:39 CEST 2011
+eclipse.preferences.version=1
+encoding//engine/aerospace.py=utf-8
+encoding//engine/commander.py=utf-8
+encoding//engine/main.py=utf-8
+encoding//entities/yamlhandlers.py=utf-8
