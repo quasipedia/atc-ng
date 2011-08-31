@@ -1,0 +1,182 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Game screen &mdash; Air Traffic Controller - Next Generation vdevelopment documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     'development',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Air Traffic Controller - Next Generation vdevelopment documentation" href="index.html" />
+    <link rel="up" title="How to play" href="game-manual.html" />
+    <link rel="next" title="Aeroplane commands" href="plane-commands.html" />
+    <link rel="prev" title="How to play" href="game-manual.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="plane-commands.html" title="Aeroplane commands"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="game-manual.html" title="How to play"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Air Traffic Controller - Next Generation vdevelopment documentation</a> &raquo;</li>
+          <li><a href="game-manual.html" accesskey="U">How to play</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="game-screen">
+<h1>Game screen<a class="headerlink" href="#game-screen" title="Permalink to this headline">¶</a></h1>
+<p>The game screen is organised in four main areas:</p>
+<img alt="_images/game-interface.png" src="_images/game-interface.png" />
+<dl class="docutils">
+<dt><strong>radar screen</strong> (1)</dt>
+<dd>You can see here the aeroplanes, aeroports, beacons and gates which are used
+during the game</dd>
+<dt><strong>command console</strong> (2)</dt>
+<dd>Here you issue commands either to the game engine (for getting help, pausing,
+quitting...) or to aeroplanes (to alter they course or perform special
+operations)</dd>
+<dt><strong>flight strips</strong> (3)</dt>
+<dd>Here you have a list of planes currently under your control, with some data
+which is not available on the main radar screen</dd>
+<dt><strong>aeroport maps</strong> (4)</dt>
+<dd>Here you have a detailed map of the map&#8217;s aeroports: aeroports are also
+visible on radar screen, but in this game area they are big enough for you
+to identify individual runways.</dd>
+</dl>
+<div class="section" id="the-radar-screen">
+<h2>The radar screen<a class="headerlink" href="#the-radar-screen" title="Permalink to this headline">¶</a></h2>
+<img alt="_images/radar-screen.png" src="_images/radar-screen.png" />
+<p>The radar screen gives you an overview of the situation in the aerospace you are
+controlling. The typical elements you will find in it are:</p>
+<ol class="arabic simple">
+<li><strong>Radar targets</strong> (aeroplanes), with their flight number, altitude and speed
+indicated in the label next to them.</li>
+<li><strong>Aeroports</strong>, identified by their IATA code.</li>
+<li><strong>Gates</strong>, which are the entry and exit points for the aeroplanes in the
+aerospace.</li>
+<li><strong>Beacons</strong>, which are points whose location is known to aeroplane pilots,
+and thus can be used to direct aeroplanes (e.g.: <tt class="docutils literal"><span class="pre">DLH1234</span> <span class="pre">HEAD</span> <span class="pre">NDB1</span></tt> to
+direct the Lufthansa flight #1234 towards the beacon marked NDB1 on the
+radar).</li>
+</ol>
+</div>
+<div class="section" id="the-command-console">
+<h2>The command console<a class="headerlink" href="#the-command-console" title="Permalink to this headline">¶</a></h2>
+<img alt="_images/command-console.png" src="_images/command-console.png" />
+<p>The command console is the area you use to control the game. In ATC-NG <strong>all</strong>
+commands (whether they are game commands like <tt class="docutils literal"><span class="pre">QUIT</span></tt> or plane commands like
+<tt class="docutils literal"><span class="pre">HEADING</span></tt>) are issued through the console.</p>
+<p>The bottom, larger line is the interactive prompt where you compose the command
+(press <tt class="kbd docutils literal"><span class="pre">Enter</span></tt> to attempt command execution). The smaller lines above that
+show the history of the past commands, and what happened once executed.</p>
+</div>
+<div class="section" id="the-flight-strips">
+<h2>The flight strips<a class="headerlink" href="#the-flight-strips" title="Permalink to this headline">¶</a></h2>
+<img alt="_images/flight-strips.png" src="_images/flight-strips.png" />
+<p>The flight strips show some data that is not available on the main radar screen,
+such the departure and destination, or the amount of fuel still available
+onboard the aeroplane).</p>
+</div>
+<div class="section" id="the-aeroport-maps">
+<h2>The aeroport maps<a class="headerlink" href="#the-aeroport-maps" title="Permalink to this headline">¶</a></h2>
+<img alt="_images/aeroport-maps.png" src="_images/aeroport-maps.png" />
+<p>The main function of the aeroport maps is to give you a detailed view of the
+available runways, so that you can decide which ones to use for takeoffs and
+landings.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Game screen</a><ul>
+<li><a class="reference internal" href="#the-radar-screen">The radar screen</a></li>
+<li><a class="reference internal" href="#the-command-console">The command console</a></li>
+<li><a class="reference internal" href="#the-flight-strips">The flight strips</a></li>
+<li><a class="reference internal" href="#the-aeroport-maps">The aeroport maps</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="game-manual.html"
+                        title="previous chapter">How to play</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="plane-commands.html"
+                        title="next chapter">Aeroplane commands</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/game-interface.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="plane-commands.html" title="Aeroplane commands"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="game-manual.html" title="How to play"
+             >previous</a> |</li>
+        <li><a href="index.html">Air Traffic Controller - Next Generation vdevelopment documentation</a> &raquo;</li>
+          <li><a href="game-manual.html" >How to play</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Mac Ryan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+    </div>
+  </body>
+</html>
