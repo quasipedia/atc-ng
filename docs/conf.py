@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
-# Air Traffic Controller - Next Generation documentation build configuration file, created by
-# sphinx-quickstart on Tue Aug 30 20:38:35 2011.
+# Air Traffic Controller - Next Generation documentation build configuration
+# file, created by sphinx-quickstart on Tue Aug 30 20:38:35 2011.
 #
 # This file is execfile()d with the current directory set to its containing dir.
 #
@@ -16,7 +16,7 @@ import sys, os
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath('.'))
 
 # -- General configuration -----------------------------------------------------
 
@@ -25,7 +25,8 @@ import sys, os
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.pngmath', 'sphinx.ext.ifconfig', 'sphinx.ext.viewcode']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.pngmath', 'sphinx.ext.ifconfig',
+              'sphinx.ext.viewcode']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -211,6 +212,6 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'airtrafficcontroller-nextgeneration', u'Air Traffic Controller - Next Generation Documentation',
+    ('index', 'airtrafficcontroller-nextgeneration', u'ATC-NG documentation',
      [u'Mac Ryan'], 1)
 ]
