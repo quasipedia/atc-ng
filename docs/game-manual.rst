@@ -6,29 +6,16 @@ Objective
 The objective of the game is to safely guide aeroplanes to their destinations.
 This is done by issuing commands to individual planes.
 
-Game screen
------------
-The game screen is organised in four main areas:
+Game inteface
+-----------------
+All the interaction with the game happens through the command console. You can
+find an in-depth presentation of the game interface in the :doc:`dedicated
+section<game-interface>`
 
-.. image:: _static/game_interface.png
+.. toctree::
+   :hidden:
 
-**radar screen** (1)
-  You can see here the aeroplanes, aeroports, beacons and gates which are used
-  during the game
-
-**command console** (2)
-  Here you issue commands either to the game engine (for getting help, pausing,
-  quitting...) or to aeroplanes (to alter they course or perform special
-  operations)
-
-**flight strips** (3)
-  Here you have a list of planes currently under your control, with some data
-  which is not available on the main radar screen
-
-**aeroport maps** (4)
-  Here you have a detailed map of the map's aeroports: aeroports are also
-  visible on radar screen, but in this game area they are big enough for you
-  to identify individual runways.
+   Break-down of the game interface <game-interface>
 
 Game commands
 -------------
@@ -76,4 +63,3 @@ details.
    :hidden:
 
    List of available commands <plane-commands>
-   tips
