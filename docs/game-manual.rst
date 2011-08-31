@@ -54,9 +54,12 @@ possibly arguments and/or flags. For example:
 where ``AZA1234`` is the flight number ``HEADING`` is the command ``000`` is
 the command argument and ``X`` is the command flag.
 
-Certain game commands can be **combined**. For example:
+Compatible aeroplane commands can be **combined**. For example:
 
 >>> AZA1234 HEADING 000 SPEED 200 ALTITUDE 55
+
+Incompatible commands (e.g.: ``CIRCLE`` and ``LAND``) will generate an error in
+the console.
 
 Aeroplanes commands can also be **queued** (meaning that the aeroplane will
 execute them only when the command (or command sequence) currently being
@@ -66,5 +69,11 @@ prepend it with a dot (``.``). For example:
 
 >>> .AZA LAND FRA 35L
 
-See the :doc:`list of all available aeroplane commands<planecommands>` for
+See the :doc:`list of all available aeroplane commands<plane-commands>` for
 details.
+
+.. toctree::
+   :hidden:
+
+   List of available commands <plane-commands>
+   tips

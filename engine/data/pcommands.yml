@@ -11,7 +11,15 @@ abort:
   flags:
     lastonly: [lastonly, last, l]
   validator: null
-  description: Abort command
+  description: >
+    An aeroplane that is maneuvering can't execute a new command until the
+    maneuver is completed. The ``ABORT`` command makes a plane that is perfoming
+    a command to stop its execution (mantaining heading, speed and altitude) and
+    makes it available to receive new commands.
+
+      Beside halting command execution, an ``ABORT`` command will also flush the
+      command queue. The ``LASTONLY`` flag - on the other hand - allows to
+      eliminate *only the last* command in the queue.
   examples: |
 
     >>> QFA1234 ABORT
@@ -24,10 +32,11 @@ altitude:
     expedite: [expedite, x]
   validator: _validate_altitude
   description: >
-    The ``ALTITUDE`` command changes the flying altitude above of an aeroplane.
-    Altitude is expressed in hundreds of metres above sea level. The
-    ``EXPEDITE`` flag doubles the speed at which an aeroplane climbs or
-    descends.
+    The ``ALTITUDE`` command alters the flying target altitude of an aeroplane.
+    Altitude is expressed in hundreds of metres above sea level.
+
+      The ``EXPEDITE`` flag doubles the speed at which an aeroplane climbs or
+      descends.
   examples: |
 
     >>> QFA1234 ALTITUDE 55
@@ -38,35 +47,60 @@ circle:
   arguments: 1
   flags: []
   validator: _validate_circle
-  description: Hold position by circling
+  description: >
+    The ``CIRCLE`` command will make an aeroplane to fly a circular pattern,
+    basically holding position.
+
+      The command takes a single argument which is the direction of the
+      circling: clockwise (``CW``, ``RIGHT`` or ``R``) or counter-clockwise
+      (``CCW``, ``LEFT`` or ``L``)
   examples: |
 
-    >>> QFA1234 ALTITUDE 55
-    >>> DLH5678 ALTITUDE 80 X
+    >>> QFA1234 CIRCLE CCW
+    >>> DLH5678 HOLD R
 
 heading:
   spellings: [heading, h, head]
   arguments: 1
   flags:
     expedite: [expedite, x]
-    long_turn: [l, long]
+    long: [l, long]
   validator: _validate_heading
-  description: Change the heading of an aeroplane
+  description: >
+    The ``HEADING`` command alter the target heading of an aeroplane. The
+    argument of the command can either be a *new degree heading* (expressed as a
+    three-digit figure or the code of a *beacon*, for which the most appropriate
+    heading will be calculated.
+
+      The ``EXPEDITE`` flag increses the banking angle of the aeroplane,
+      effectively decreasing the time needed for the aeroplane to reach its
+      target heading.
+
+      The plane will always perform the turn in the direction that requires less
+      time to complete (smaller angle). The ``LONG`` flag - on the other hand -
+      allows to perform the turn in the opposite direction.
   examples: |
 
-    >>> QFA1234 ALTITUDE 55
-    >>> DLH5678 ALTITUDE 80 X
+    >>> QFA1234 HEADING 080
+    >>> DLH5678 H 150 X
+    >>> QFA1234 HEAD 270 L X
+    >>> DLH5678 HEADING NDB1 LONG EXPEDITE
 
 land:
   spellings: [land, l, down]
   arguments: 2
   flags: []
   validator: _validate_land
-  description: Land the aeroplane
+  description: >
+    The ``LAND`` command instruct the plane to intercept the descent flight path
+    to the foot of a given runaway, and perform the landing.
+
+      The command takes two arguments: the **IATA code of the aeroport** and
+      the **runaway name**.
   examples: |
 
-    >>> QFA1234 ALTITUDE 55
-    >>> DLH5678 ALTITUDE 80 X
+    >>> QFA1234 LAND FRA 07R
+    >>> DLH5678 DOWN ARN 26
 
 speed:
   spellings: [speed, s, sp]
@@ -74,11 +108,16 @@ speed:
   flags:
     expedite: [expedite, x]
   validator: _validate_speed
-  description: Change the speed of an aeroplane
+  description: >
+    The ``SPEED`` command alter the target ground speed of an aeroplane. The
+    target speed of the aeroplane is expressed in **kph** (kilometres per hour).
+
+      The ``EXPEDITE`` flag increses the acceleration/deceleration, making the
+      maneuver to execute faster.
   examples: |
 
-    >>> QFA1234 ALTITUDE 55
-    >>> DLH5678 ALTITUDE 80 X
+    >>> QFA1234 SPEED 800
+    >>> DLH5678 SP 450 EXPEDITE
 
 takeoff:
   spellings: [takeoff, to, up, fly]
@@ -86,8 +125,14 @@ takeoff:
   flags:
     expedite: [expedite, x]
   validator: _validate_altitude
-  description: Makes an aeroplane airborne
+  description: >
+    The ``TAKEOFF`` command instructs the plane to take off a given runaway.
+    Once airborne, the plane will keep on climbing until its maximum flight
+    altitude.
+
+      The ``EXPEDITE`` flag increses the climbing rate, making the maneuver to
+      execute faster.
   examples: |
 
-    >>> QFA1234 ALTITUDE 55
-    >>> DLH5678 ALTITUDE 80 X
+    >>> QFA1234 TAKEOFF 04L
+    >>> DLH5678 UP 01 X

@@ -3,10 +3,10 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to ATC-NG's documentation!
-====================================================================
-ATC-NG stands for *Air Traffic Controller - Next Generation* and it is a game
-inspired by the classic text-only *atc* game from the early eightees.
+The ATC-NG manual
+=================
+ATC-NG stands for ***Air Traffic Controller - Next Generation*** and it is a
+game inspired by the classic text-only *atc* game from the early eightees.
 
 Currently the game is in **alpha state**: some of the final functionality is
 already implemented, but not enough to play the game completely.
@@ -19,15 +19,13 @@ change in the future).
 Contents:
 
 .. toctree::
-   :maxdepth: 2
 
-   gamemanual
-   planecommands
-   contribute
+   game-manual
+   get-involved
 
 Indices and tables
 ==================
 
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`
+.. * :ref:`modindex`

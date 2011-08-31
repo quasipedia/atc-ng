@@ -124,7 +124,7 @@ class Parser(object):
 
     def _validate_speed(self, speed):
         '''
-        Valid speeds are given in hundreds of km/h.
+        Valid speeds are given in kph.
         '''
         try:
             num_s = int(speed)
