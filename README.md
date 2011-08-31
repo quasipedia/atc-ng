@@ -31,8 +31,8 @@ simulation.
 
 See also
 --------
-[The LaunchPad project page][1]
-[Official documentation][2]
+- [The LaunchPad project page][1]
+- [Official documentation][2]
 
 
 Licence
