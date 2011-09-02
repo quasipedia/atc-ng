@@ -50,6 +50,8 @@ class Aerospace(object):
         self.tags = pygame.sprite.Group()
         self.__planes = {}
         self.__aeroports = {}
+        self.__beacons = {}
+        self.__gates = {}
         self.collide_func = pygame.sprite.collide_rect_ratio(1.6)
 
     def __filter_self_collisions(self, sprite, collisions):
@@ -128,12 +130,14 @@ class Aerospace(object):
         '''
         Add a gate to the aerospace.
         '''
+        self.__gates[gate.name] = gate
         gate.draw(self.surface)
 
     def add_beacon(self, beacon):
         '''
         Add a gate to the aerospace.
         '''
+        self.__beacons[beacon.id] = beacon
         beacon.draw(self.surface)
 
     def connect_tags(self):
@@ -174,6 +178,10 @@ class Aerospace(object):
             if x < 0 or x > s.width or y < 0 or y > s.height:
                 self.remove_plane(icao)
 
+    def get_plane_by_icao(self, icao):
+        icao = icao.upper()
+        return self.__planes[icao]['plane']
+
     @property
     def aeroplanes(self):
         '''
@@ -181,23 +189,26 @@ class Aerospace(object):
         '''
         return [v['plane'] for v in self.__planes.values()]
 
-    def get_plane_by_icao(self, icao):
-        icao = icao.upper()
-        return self.__planes[icao]['plane']
-
     @property
     def aeroports(self):
         '''
-        Return a list of the available airports on the map.
+        Return a list of the available aeroports on the map.
         '''
         return self.__aeroports
 
     @property
+    def gates(self):
+        '''
+        Return a list of the available gates on the map.
+        '''
+        return self.__gates
+
+    @property
     def beacons(self):
         '''
-        Return a list of the available airports on the map.
+        Return a list of the available beacons on the map.
         '''
-        return []
+        return self.__beacons
 
     def acas(self):
         '''

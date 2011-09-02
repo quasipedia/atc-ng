@@ -11,12 +11,15 @@ mkdir /tmp/atc-docs
 cp -R _build/html/* /tmp/atc-docs/
 make clean
 
-# switch to GitHub pages repository and imports the build
+# save aptana project files
 cd ..
+mkdir /tmp/atc-project-files
+cp .project .pydevproject /tmp/atc-project-files
+# switch to GitHub pages repository and imports the build
 git checkout gh-pages
-rm -Rdf *
-cp -R /tmp/atc-docs/* .
-rm -Rf /tmp/atc-docs
+rm -rdf *
+cp -r /tmp/atc-docs/* .
+rm -rf /tmp/atc-docs
 touch .nojekyll
 
 # track changes and pushes them to the server
@@ -26,4 +29,6 @@ git push
 
 # revert to normal editing mode
 git checkout master
+cp /tmp/atc-project-files .
+rm -rf /tmp/atc-project-files
 git stash pop

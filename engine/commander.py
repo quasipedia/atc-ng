@@ -94,18 +94,22 @@ class Parser(object):
             return False
         return [icao.upper()]
 
-    def _validate_heading(self, heading):
+    def _validate_heading(self, arg):
         '''
         Valid headings can be either a 3 digit angle between 000° and 360° or a
-        beacon code.
+        beacon/gate.
         '''
-        try:
-            num_h = int(heading)
-        except ValueError:
-            return False
-        if not 0 <= num_h <= 360 and len(heading) == 3:
-            return False
-        return [num_h]
+        arg = arg.upper()
+        try:  #argument is a numerical heading
+            num_h = int(arg)
+            if not 0 <= num_h <= 360 and len(arg) == 3:
+                return False
+            return [num_h]
+        except ValueError:  #argument is a beacon id
+            if not arg in [k for k in self.aerospace.beacons.keys()]:
+                return False
+            else:
+                return self.aerospace.beacons[arg]['location']
 
     def _validate_altitude(self, altitude):
         '''
@@ -350,7 +354,7 @@ class CommandLine(object):
                     return [r for r in ap.runways.keys()]
             return []
         elif what == 'beacons':
-            return [b.code for b in self.aerospace.beacons]
+            return [id for id in self.aerospace.beacons.keys()]
         elif what == 'game_commands':
             return [key for key in GAME_COMMANDS.keys()]
         else:

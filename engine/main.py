@@ -21,7 +21,7 @@ __maintainer__ = "Mac Ryan"
 __email__ = "quasipedia@gmail.com"
 __status__ = "Development"
 
-#TODO: move euclide, openanything to /libs
+#TODO: create another mechanism for the settings
 #TODO: check that positioning of aeroports on radar is accurate
 #TODO: verify .deb package with `lintian`
 

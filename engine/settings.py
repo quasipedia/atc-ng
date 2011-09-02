@@ -90,7 +90,6 @@ COLLISION = 4
 STATUS_COLORS = [WHITE, GRAY, MAGENTA, YELLOW, RED]
 
 # Fonts
-#TODO: need to have locals defined some other way!!!
 MAIN_FONT = resource_filename(__name__,
                               os.path.join('data', 'ex_modenine.ttf'))
 # These are conventional chars that have been mapped in the font file to
