@@ -42,6 +42,9 @@ WINDOW_SIZE = (1200, 750)       # in pixels
 RADAR_RANGE = 40000             # radius in kilometres --> 80x80km = space
 RADAR_RING_STEP = 10000         # space between radar rings
 
+#Physics
+G_GRAVITY = 9.807
+
 # Console
 CONSOLE_HEIGHT = 0.14           # as a percentage of windows height
 CONSOLE_LINES_NUM = 5

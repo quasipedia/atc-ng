@@ -109,7 +109,7 @@ class Parser(object):
             if not arg in [k for k in self.aerospace.beacons.keys()]:
                 return False
             else:
-                return self.aerospace.beacons[arg]['location']
+                return self.aerospace.beacons[arg].location
 
     def _validate_altitude(self, altitude):
         '''
@@ -174,7 +174,7 @@ class Parser(object):
             if self._validate_icao(icao):
                 return self.parse_plane_commands(icao, to_queue=True)
             else:
-                msg = '"%s" is not a valid ICAO reference.' % icao.upper()
+                msg = '"%s" is not a valid flight number.' % icao.upper()
                 return msg
         # We're issuing a game command
         elif first == '/':

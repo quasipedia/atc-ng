@@ -65,19 +65,20 @@ class Pilot(object):
     def __init__(self, plane):
         self.plane = plane
 
-    def __verify_feasibility(self, speed=None, altitude=None):
+    def verify_feasibility(self, speed=None, altitude=None):
         '''
         Verify if given speed and altitude are within aeroplane specifications.
         Heading is a dummy variable, used to make possible to use this method
         with any of the three attributes.
         Return True or a message error.
         '''
-        if speed != None and not self.min_speed < speed < self.max_speed:
+        if speed != None and not self.plane.min_speed < speed < \
+                                 self.plane.max_speed:
             mi = rint(self.min_speed * 3.6)
             ma = rint(self.max_speed * 3.6)
             return 'Our aircraft can only cruise between %d and %d kph.' % \
                     (mi, ma)
-        if altitude != None and altitude  > self.max_altitude:
+        if altitude != None and altitude  > self.plane.max_altitude:
             return 'The target altitude is above the maximum one for our ' +\
                    'aircraft.'
         return True
@@ -101,6 +102,9 @@ class Pilot(object):
         This method return True, if the tested value is between the *smallest*
         angle between the other two.
         '''
+        # special case for 180°: angles is alwasy in-between
+        if (boundaries[0]-boundaries[1])%360 == 180:
+            return True
         sort_a = lambda a,b : [a,b] if (a-b)%360 > (b-a)%360 else [b,a]
         tmp = sort_a(*boundaries)
         if tmp[0] > tmp[1]:
@@ -124,9 +128,22 @@ class Pilot(object):
         theta = (self.plane.heading - self.plane.target_conf['heading']) % 360
         return self.LEFT if theta < 180 else self.RIGHT
 
-    def veer(self, pings):
+    def get_veering_radius(self, veer_type, speed=None):
         '''
-        Make the plane turn.
+        Return the veering radius at given speed.
+        `speed` defaults to current plane speed.
+        `type` can be: normal, expedite, emergency.
+        '''
+        if speed == None:
+            speed = self.plane.speed
+        # Given that V = ω * r...
+        return speed / self.get_veering_angular_velocity(veer_type, speed)
+
+    def get_veering_angular_velocity(self, veer_type, speed=None):
+        '''
+        Return the veering angular velocity at given linear speed.
+        `speed` defaults to current plane speed.
+        `type` can be: normal, expedite, emergency.
 
         The turn radius is calculated according to maximum g's exerted on the
         passengers. These are:
@@ -140,20 +157,58 @@ class Pilot(object):
         transalates in C²=T²-G² → C=sqrt(T²-G²).
             But C=ω²r and ω=V/r so C=V²/(V/ω) → C=Vω → ω=C/V
         '''
+        if speed == None:
+            speed = self.plane.speed
+        if veer_type == 'normal':
+            max_manouvering_g = 1.15
+        elif veer_type == 'expedite':
+            max_manouvering_g = 1.41
+        elif veer_type == 'emergency':
+            max_manouvering_g = self.plane.max_g
+        else:
+            raise BaseException('Unknown veer type')
+        g_to_mks = lambda x : G_GRAVITY * x
+        acc_module = sqrt(g_to_mks(max_manouvering_g)**2-g_to_mks(1)**2)
+        return acc_module/speed
+
+    def veer(self, pings):
+        '''
+        Make the plane turn.
+        '''
         # The tightness of the curve is given by the kind of situation the
         # aeroplane is in.
-        max_manouvering_g = 1.15
-        if self.plane.flags.expedite or self.flags.cleared_down:
-            max_manouvering_g = 1.41
+        if self.plane.flags.expedite or self.plane.flags.cleared_down:
+            veer_type = 'expedite'
         if self.plane.flags.collision:
-            max_manouvering_g = self.plane.max_g
-        g_to_mks = lambda x : 9.807 * x
-        acc_module = sqrt(g_to_mks(max_manouvering_g)**2-g_to_mks(1)**2)
-        angular_speed = acc_module/self.plane.velocity.magnitude() * \
-                        -self.veering_direction
+            veer_type = 'emergency'
+        else:
+            veer_type = 'normal'
+        abs_ang_speed = self.get_veering_angular_velocity(veer_type)
+        angular_speed = abs_ang_speed * -self.veering_direction
         rotation_axis = Vector3(0,0,1)
         self.plane.velocity = self.plane.velocity.rotate_around(rotation_axis,
                              angular_speed*PING_IN_SECONDS*pings)
+
+    def set_course_towards(self, coords):
+        '''
+        Set a course for the point at coordinates `coords`.
+        Return True if setting the course is possible, a message error
+        otherwise.
+        '''
+        # Calculate the veering radius
+        if self.plane.flags.expedite or self.plane.flags.cleared_down:
+            veer_type = 'expedite'
+        if self.plane.flags.collision:
+            veer_type = 'emergency'
+        else:
+            veer_type = 'normal'
+        radius = self.get_veering_radius(veer_type)
+        delta = Vector3(coords) - self.plane.position
+        if abs(delta) < radius:
+            return 'We cannot veer that tight'
+        self.plane.target_conf['heading'] = \
+                    (90-degrees(atan2(self.delta.y, self.delta.x)))%360
+        return True
 
     def set_aversion_course(self):
         '''
@@ -349,11 +404,11 @@ class Aeroplane(object):
         for line in commands:
             command, args, flags = line
             if command == 'altitude':
-                feasible = self.__verify_feasibility(altitude=args[0])
+                feasible = self.pilot.verify_feasibility(altitude=args[0])
                 if feasible != True:
                     return feasible
             elif command == 'speed':
-                feasible = self.__verify_feasibility(speed=args[0])
+                feasible = self.pilot.verify_feasibility(speed=args[0])
                 if feasible != True:
                     return feasible
         # Queuing can only be performed after commands whose implementation
@@ -391,14 +446,16 @@ class Aeroplane(object):
                     if 'long_turn' in flags:
                         self.veering_direction *= -1  #invert direction
                 else:  #the argument is a location (a beacon's one)
-                    self.target_coords = args[0]
+                    feasible = self.pilot.set_course_towards(args[0])
+                    if feasible != True:
+                        return feasible
             elif command == 'altitude':
-                feasible = self.__verify_feasibility(altitude=args[0])
+                feasible = self.pilot.verify_feasibility(altitude=args[0])
                 if feasible != True:
                     return feasible
                 self.target_conf['altitude'] = args[0]
             elif command == 'speed':
-                feasible = self.__verify_feasibility(speed=args[0])
+                feasible = self.pilot.verify_feasibility(speed=args[0])
                 if feasible != True:
                     return feasible
                 self.target_conf['speed'] = args[0]
@@ -555,4 +612,3 @@ class Aeroplane(object):
         self.target_conf['speed'] = self.speed
         self.target_conf['altitude'] = self.altitude
         self.target_conf['heading'] = self.heading
-
