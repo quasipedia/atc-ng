@@ -184,31 +184,21 @@ class Pilot(object):
         else:
             veer_type = 'normal'
         abs_ang_speed = self.get_veering_angular_velocity(veer_type)
-        angular_speed = abs_ang_speed * -self.veering_direction
+        angular_speed = abs_ang_speed * -self.plane.veering_direction
         rotation_axis = Vector3(0,0,1)
         self.plane.velocity = self.plane.velocity.rotate_around(rotation_axis,
                              angular_speed*PING_IN_SECONDS*pings)
 
     def set_course_towards(self, coords):
         '''
-        Set a course for the point at coordinates `coords`.
-        Return True if setting the course is possible, a message error
-        otherwise.
+        Set the target heading to a direct intercept towards the given
+        coordinates. There is no guarantee the plane will be capable to
+        navigate towards that point (if the turn radius is too tight it will
+        overshoot the target).
         '''
-        # Calculate the veering radius
-        if self.plane.flags.expedite or self.plane.flags.cleared_down:
-            veer_type = 'expedite'
-        if self.plane.flags.collision:
-            veer_type = 'emergency'
-        else:
-            veer_type = 'normal'
-        radius = self.get_veering_radius(veer_type)
-        delta = Vector3(coords) - self.plane.position
-        if abs(delta) < radius:
-            return 'We cannot veer that tight'
+        delta = Vector3(*coords) - self.plane.position
         self.plane.target_conf['heading'] = \
-                    (90-degrees(atan2(self.delta.y, self.delta.x)))%360
-        return True
+                    (90-degrees(atan2(delta.y, delta.x)))%360
 
     def set_aversion_course(self):
         '''
@@ -509,10 +499,11 @@ class Aeroplane(object):
         Update the plane status according to the elapsed time.
         Pings = number of radar pings from last update.
         '''
+        #TODO: pings should be implemented as repeated calls to _update
         # Store initial values [for "post_update_ops"]
-        self.previous_altitude = self.altitude
-        self.previous_heading = self.heading
-        self.previous_speed = self.speed
+        previous_altitude = self.altitude
+        previous_heading = self.heading
+        previous_speed = self.speed
         # In case of imminent collision:
         if self.flags.collision:
             self.pilot.set_aversion_course()
@@ -554,7 +545,7 @@ class Aeroplane(object):
             # Non expedite accelerations are limited at 50% of maximum accels
             if not self.flags.expedite:
                 gr_acc *= 0.5
-            norm_velocity = Vector3(*self.velocity.xyz).normalized()
+            norm_velocity = self.velocity.normalized()
             acc_vector = norm_velocity * gr_acc
             # Acceleration cannot produce a speed over or under the limits
             min_, max_ = self.min_speed, self.max_speed
@@ -569,16 +560,10 @@ class Aeroplane(object):
         self.fuel -= 1*pings if self.fuel else 0
         self.rect = sc(self.position.xy)
         self.trail.appendleft(sc(self.position.xy))
-        # Post-update ops
-        self.post_update_ops()
-
-    def post_update_ops(self):
-        '''
-        Peforms a series of post-update plane operations.
-        '''
+        # POST-UPDATE OPS
         # Heading dampener (act on velocity vector)
         t_head = self.target_conf['heading']
-        if self.pilot.test_heading_in_between((self.previous_heading,
+        if self.pilot.test_heading_in_between((previous_heading,
                                            self.heading), t_head):
             mag = self.velocity.magnitude()
             theta = radians(90-t_head)
@@ -586,12 +571,16 @@ class Aeroplane(object):
             self.velocity.y = sin(theta)*mag
         # Speed dampener (act on velocity vector)
         t_speed = self.target_conf['speed']
-        if self.pilot.test_in_between((self.previous_speed, self.speed), t_speed):
+        if self.pilot.test_in_between((previous_speed, self.speed), t_speed):
             mag = t_speed
-            self.velocity = self.velocity.normalized() * t_speed
+            # this is ground speed, so we want to normalise that without
+            # affecting the z component...
+            saved_z = self.velocity.z
+            self.velocity = Vector3(*self.velocity.xy).normalized() * t_speed
+            self.velocity.z = saved_z
         # Altitude dampener (act on position vector)
         t_alt = self.target_conf['altitude']
-        if self.pilot.test_in_between((self.previous_altitude,
+        if self.pilot.test_in_between((previous_altitude,
                                    self.altitude), t_alt):
             self.position.z = t_alt
             self.velocity.z = 0
@@ -604,11 +593,16 @@ class Aeroplane(object):
             if self.queued_commands:
                 self.execute_command(self.queued_commands.pop(0))
 
+    def get_current_configuration(self):
+        '''
+        Return a dictionary with current heading, speed and altitude.
+        '''
+        return dict(speed = self.speed,
+                    altitude = self.altitude,
+                    heading = self.heading)
+
     def set_target_conf_to_current(self):
         '''
-        Set the target configuration for the plane to the current heading,
-        speed and altitude.
+        Set the target configuration for the current one.
         '''
-        self.target_conf['speed'] = self.speed
-        self.target_conf['altitude'] = self.altitude
-        self.target_conf['heading'] = self.heading
+        self.target_conf = self.get_current_configuration()

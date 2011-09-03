@@ -6,6 +6,7 @@ Testing suite for entities/aeroplane.
 
 import unittest
 import entities.aeroplane as aero
+from lib.euclid import Vector3
 
 
 __author__ = "Mac Ryan"
@@ -25,8 +26,9 @@ class AtomicTest(unittest.TestCase):
     them within an aerospace/game logic/scenario.
     '''
 
-    plane = aero.Aeroplane(icao='ABC1234', max_g=2.0)
-    pilot = plane.pilot
+    def setUp(self):
+        self.plane = aero.Aeroplane(icao='ABC1234', max_g=2.0)
+        self.pilot = self.plane.pilot
 
     def testInBetween(self):
         '''
@@ -52,6 +54,13 @@ class AtomicTest(unittest.TestCase):
         self.assertFalse(func((-10, 10), 15))
         self.assertFalse(func((10, -10), -15))
         self.assertFalse(func((-10, 10), -15))
+        # Edges
+        self.assertTrue(func((-10, 10), 10))
+        self.assertTrue(func((-10, 10), -10))
+        # Punctiform
+        self.assertTrue(func((10, 10), 10))
+
+
 
     def testHeadingInBetween(self):
         '''
@@ -117,6 +126,98 @@ class AtomicTest(unittest.TestCase):
             radius = func('emergency', knots_to_ms(kts))
             self.assertAlmostEqual(feet_to_m(feet), radius, delta=radius*0.02)
 
+    def testHeadTowardsPoint(self):
+        '''
+        Is the vector to the target correct?
+        '''
+        def perform(x, y):  # x, y = position relative to plane position
+            self.plane.position = Vector3(10000,10000)
+            self.plane.velocity = Vector3(0)
+            self.pilot.set_course_towards((10000+x, 10000+y))
+        perform(10000,10000)
+        self.assertEqual(self.plane.target_conf['heading'], 45)
+        perform(-10000,-10000)
+        self.assertEqual(self.plane.target_conf['heading'], 225)
+        perform(0, 10000)
+        self.assertEqual(self.plane.target_conf['heading'], 0)
+        perform(-5000*3**0.5, 5000)
+        self.assertEqual(self.plane.target_conf['heading'], 300)
+
+    def testIndependentControls(self):
+        '''
+        Altitude, Speed and Heading change independently one from another.
+        '''
+        def setup():  # x, y = position relative to plane position
+            self.plane.position = Vector3(10000,10000,0)
+            self.plane.velocity = Vector3(150, 0, 0)  #~500kpm eastbound
+            self.plane.set_target_conf_to_current()
+        def perform():
+            changed_keys = set()
+            for i in range(500):  #arbitrary but reasonable limit...
+                self.plane.update(1)
+                current_conf = self.plane.get_current_configuration()
+                if self.plane.target_conf != current_conf:
+                    for k in current_conf:
+                        if current_conf[k] != self.plane.target_conf[k]:
+                            changed_keys.add(k)
+            return changed_keys
+        # Test altitude variation
+        setup()
+        self.plane.target_conf['altitude'] = 5000
+        self.assertEqual(perform(), set(['altitude']))
+        # Test heading variation
+        setup()
+        self.plane.veering_direction = self.plane.LEFT
+        self.plane.target_conf['heading'] = 265
+        self.assertEqual(perform(), set(['heading']))
+        # Test speed variation
+        setup()
+        self.plane.max_speed = 1000
+        self.plane.target_conf['speed'] = 500
+        self.assertEqual(perform(), set(['speed']))
+
+    def testDoNotOscillate(self):
+        '''
+        Does the plane reach a stable flight configuration after manouvering?
+        '''
+        def setup():  # x, y = position relative to plane position
+            self.plane.position = Vector3(10000,10000,0)
+            self.plane.velocity = Vector3(150, 0, 0)  #~500kpm eastbound
+            self.plane.set_target_conf_to_current()
+        def perform():
+            previous = None
+            for i in range(500):  #arbitrary but reasonable limit...
+                self.plane.update(1)
+                if self.plane.target_conf == \
+                   self.plane.get_current_configuration() == previous:
+                    return True
+                previous = self.plane.get_current_configuration()
+            return False
+        # Test altitude variation
+        setup()
+        self.plane.target_conf['altitude'] = 5000
+        self.assertTrue(perform())
+        # Test heading variation (left)
+        setup()
+        self.plane.veering_direction = self.plane.LEFT
+        self.plane.target_conf['heading'] = 265
+        self.assertTrue(perform())
+        # Test heading variation (right)
+        setup()
+        self.plane.veering_direction = self.plane.RIGHT
+        self.plane.target_conf['heading'] = 87
+        self.assertTrue(perform())
+        # Test speed variation
+        setup()
+        self.plane.max_speed = 1000
+        self.plane.target_conf['speed'] = 300
+        self.assertTrue(perform())
+        # Test combined variation
+        setup()
+        self.plane.veering_direction = self.plane.LEFT
+        self.plane.max_speed = 1000
+        self.plane.target_conf = dict(speed = 677, altitude=3543, heading=123)
+        self.assertTrue(perform())
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
