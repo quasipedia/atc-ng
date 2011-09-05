@@ -6,7 +6,7 @@ Aeroplanes modelling of the ATC simulation game.
 
 from engine.settings import *
 from lib.utils import *
-from math import sqrt, radians, cos, sin
+from math import sqrt, radians, cos, sin, tan
 from lib.euclid import Vector2, Vector3
 from collections import deque
 from random import randint
@@ -77,6 +77,7 @@ class Pilot(object):
 
     def __init__(self, plane):
         self.plane = plane
+        self.veering_direction = None
         self.course_towards = None
         self.landing_info = None
 
@@ -167,7 +168,7 @@ class Pilot(object):
         p2 = (self.plane.position + self.plane.velocity).xy
         p3 = point.xy
         p4 = (point + vector).xy
-        return self._intersect_by_points(p1, p2, p3, p4)
+        return line_intersection(p1, p2, p3, p4)
 
     def get_veering_radius(self, veer_type, speed=None):
         '''
@@ -212,30 +213,79 @@ class Pilot(object):
         acc_module = sqrt(g_to_mks(max_manouvering_g)**2-g_to_mks(1)**2)
         return acc_module/speed
 
+    def get_merging_distance(self, point, course, veer_type):
+        '''
+        Return the distance from the intersection point at which the plane
+        should begin to turn in order to merge into the intersected route.
+        '''
+        # From the geometrical construction it is possible to observe that the
+        # correct distance from the intersection point with a course for
+        # merging into it is the cathetus of a triangle whose other cathetus is
+        # the veering radius and whose adiacent angle is (180°-head_diff)/2, in
+        # which head_diff is the difference between the current heading and the
+        # target one. Since tan(angle) = opposite/adjacent the we solve for
+        # adjacent with = adjacent = opposite/tan(angle)
+        h1 = self.plane.heading
+        h2 = v3_to_heading(course)
+        a1 = abs((h1-h2)%360)
+        a2 = abs((h2-h1)%360)
+        angle = min(a1, a2)
+        angle = radians((180 - angle) / 2.0)
+        radius = self.get_veering_radius(veer_type)
+        return radius/tan(angle)
+
     def land(self, port_name=None, rnw_name=None):
         '''
         Guide a plane towards the ILS descent path and then makes it land.
         Return the phase of the landing sequence.
         '''
-        assert not (port_name == rnw_name == None and not self.land_target)
+        assert not (port_name == rnw_name == None and not self.landing_info)
+        pl = self.plane
         if not port_name:
-            port_name, rnw_name, foot, ils, phase = self.landing_info
+            port_name, rnw_name, foot, ils, phase, \
+                inter_point, merge_dist = self.landing_info
         else:
-            tmp = self.aerospace.aeroports[port_name].runways[rnw_name]
-            foot = tmp['location']
+            # The else clause is only executed when the ORDER is parsed, not
+            # on subsequent interation of the land() method. So it is a good
+            # place for early returns if we already know it's impossible to
+            # land...
+            port = self.aerospace.aeroports[port_name]
+            tmp = port.runways[rnw_name]
+            foot = tmp['location'] + port.location
             ils = tmp['ils']
-            phase = self.ALIGNING
-            self.landing_info = (port_name, rnw_name, foot, ils, phase)
-        if phase == self.ALIGNING:
+            # Maximum of 60° angle
             ils_heading = v3_to_heading(ils)
-            if abs(self.plane.heading-ils_heading) > 60:
+            if abs(pl.heading-ils_heading) > 60:
                 self.landing_info = None
                 return self.MISSED
+            # No possible intersection (the RADAR_RANGE*3 ensures that the
+            # segments to test for intersection are long enough.
+            p1 = pl.position.xy
+            p2 = (pl.position + pl.velocity.normalized()*RADAR_RANGE*3).xy
+            p3 = foot.xy
+            p4 = (Vector3(*foot) + ils.normalized()*RADAR_RANGE*3).xy
+            if not segment_intersection(p1, p2, p3, p4):
+                return self.MISSED
+            phase = self.ALIGNING
+            inter_point = Vector3(*self.get_intersection_point(ils, foot)[0])
+            merge_dist = self.get_merging_distance(inter_point, ils,
+                                                   'expedite')
+            self.landing_info = (port_name, rnw_name, foot, ils, phase,
+                                 inter_point, merge_dist)
+            pl.flags.cleared_down = True
+            pl.flags.busy = True
+        if phase == self.ALIGNING:
+            from_ip = abs(inter_point-pl.position)
+            if from_ip-merge_dist <= 0:
+                self.set_course_towards(foot.xy)
+            print "------"
+            print "from ip: %s" % from_ip
+            print "from mp: %s" % (from_ip-merge_dist)
+            print "from ft: %s" % int(abs(foot-pl.position))
         elif phase == self.GLIDING:
             pass
         elif phase == self.SLOWING:
             pass
-        print (foot, ils)
 #        delta = Vector3(*coords) - self.plane.position
 #        new_head = (90-degrees(atan2(delta.y, delta.x)))%360
 #        if new_head != self.plane.heading:
@@ -243,7 +293,6 @@ class Pilot(object):
 #        else:
 #            self.course_towards = None
 #            self.veering_direction = None
-
 
     def veer(self):
         '''
@@ -253,10 +302,14 @@ class Pilot(object):
         # aeroplane is in.
         if self.plane.flags.expedite or self.plane.flags.cleared_down:
             veer_type = 'expedite'
+            print 'ex!!!'
         if self.plane.flags.collision:
             veer_type = 'emergency'
         else:
             veer_type = 'normal'
+        # Unless already specified, set the veering_direction
+        if not self.veering_direction:
+            self.veering_direction = self.shortest_veering_direction()
         abs_ang_speed = self.get_veering_angular_velocity(veer_type)
         angular_speed = abs_ang_speed * -self.veering_direction
         rotation_axis = Vector3(0,0,1)
@@ -358,7 +411,10 @@ class Pilot(object):
             else:
                 raise BaseException('Veering direction not set for circling.')
             pl.target_conf['heading'] = target
-        # En route action affects heading only
+        # Landing loop (affects all parameters at various landing phases)
+        if pl.flags.cleared_down:
+            self.land()
+        # Course towards action affects heading only, can be set by landing
         if self.course_towards:
             self.set_course_towards()
         if pl.heading != pl.target_conf['heading']:
@@ -669,7 +725,9 @@ class Aeroplane(object):
                 feasible = pilot.verify_existing_runway(*args)
                 if feasible != True:
                     return feasible
-                pilot.land(*args)
+                if pilot.land(*args) == pilot.MISSED:
+                    msg = 'We cannot intercept the ILS from here'
+                    return msg
             # CIRCLE COMMAND
             elif command == 'circle':
                 param = args[0].lower()

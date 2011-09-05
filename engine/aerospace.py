@@ -119,13 +119,19 @@ class Aerospace(object):
         offset = Vector3(-a_image.get_width()/2, -a_image.get_height()/2).xy
         centre = sc(a_port.location.xy)
         pos = (centre[0]+offset[0], centre[1]+offset[1])
-        for a in range(1):  #blitting multiple times increases visibility
-            self.surface.blit(a_image, pos)
+        self.surface.blit(a_image, pos)
         # Draw IATA name
         fontobj = pygame.font.Font(MAIN_FONT, HUD_INFO_FONT_SIZE)
         label = fontobj.render(a_port.iata, True, GREEN)
         pos = centre[0]-label.get_width()/2, centre[1]-label.get_height()/2
         self.surface.blit(label, pos)
+        # Draw RNWY feet and PORT centre (debugging purposes)
+#        for rnwy in a_port.runways.values():
+#            pos1 = a_port.location + rnwy['location']
+#            pos2 = a_port.location + rnwy['to_point']
+#            pygame.draw.circle(self.surface, WHITE, sc(pos1.xy), 1)
+#            pygame.draw.circle(self.surface, YELLOW, sc(pos2.xy), 1)
+#        pygame.draw.circle(self.surface, RED, sc(a_port.location.xy), 1)
 
     def add_gate(self, gate):
         '''

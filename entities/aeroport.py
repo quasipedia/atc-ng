@@ -113,7 +113,7 @@ class Aeroport(object):
                 ils.z = abs(ils)*sin(radians(30))  #gliding path = 30°
                 tmp['ils'] = -ils.normalized()
                 runways['%s_%d' % (str(rot/10).zfill(2), n)] = tmp
-        # ...then change the names to the permanent one in the form XXL|C|R
+        # ...then change the names to the permanent one in the form XXL|C|R...
         self.runways = {}
         for angle in range(0, 360):
             match = str(angle/10).zfill(2)
@@ -134,6 +134,28 @@ class Aeroport(object):
             for n, old_key in enumerate(old_keys):
                 new_key = new_keys[n]
                 self.runways[new_key] = runways[old_key]
+        # ...finally, we need to kconsider the arbitrary reference point for the
+        # asphalt strips, so that we can locate this arbitrary point within
+        # the representation of the aeroport.
+        xx = []
+        yy = []
+        for rnwy in self.runways.values():
+            xx.append(rnwy['location'].x)
+            yy.append(rnwy['location'].y)
+        # The coorection offset is the delta between the arbitrary vector for
+        # a given point (centre of the strip) and the arbitrary position of the
+        # geometrical centre of the aeroport
+        geo_centre = Vector3(max(xx)-min(xx), max(yy)-min(yy))
+        geo_centre /= 2.0
+        geo_centre += Vector3(min(xx), min(yy))
+        for rnwy in self.runways.values():
+            rnwy['location'] -= geo_centre
+            rnwy['to_point'] -= geo_centre
+        # We can then use the same geographical centre to convert the strips
+        # positions [this is needed to properly place the labels when
+        # generating the image]
+        for strip in self.strips:
+            strip.centre_pos -= geo_centre
 
     def get_image(self, square_side=None, scale=None, with_labels=False):
         '''
