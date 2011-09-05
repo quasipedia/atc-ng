@@ -110,7 +110,8 @@ speed:
   validator: _validate_speed
   description: >
     The ``SPEED`` command alter the target ground speed of an aeroplane. The
-    target speed of the aeroplane is expressed in **kph** (kilometres per hour).
+    target speed of the aeroplane is expressed in **kph**
+    (kilometres per hour).
 
       The ``EXPEDITE`` flag increses the acceleration/deceleration, making the
       maneuver to execute faster.

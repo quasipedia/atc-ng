@@ -148,11 +148,11 @@ class TagConnector(SuperSprite):
         flip_y = True if corner.y > plane.y else False
         diff = plane-corner
         image = pygame.surface.Surface((abs(diff.x) or 3, abs(diff.y)) or 3,
-                                       SRCALPHA)
+                                        SRCALPHA)
         self.rect = image.get_rect()
         color = self.tag.color
         pygame.draw.aaline(image, color, (1,1), (self.rect.width-1,
-                                               self.rect.height-1))
+                                                 self.rect.height-1))
         if flip_x != flip_y:  #both flips == no flip
             image = pygame.transform.flip(image, flip_x, flip_y)
         self.image = image
@@ -224,7 +224,7 @@ class Tag(SuperSprite):
         alt = str(rint(pl.altitude/100.0))
         alt += pl.variometer
         # Convert m/s to kph AND remove last digit, add accelerometer
-        spd = str(rint(pl.speed*0.36)*10)  #rounds the last digit
+        spd = str(rint(pl.speed*3.6))
         spd += pl.accelerometer
         lines.append('%s%s' % (alt,spd))
         self.image = self.render_lines(lines)

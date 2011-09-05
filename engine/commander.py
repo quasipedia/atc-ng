@@ -109,7 +109,7 @@ class Parser(object):
             if not arg in [k for k in self.aerospace.beacons.keys()]:
                 return False
             else:
-                return self.aerospace.beacons[arg].location
+                return [self.aerospace.beacons[arg].location]
 
     def _validate_altitude(self, altitude):
         '''
@@ -134,7 +134,7 @@ class Parser(object):
             num_s = int(speed)
         except ValueError:
             return False
-        return [rint(num_s / 3.6)]  #return in metres/second
+        return [num_s / 3.6]  #return in metres/second
 
     def _validate_land(self, iata, runaway):
         '''
@@ -486,6 +486,7 @@ class CommandLine(object):
         mods = pygame.key.get_mods()
         if event.key == K_RETURN:
             self.do_parsing()
+            self.history_ptr = 0
         elif event.key == K_ESCAPE:
             self.chars = []
         elif event.key == K_BACKSPACE and self.chars:
@@ -493,6 +494,8 @@ class CommandLine(object):
             if mods & KMOD_LCTRL:
                 while self.chars and self.chars.pop() != ' ':
                     pass
+                if len(self.chars) > 0:  #restore trailing space
+                    self.chars.append(' ')
         elif event.key == K_TAB:
             self.autocomplete()
         elif event.key == K_UP and \

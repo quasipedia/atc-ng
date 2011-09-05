@@ -60,8 +60,6 @@ class AtomicTest(unittest.TestCase):
         # Punctiform
         self.assertTrue(func((10, 10), 10))
 
-
-
     def testHeadingInBetween(self):
         '''
         Is a heading comprised in the shortest arc between other two?
@@ -88,6 +86,44 @@ class AtomicTest(unittest.TestCase):
         # Tricky cases
         self.assertTrue(func((-90, 90), 0))
         self.assertTrue(func((-90, 90), 180))
+
+    def testPlaneLimits(self):
+        '''
+        Test that orders fails if exceed plane altitude and speed
+        specifications.
+        '''
+        # In the following tests, since the returned value is either True or
+        # a string, the assertTrue statement can't be used as it would evaluate
+        # a string too as boolean True.
+        MIN = 100
+        MAX = 1000
+        for n in range (MIN, MAX, 10):
+            # UPPER ALTITUDE LIMIT
+            self.plane.max_altitude = n
+            self.assertEqual(True,
+                             (self.pilot.verify_feasibility(altitude=n/3.6)))
+            self.assertEqual(True,
+                             (self.pilot.verify_feasibility(altitude=n-1)))
+            self.assertNotEqual(True,
+                                self.pilot.verify_feasibility(altitude=n+1))
+            # UPPER SPEED LIMIT
+            self.plane.min_speed = (MIN-10) / 3.6  #convert kph to m/s
+            self.plane.max_speed = n / 3.6  #convert kph to m/s
+            self.assertEqual(True,
+                             (self.pilot.verify_feasibility(speed=n/3.6)))
+            self.assertEqual(True,
+                             (self.pilot.verify_feasibility(speed=(n-1)/3.6)))
+            self.assertNotEqual(True,
+                                self.pilot.verify_feasibility(speed=(n+1)/3.6))
+            # LOWER SPEED LIMIT
+            self.plane.min_speed = n / 3.6  #convert kph to m/s
+            self.plane.max_speed = (MAX+10) / 3.6  #convert kph to m/s
+            self.assertEqual(True,
+                             (self.pilot.verify_feasibility(speed=n/3.6)))
+            self.assertEqual(True,
+                             (self.pilot.verify_feasibility(speed=(n+1)/3.6)))
+            self.assertNotEqual(True,
+                                self.pilot.verify_feasibility(speed=(n-1)/3.6))
 
     def testVeeringRadius(self):
         '''
@@ -147,7 +183,7 @@ class AtomicTest(unittest.TestCase):
         '''
         Altitude, Speed and Heading change independently one from another.
         '''
-        def setup():  # x, y = position relative to plane position
+        def setup():
             self.plane.position = Vector3(10000,10000,0)
             self.plane.velocity = Vector3(150, 0, 0)  #~500kpm eastbound
             self.plane.set_target_conf_to_current()
@@ -167,7 +203,7 @@ class AtomicTest(unittest.TestCase):
         self.assertEqual(perform(), set(['altitude']))
         # Test heading variation
         setup()
-        self.plane.veering_direction = self.plane.LEFT
+        self.pilot.veering_direction = self.pilot.LEFT
         self.plane.target_conf['heading'] = 265
         self.assertEqual(perform(), set(['heading']))
         # Test speed variation
@@ -180,7 +216,7 @@ class AtomicTest(unittest.TestCase):
         '''
         Does the plane reach a stable flight configuration after manouvering?
         '''
-        def setup():  # x, y = position relative to plane position
+        def setup():
             self.plane.position = Vector3(10000,10000,0)
             self.plane.velocity = Vector3(150, 0, 0)  #~500kpm eastbound
             self.plane.set_target_conf_to_current()
@@ -199,12 +235,12 @@ class AtomicTest(unittest.TestCase):
         self.assertTrue(perform())
         # Test heading variation (left)
         setup()
-        self.plane.veering_direction = self.plane.LEFT
+        self.pilot.veering_direction = self.pilot.LEFT
         self.plane.target_conf['heading'] = 265
         self.assertTrue(perform())
         # Test heading variation (right)
         setup()
-        self.plane.veering_direction = self.plane.RIGHT
+        self.pilot.veering_direction = self.pilot.RIGHT
         self.plane.target_conf['heading'] = 87
         self.assertTrue(perform())
         # Test speed variation
@@ -214,10 +250,35 @@ class AtomicTest(unittest.TestCase):
         self.assertTrue(perform())
         # Test combined variation
         setup()
-        self.plane.veering_direction = self.plane.LEFT
+        self.pilot.veering_direction = self.pilot.LEFT
         self.plane.max_speed = 1000
         self.plane.target_conf = dict(speed = 677, altitude=3543, heading=123)
         self.assertTrue(perform())
+
+    def testGroundDistance(self):
+        '''
+        '''
+
+
+#    def testHeadTowardsAndHit(self):
+#        '''
+#        Does the plane manage to reach a point far enough?
+#        '''
+#        def setup():
+#            self.plane.position = Vector3(10000,10000,0)
+#            self.plane.set_target_conf_to_current()
+#        def perform(velocity, target):
+#            self.plane.velocity = Vector3(*velocity)
+#            self.pilot.set_course_towards(target)
+#            for i in range 5000:
+#                self.plane.update(1)
+#                if self.plane.position.
+#
+#        TO_TEST = [((150, 0, 0), (10000, 10000)),
+#                   ((150, 0, 0), (10000, 10000)),
+#                   ((100, 100,0), (10000, 10000)),
+#                   ]
+#        point
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
