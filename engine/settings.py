@@ -8,6 +8,7 @@ Typical usage: "from globals import *"
 
 import os
 import pygame.rect
+from math import atan2, degrees
 from pkg_resources import resource_filename
 
 __author__ = "Mac Ryan"
@@ -114,30 +115,3 @@ STRIPS_RECT = pygame.rect.Rect(0, 0,
 MAPS_RECT = pygame.rect.Rect(RADAR_RECT.x + RADAR_RECT.w + 1, 0,
         # -3 for the lines separating BUI elements
         (WINDOW_SIZE[0] - RADAR_RECT.w - STRIPS_RECT.w - 2), WINDOW_SIZE[1])
-
-def rint(float_):
-    '''
-    Return the rounded integer of the float_.
-    '''
-    return int(round(float_))
-
-def sc(vector):
-    '''
-    Return a version of a 2-elements iterable (coordinates) suitable for
-    screen representation. That means:
-    - Scaled (to window resolution)
-    - Translated (to below x axis)
-    - With the y sign reversed (y are positive under x, on screen)
-    '''
-    x, y = [int(round(c/METRES_PER_PIXELS)) for c in vector]
-    return (x, -(y-RADAR_RECT.height))
-
-def get_rect_at_centered_pos(img, pos):
-    '''
-    Return the rect based on where 'img' should be blit if 'pos' needs to be
-    its centre.
-    '''
-    rect = img.get_rect()
-    pos = [a - b for a, b in zip(pos, img.get_rect().center)]
-    rect.x, rect.y = pos
-    return rect

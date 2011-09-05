@@ -7,6 +7,7 @@ These are: aeroplanes, trailing dots, labels (tags) and tags connectors.
 '''
 
 from engine.settings import *
+from lib.utils import *
 from pygame.locals import *
 import pygame.sprite
 import pygame.surfarray

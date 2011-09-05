@@ -7,6 +7,7 @@ These are: flight strips, aeroport maps,
 '''
 
 from engine.settings import *
+from lib.utils import *
 from pygame.locals import *
 import pygame.sprite
 

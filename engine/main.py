@@ -24,6 +24,9 @@ __status__ = "Development"
 #TODO: create another mechanism for the settings
 #TODO: check that positioning of aeroports on radar is accurate
 #TODO: verify .deb package with `lintian`
+#TODO: helicopters
+#TODO: elevation and minimum altitudes
+#TODO: clear for beacon
 
 class MainWindow(object):
 

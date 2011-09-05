@@ -5,6 +5,7 @@ Provide functionality for entering commands and processing them.
 '''
 
 from engine.settings import *
+from lib.utils import *
 from pygame.locals import *
 from collections import deque
 from random import randint
@@ -136,13 +137,16 @@ class Parser(object):
             return False
         return [num_s / 3.6]  #return in metres/second
 
-    def _validate_land(self, iata, runaway):
+    def _validate_land(self, iata, runway):
         '''
         Valid landings indicate the three-letters airport code and the runaway
         in the format 00X, where 0 represent a digit and X a letter (R,L or C)
         '''
-        return (not (None == re.match(r'^[A-Z]{3}$', iata.upper())) and
-                not (None == re.match(r'^\d{2}(L|C|R)?$', runaway.upper())))
+        if (not (None == re.match(r'^[A-Z]{3}$', iata.upper())) and
+                not (None == re.match(r'^\d{2}(L|C|R)?$', runway.upper()))):
+            return (iata.upper(), runway.upper())
+        return False
+
 
     def _validate_circle(self, direction):
         '''

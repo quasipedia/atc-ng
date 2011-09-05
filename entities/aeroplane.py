@@ -5,12 +5,12 @@ Aeroplanes modelling of the ATC simulation game.
 '''
 
 from engine.settings import *
-from math import sqrt, atan2, degrees, radians, cos, sin
+from lib.utils import *
+from math import sqrt, radians, cos, sin
 from lib.euclid import Vector2, Vector3
 from collections import deque
 from random import randint
 from time import time
-import yaml
 
 
 __author__ = "Mac Ryan"
@@ -61,10 +61,24 @@ class Pilot(object):
 
     LEFT = CCW = -1
     RIGHT = CW = +1
+    # Phases of the landing sequence
+    MISSED = 0
+    ALIGNING = 1
+    GLIDING = 2
+    SLOWING = 3
+
+    @classmethod
+    def set_aerospace(cls, aerospace):
+        '''
+        All in-game pilots operate in the same aerospace, so a class attribute
+        is the cheapest solution.
+        '''
+        cls.aerospace = aerospace
 
     def __init__(self, plane):
         self.plane = plane
         self.course_towards = None
+        self.landing_info = None
 
     def verify_feasibility(self, speed=None, altitude=None):
         '''
@@ -86,6 +100,16 @@ class Pilot(object):
                    'aircraft.'
         return True
 
+    def verify_existing_runway(self, port, runway):
+        '''
+        Verify that a given port/runway combo actually exist in the aerospace.
+        '''
+        if port not in self.aerospace.aeroports:
+            return 'Aeroport %s is not on the map!' % port
+        if runway not in self.aerospace.aeroports[port].runways:
+            return 'Aeroport %s does not have runway %s!' % (port, runway)
+        return True
+
     def test_in_between(self, boundaries, value):
         '''
         Return True if value is between boundaries.
@@ -101,12 +125,12 @@ class Pilot(object):
 
     def test_heading_in_between(self, boundaries, value):
         '''
-        This is a heading-specific implmentation of `test_in_between`.
+        This is a heading-specific implementation of `test_in_between`.
         From a geometrical point of view, an angle is always between other two.
         This method return True, if the tested value is between the *smallest*
         angle between the other two.
         '''
-        # special case for 180°: angles is alwasy in-between
+        # special case for 180°: angles is always in-between
         if (boundaries[0]-boundaries[1])%360 == 180:
             return True
         sort_a = lambda a,b : [a,b] if (a-b)%360 > (b-a)%360 else [b,a]
@@ -131,6 +155,19 @@ class Pilot(object):
         '''
         theta = (self.plane.heading - self.plane.target_conf['heading']) % 360
         return self.LEFT if theta < 180 else self.RIGHT
+
+    def get_intersection_point(self, vector, point):
+        '''
+        Return the intersection point between the projected plane trajectory
+        and the line defined by `vector` applied to `point`.
+        '''
+        if type(point) in (tuple, list):
+            point = Vector2(*point)
+        p1 = self.plane.position.xy
+        p2 = (self.plane.position + self.plane.velocity).xy
+        p3 = point.xy
+        p4 = (point + vector).xy
+        return self._intersect_by_points(p1, p2, p3, p4)
 
     def get_veering_radius(self, veer_type, speed=None):
         '''
@@ -174,6 +211,39 @@ class Pilot(object):
         g_to_mks = lambda x : G_GRAVITY * x
         acc_module = sqrt(g_to_mks(max_manouvering_g)**2-g_to_mks(1)**2)
         return acc_module/speed
+
+    def land(self, port_name=None, rnw_name=None):
+        '''
+        Guide a plane towards the ILS descent path and then makes it land.
+        Return the phase of the landing sequence.
+        '''
+        assert not (port_name == rnw_name == None and not self.land_target)
+        if not port_name:
+            port_name, rnw_name, foot, ils, phase = self.landing_info
+        else:
+            tmp = self.aerospace.aeroports[port_name].runways[rnw_name]
+            foot = tmp['location']
+            ils = tmp['ils']
+            phase = self.ALIGNING
+            self.landing_info = (port_name, rnw_name, foot, ils, phase)
+        if phase == self.ALIGNING:
+            ils_heading = v3_to_heading(ils)
+            if abs(self.plane.heading-ils_heading) > 60:
+                self.landing_info = None
+                return self.MISSED
+        elif phase == self.GLIDING:
+            pass
+        elif phase == self.SLOWING:
+            pass
+        print (foot, ils)
+#        delta = Vector3(*coords) - self.plane.position
+#        new_head = (90-degrees(atan2(delta.y, delta.x)))%360
+#        if new_head != self.plane.heading:
+#            self.plane.target_conf['heading'] = new_head
+#        else:
+#            self.course_towards = None
+#            self.veering_direction = None
+
 
     def veer(self):
         '''
@@ -234,7 +304,7 @@ class Pilot(object):
             self.closest_pass_so_far = self.ground_distance(
                                        self.plane.position, Vector3(*coords))
         delta = Vector3(*coords) - self.plane.position
-        new_head = (90-degrees(atan2(delta.y, delta.x)))%360
+        new_head = v3_to_heading(delta)
         if new_head != self.plane.heading:
             self.plane.target_conf['heading'] = new_head
         else:
@@ -459,7 +529,7 @@ class Aeroplane(object):
     @property
     def heading(self):
         '''Current heading [CW degrees from North]'''
-        return (90-degrees(atan2(self.velocity.y, self.velocity.x)))%360
+        return v3_to_heading(self.velocity)
 
     @property
     def speed(self):
@@ -591,10 +661,16 @@ class Aeroplane(object):
                 if feasible != True:
                     return feasible
                 self.target_conf['speed'] = args[0]
+            # TAKE OFF COMMAND
             elif command == 'takeoff':
                 pass
+            # LAND COMMAND
             elif command == 'land':
-                pass
+                feasible = pilot.verify_existing_runway(*args)
+                if feasible != True:
+                    return feasible
+                pilot.land(*args)
+            # CIRCLE COMMAND
             elif command == 'circle':
                 param = args[0].lower()
                 if param in ('l', 'left', 'ccw'):
@@ -605,6 +681,7 @@ class Aeroplane(object):
                     msg = 'Unknown parameter for circle command.'
                     raise BaseException(msg)
                 self.flags.circling = True
+            # ABORT COMMAND
             elif command == 'abort':
                 self._abort_command('lastonly' in flags)
                 return True  #need to skip setting flag.busy to True!

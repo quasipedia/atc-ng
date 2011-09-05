@@ -8,6 +8,7 @@ World modelling and representation for the ATC game.
 '''
 
 from engine.settings import *
+from lib.utils import *
 from itertools import combinations
 from lib.euclid import Vector3
 import pygame.sprite
@@ -52,7 +53,7 @@ class Aerospace(object):
         self.__aeroports = {}
         self.__beacons = {}
         self.__gates = {}
-        self.collide_func = pygame.sprite.collide_rect_ratio(1.6)
+        entities.aeroplane.Pilot.set_aerospace(self)
 
     def __filter_self_collisions(self, sprite, collisions):
         '''
@@ -157,7 +158,7 @@ class Aerospace(object):
         is_colliding = lambda tag : \
             self.__filter_self_collisions(tag,
                        pygame.sprite.spritecollide(tag, self.top_layer,
-                                                   False, self.collide_func))
+                           False, pygame.sprite.collide_rect_ratio(1.6)))
         angle_step = 5
         radius_step = 10
         for tag in self.tags:

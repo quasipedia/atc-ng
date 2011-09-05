@@ -5,8 +5,9 @@ Aeroports modelling of the ATC simulation game.
 '''
 
 from engine.settings import *
+from lib.utils import *
 from lib.euclid import Vector3
-from math import radians
+from math import radians, sin
 import pygame.font
 from pygame.locals import *
 import pygame.surface
@@ -55,7 +56,7 @@ class Aeroport(object):
         self.strips = strips
         self.location = location
         self.geolocation = geolocation
-        self.__define_points()
+        self.__define_runways()
         self.__plain_image = None
         self.__labelled_image = None
 
@@ -80,17 +81,19 @@ class Aeroport(object):
         '''
         determinant = lambda v1, v2 : v1.x*v2.y - v1.y*v2.x
         centre_vector = lambda p1, p2 : Vector3(p2.x-p1.x, p2.y-p1.y)
-        ils = lambda x : runways[x]['ils']
+        ils = lambda x : -runways[x]['ils']
         centre = lambda x : runways[x]['to_point']
         compare = lambda x,y : cmp(determinant(ils(x),
                                    centre_vector(centre(x),centre(y))), 0)
         keys.sort(cmp=compare, reverse=True)
 
-    def __define_points(self):
+    def __define_runways(self):
         '''
-        A touch down represent the place where a landing plane (or a departing
-        one) will touch down (or take off). Programmatically is a dictionary
-        structured as follow:
+        An asphalt strip automatically defines two runways (one for each end
+        of the strip). Each runway has a loacation (its foot), an ils (the
+        vector to intercept for landing) and a takeoffpoint (the point from
+        where an aeroplane is to be considered airborne.
+            Programmatically is a dictionary structured as follow:
         { runway_name : { location  : (x,y,z)    # location on map
                           ils       : Vector3()  # vector to intercept for land
                           to_point  : (z,y,z)    # take off point
@@ -103,10 +106,12 @@ class Aeroport(object):
                 offset = Vector3(1,0,0)
                 r_ang = radians(270-rot)
                 offset = offset.rotate_around(Vector3(0,0,1), r_ang)
-                tmp['ils'] = offset
+                ils = offset.copy()
                 offset *= strip.length / 2
                 tmp['location'] = strip.centre_pos + offset
                 tmp['to_point'] = strip.centre_pos
+                ils.z = abs(ils)*sin(radians(30))  #gliding path = 30°
+                tmp['ils'] = -ils.normalized()
                 runways['%s_%d' % (str(rot/10).zfill(2), n)] = tmp
         # ...then change the names to the permanent one in the form XXL|C|R
         self.runways = {}
@@ -189,7 +194,7 @@ class Aeroport(object):
             for k, v in self.runways.items():
                 label = fontobj.render(k, True, WHITE)
                 loc = v['location'] + trasl + \
-                      v['ils'].normalized() * font_size * \
+                      -v['ils'].normalized() * font_size * \
                       AEROPORT_MASTER_IMG_SCALING * 1.2
                 my_blit(a_canvas, label, r(loc.xy))  #r
             self.__labelled_image = a_canvas.subsurface(

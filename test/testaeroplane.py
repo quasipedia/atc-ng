@@ -8,7 +8,6 @@ import unittest
 import entities.aeroplane as aero
 from lib.euclid import Vector3
 
-
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
 #__credits__ = ["Name Lastname", "Name Lastname"]
@@ -255,30 +254,6 @@ class AtomicTest(unittest.TestCase):
         self.plane.target_conf = dict(speed = 677, altitude=3543, heading=123)
         self.assertTrue(perform())
 
-    def testGroundDistance(self):
-        '''
-        '''
-
-
-#    def testHeadTowardsAndHit(self):
-#        '''
-#        Does the plane manage to reach a point far enough?
-#        '''
-#        def setup():
-#            self.plane.position = Vector3(10000,10000,0)
-#            self.plane.set_target_conf_to_current()
-#        def perform(velocity, target):
-#            self.plane.velocity = Vector3(*velocity)
-#            self.pilot.set_course_towards(target)
-#            for i in range 5000:
-#                self.plane.update(1)
-#                if self.plane.position.
-#
-#        TO_TEST = [((150, 0, 0), (10000, 10000)),
-#                   ((150, 0, 0), (10000, 10000)),
-#                   ((100, 100,0), (10000, 10000)),
-#                   ]
-#        point
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
