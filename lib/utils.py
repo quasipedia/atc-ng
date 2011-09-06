@@ -5,6 +5,7 @@ A small library with useful functions for ATC-NG.
 '''
 
 from engine.settings import *
+from euclid import Vector2
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -127,3 +128,12 @@ def segment_intersection(p1, p2, p3, p4):
     x = x1 + ua*(x2-x1)
     y = y1 + ua*(y2-y1)
     return (x, y), 'intersection'
+
+def ground_distance(v1, v2):
+    '''
+    Return the ground distance between two points indicated by 2D or 3D
+    vectors.
+    '''
+    v1 = Vector2(*v1.xy)
+    v2 = Vector2(*v2.xy)
+    return abs(v1-v2)

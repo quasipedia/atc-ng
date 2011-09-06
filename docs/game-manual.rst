@@ -79,7 +79,7 @@ There are a few things to consider when clearing an aeroplane for landing:
 * The aeroplane will **first** try to align itself with the runway, and
   **then** it will adjust its altitude and speed.
 
-* The gliding angle for an ILS is always 30°.
+* The gliding angle for an ILS is always the standard 3°.
 
 * The speed of the aeroplane will be kept constant as long as possible, then it
   will be progressively reduced in order for the plane to touch down at its

@@ -110,7 +110,7 @@ class Aeroport(object):
                 offset *= strip.length / 2
                 tmp['location'] = strip.centre_pos + offset
                 tmp['to_point'] = strip.centre_pos
-                ils.z = abs(ils)*sin(radians(30))  #gliding path = 30°
+                ils.z = abs(ils)*sin(radians(SLOPE_ANGLE))  #gliding slope = 3°
                 tmp['ils'] = -ils.normalized()
                 runways['%s_%d' % (str(rot/10).zfill(2), n)] = tmp
         # ...then change the names to the permanent one in the form XXL|C|R...

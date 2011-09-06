@@ -62,10 +62,11 @@ class Pilot(object):
     LEFT = CCW = -1
     RIGHT = CW = +1
     # Phases of the landing sequence
-    MISSED = 0
-    ALIGNING = 1
-    GLIDING = 2
-    SLOWING = 3
+    ABORTED = 0
+    INTERCEPTING = 1
+    ALIGNING = 2
+    GLIDING = 3
+    SLOWING = 4
 
     @classmethod
     def set_aerospace(cls, aerospace):
@@ -80,6 +81,17 @@ class Pilot(object):
         self.veering_direction = None
         self.course_towards = None
         self.landing_info = None
+        self.landing_phase = None
+
+    def __abort_landing(self):
+        '''
+        Abort landing, generating all events of the case and resetting relevant
+        variables.
+        '''
+        self.plane.flags.cleared_down = False
+        self.landing_info = None
+        self.landing_phase = None
+        return self.ABORTED
 
     def verify_feasibility(self, speed=None, altitude=None):
         '''
@@ -242,8 +254,8 @@ class Pilot(object):
         assert not (port_name == rnw_name == None and not self.landing_info)
         pl = self.plane
         if not port_name:
-            port_name, rnw_name, foot, ils, phase, \
-                inter_point, merge_dist = self.landing_info
+            port_name, rnw_name, foot, ils, inter_point, \
+                       merge_dist = self.landing_info
         else:
             # The else clause is only executed when the ORDER is parsed, not
             # on subsequent interation of the land() method. So it is a good
@@ -256,8 +268,7 @@ class Pilot(object):
             # Maximum of 60° angle
             ils_heading = v3_to_heading(ils)
             if abs(pl.heading-ils_heading) > 60:
-                self.landing_info = None
-                return self.MISSED
+                return self.__abort_landing()
             # No possible intersection (the RADAR_RANGE*3 ensures that the
             # segments to test for intersection are long enough.
             p1 = pl.position.xy
@@ -265,27 +276,62 @@ class Pilot(object):
             p3 = foot.xy
             p4 = (Vector3(*foot) + ils.normalized()*RADAR_RANGE*3).xy
             if not segment_intersection(p1, p2, p3, p4):
-                return self.MISSED
-            phase = self.ALIGNING
+                return self.__abort_landing()
+            self.landing_phase = self.INTERCEPTING
             inter_point = Vector3(*self.get_intersection_point(ils, foot)[0])
             merge_dist = self.get_merging_distance(inter_point, ils,
-                                                   'expedite')
-            self.landing_info = (port_name, rnw_name, foot, ils, phase,
-                                 inter_point, merge_dist)
+                                                   'normal')
+            #TODO: Transform this into dictionary, add velocity.z for slowing
+            #portion of the landing pattern
+            self.landing_info = (port_name, rnw_name, foot, ils, inter_point,
+                                 merge_dist)
             pl.flags.cleared_down = True
             pl.flags.busy = True
-        if phase == self.ALIGNING:
+        if self.landing_phase == self.INTERCEPTING:
             from_ip = abs(inter_point-pl.position)
             if from_ip-merge_dist <= 0:
                 self.set_course_towards(foot.xy)
-            print "------"
+                self.landing_phase = self.ALIGNING
+            print "--- INTERCEPTING ---"
             print "from ip: %s" % from_ip
             print "from mp: %s" % (from_ip-merge_dist)
+        elif self.landing_phase == self.ALIGNING:
+            if self.course_towards == None:
+                self.landing_phase = self.GLIDING
+            print "--- ALIGNING ---"
+            print "down:%s expedite:%s" % (pl.flags.cleared_down, pl.flags.expedite)
             print "from ft: %s" % int(abs(foot-pl.position))
-        elif phase == self.GLIDING:
-            pass
-        elif phase == self.SLOWING:
-            pass
+        elif self.landing_phase == self.GLIDING:
+            gd = ground_distance(foot, pl.position)
+            alt_to_foot = pl.altitude - foot.z
+            secs_to_foot = gd / pl.speed
+            # Abort if the plane is too fast and will miss the runway foot.
+            if abs(secs_to_foot * pl.climb_rate_limits[0]) < alt_to_foot:
+                return self.__abort_landing()
+            # If the delta to the path is less than the climbing/descending
+            # capabilities of the aeroplane, consider it on slope...
+            path_alt = gd * sin(radians(SLOPE_ANGLE)) + foot.z
+            alt_to_path = path_alt - pl.altitude  #negative -> descend!
+            if alt_to_path < 0 and alt_to_path > pl.climb_rate_limits[0] or \
+               alt_to_path > 0 and alt_to_path < pl.climb_rate_limits[1]:
+                pl.position.z = path_alt
+                pl.velocity.z = ils.normalized().z * abs(pl.velocity)
+                self.landing_phase = self.SLOWING
+            # ...otherwise tell it to climb/descend!!
+            else:
+                pl.target_conf['altitude'] = path_alt
+            print "--- GLIDING ---"
+            print "alt: %s" % pl.altitude
+            print "delta path: %s" % alt_to_path
+            print "from ft: %s" % int(abs(foot-pl.position))
+        elif self.landing_phase == self.SLOWING:
+            if pl.position.z < foot.z:
+                print "LANDED!!!!"
+            z_step = pl.speed * sin(radians(SLOPE_ANGLE)) * PING_IN_SECONDS
+            pl.target_conf['altitude'] -= z_step
+            print "--- SLOWING ---"
+            print "alt: %s" % pl.altitude
+            print "from ft: %s" % int(abs(foot-pl.position))
 #        delta = Vector3(*coords) - self.plane.position
 #        new_head = (90-degrees(atan2(delta.y, delta.x)))%360
 #        if new_head != self.plane.heading:
@@ -302,7 +348,6 @@ class Pilot(object):
         # aeroplane is in.
         if self.plane.flags.expedite or self.plane.flags.cleared_down:
             veer_type = 'expedite'
-            print 'ex!!!'
         if self.plane.flags.collision:
             veer_type = 'emergency'
         else:
@@ -725,7 +770,7 @@ class Aeroplane(object):
                 feasible = pilot.verify_existing_runway(*args)
                 if feasible != True:
                     return feasible
-                if pilot.land(*args) == pilot.MISSED:
+                if pilot.land(*args) == pilot.ABORTED:
                     msg = 'We cannot intercept the ILS from here'
                     return msg
             # CIRCLE COMMAND

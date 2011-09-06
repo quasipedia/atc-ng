@@ -45,6 +45,7 @@ RADAR_RING_STEP = 10000         # space between radar rings
 
 #Physics
 G_GRAVITY = 9.807
+SLOPE_ANGLE = 3                 # ILS gliding slope angle, in degrees
 
 # Console
 CONSOLE_HEIGHT = 0.14           # as a percentage of windows height

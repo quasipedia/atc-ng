@@ -97,6 +97,20 @@ class Test(unittest.TestCase):
         for points in NEGATIVES:
             self.assertFalse(rectangle_intersection(*points))
 
+    def testGroundDistance(self):
+        '''
+        ground_distance - ground distance between points
+        '''
+        TO_TEST = [((0,0,0), (0,0,10),   0),
+                   ((0,0,0), (0,10,0),   10),
+                   ((0,0,0), (10,0,0),   10),
+                   ((0,0,0), (1,1,1),    2**0.5),
+                   ((0,0,0), (-1,-1,-1), 2**0.5)]
+        for v1, v2, r in TO_TEST:
+            back = ground_distance(Vector3(*v1), Vector3(*v2))
+            self.assertAlmostEqual(back, r, 5)
+
+
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()

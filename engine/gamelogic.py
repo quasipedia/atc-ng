@@ -119,8 +119,9 @@ class GameLogic(object):
         '''
         d = RADAR_RANGE/9
         rfn = self.airline_handler.random_flight
-        self.aerospace.add_plane(position=Vector3(RADAR_RANGE,RADAR_RANGE-2*d),
-                                 velocity=Vector3(120,80,0),
+        self.aerospace.add_plane(position=Vector3(RADAR_RANGE+2*d,
+                                                  RADAR_RANGE-2*d, 500),
+                                 velocity=Vector3(180,0,0),
                                  origin='ARN', destination='FRA', **rfn())
         for plane in self.aerospace.aeroplanes:
             status = INBOUND if plane.destination in \
