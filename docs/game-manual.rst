@@ -88,3 +88,12 @@ There are a few things to consider when clearing an aeroplane for landing:
 
 * The runway will be busy (i.e. unavailable for other planes to land / take off
   for 30 seconds after touchdown.
+
+Tips & Tricks
+-------------
+A list of tips and tricks is available :doc:`here<tips>`.
+
+.. toctree::
+   :hidden:
+
+   Tips & Tricks<tips>
