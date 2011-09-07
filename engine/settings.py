@@ -50,7 +50,7 @@ SLOPE_ANGLE = 3                 # ILS gliding slope angle, in degrees
 # Console
 CONSOLE_HEIGHT = 0.14           # as a percentage of windows height
 CONSOLE_LINES_NUM = 5
-CONSOLE_FONT_SIZE_RATIO = 0.60  # as a percentage of CLI
+CONSOLE_FONT_SIZE_RATIO = 0.60  
 VALID_CHARS = \
     'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890./ '
 OUTBOUND_ID = 'TOWER'
@@ -61,6 +61,15 @@ OUTBOUND = 0
 INBOUND = 1
 VERTICAL_CLEARANCE = 500        # minimum distance in metres between planes
 HORIZONTAL_CLEARANCE = 5000     # minimum distance in metres between planes
+
+# Game events (unique code event, base score)
+# NOTE: base score can be integrated at run-time (for example a landing plane
+# receives bonus points for the amount of fuel left in the tanks)
+PLANE_OUTOFRANGE  = 100, -100
+PLANE_LAND        = 101, +50
+PLANE_EXIT        = 102, +30
+PLANE_CRASH       = 103, -100
+FUEL_VALUE        = 1
 
 # Colours
 WHITE = (255,255,255)
@@ -110,9 +119,11 @@ RADAR_RECT = pygame.rect.Rect(
 METRES_PER_PIXELS = RADAR_RANGE*2.0/RADAR_RECT.width
 CLI_RECT = pygame.rect.Rect(RADAR_RECT.x, RADAR_RECT.h+2,
                             RADAR_RECT.w, WINDOW_SIZE[1]-RADAR_RECT.h-2)
+SCORE_RECT = pygame.rect.Rect(0, WINDOW_SIZE[1] - CLI_RECT.h/2,
+                    # -2 for the lines separating GUI elements
+                    (WINDOW_SIZE[0] - RADAR_RECT.w - 2) / 2, CLI_RECT.h/2)
 STRIPS_RECT = pygame.rect.Rect(0, 0,
-                    # -2 for the lines separating BUI elements
-                    (WINDOW_SIZE[0] - RADAR_RECT.w - 2) / 2, WINDOW_SIZE[1])
+                    SCORE_RECT.w, WINDOW_SIZE[1] - SCORE_RECT.h - 1)
 MAPS_RECT = pygame.rect.Rect(RADAR_RECT.x + RADAR_RECT.w + 1, 0,
         # -3 for the lines separating BUI elements
         (WINDOW_SIZE[0] - RADAR_RECT.w - STRIPS_RECT.w - 2), WINDOW_SIZE[1])

@@ -12,9 +12,7 @@ from lib.utils import *
 from itertools import combinations
 from lib.euclid import Vector3
 import pygame.sprite
-import pygame.surface
 import entities.aeroplane
-import entities.aeroport
 import sprites.radarsprites
 
 __author__ = "Mac Ryan"
@@ -39,7 +37,8 @@ class Aerospace(object):
     {flight_number : (Aeroplane(), PlaneIcon(), TrailingDot() * ...}
     '''
 
-    def __init__(self, surface):
+    def __init__(self, gamelogic, surface):
+        self.gamelogic = gamelogic
         self.surface = surface
         centre = sc((RADAR_RANGE, RADAR_RANGE))
         for radius in range(RADAR_RING_STEP, rint(RADAR_RANGE*2**0.5),
@@ -53,7 +52,7 @@ class Aerospace(object):
         self.__aeroports = {}
         self.__beacons = {}
         self.__gates = {}
-        entities.aeroplane.Pilot.set_aerospace(self)
+        entities.pilot.Pilot.set_aerospace(self)
 
     def __filter_self_collisions(self, sprite, collisions):
         '''
@@ -73,7 +72,7 @@ class Aerospace(object):
         # This record will contain all info relative to a given plane
         record = {}
         # Aeroplane object
-        plane = entities.aeroplane.Aeroplane(**kwargs)
+        plane = entities.aeroplane.Aeroplane(self, **kwargs)
         record['plane'] = plane
         record['sprites'] = []
         # Icon sprite
@@ -100,13 +99,13 @@ class Aerospace(object):
         self.__planes[plane.icao] = record
         return plane
 
-    def remove_plane(self, icao):
+    def remove_plane(self, plane, event):
         '''
         Remove aeroplanes from the aerospace.
         '''
-        for sprite in self.__planes[icao]['sprites']:
+        for sprite in self.__planes[plane.icao]['sprites']:
             sprite.kill()
-        del self.__planes[icao]
+        del self.__planes[plane.icao]
 
     def add_aeroport(self, a_port):
         '''
@@ -183,7 +182,7 @@ class Aerospace(object):
             s = self.surface.get_rect()
             x, y = plane['sprites'][0].position
             if x < 0 or x > s.width or y < 0 or y > s.height:
-                self.remove_plane(icao)
+                self.gamelogic.remove_plane(plane['plane'], PLANE_OUTOFRANGE)
 
     def get_plane_by_icao(self, icao):
         icao = icao.upper()

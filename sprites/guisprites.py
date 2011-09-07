@@ -22,12 +22,55 @@ __status__ = "Development"
 
 class StripsGroup(pygame.sprite.RenderUpdates):
 
+    '''
+    Sprite container for Flight strips.
+    '''
+
     def update(self, *args):
         cmp = lambda a,b : rint(b.plane.time_last_cmd - a.plane.time_last_cmd)
         ordered = sorted(self.sprites(), cmp)
         for i, sprite in enumerate(ordered):
             sprite.target_y = i*FlightStrip.strip_h
             sprite.update()
+
+    def remove_strip(self, plane):
+        '''
+        Remove a strip from the sprite group based on its plane object.
+        '''
+        for sprite in self.sprites():
+            if sprite.plane == plane:
+                sprite.kill()
+                return
+
+
+class Score(pygame.sprite.Sprite):
+
+    '''
+    Score value displayed on screen.
+    '''
+
+    def __init__(self, gamelogic):
+        super(Score, self).__init__()
+        self.gamelogic = gamelogic
+        self.image = pygame.surface.Surface(SCORE_RECT.size, SRCALPHA)
+        self.rect = self.image.get_rect()
+        self.score = self.gamelogic.score
+        self.fontobj = pygame.font.Font(MAIN_FONT, HUD_INFO_FONT_SIZE)
+        font_height = self.fontobj.get_height()
+
+    def update(self):
+        self.image.fill(BLACK)
+        if self.gamelogic.score == self.score:
+            colour = WHITE
+        elif self.gamelogic.score < self.score:
+            colour = RED
+            self.score -= 1
+        else:
+            colour = GREEN
+            self.score += 1
+        score = str(self.score).zfill(6)
+        self.image.blit(self.fontobj.render(score, True, colour), (0,0))
+
 
 class FlightStrip(pygame.sprite.Sprite):
 
@@ -40,6 +83,21 @@ class FlightStrip(pygame.sprite.Sprite):
     radius = 7
     margin = 2
     offset = margin+radius
+
+    def __init__(self, plane, status):
+        super(FlightStrip, self).__init__()
+        self.plane = plane
+        # Draw fixed part of the strip
+        self.image = self.__get_empty(status)
+        self.image.blit(self.render_text('large', BLACK, plane.icao),
+                        (self.offset, self.offset))
+        task = '%s ] %s' % (plane.origin, plane.destination)
+        self.image.blit(self.render_text('small', BLACK, task),
+                        (STRIPS_RECT.w*0.60, self.offset))
+        # Save the empty one as bkground
+        self.bkground = self.image.copy()
+        # Initial position
+        self.rect = pygame.rect.Rect(0, 0, STRIPS_RECT.w, self.strip_h)
 
     @classmethod
     def __get_fontobj(cls, size_str):
@@ -98,21 +156,6 @@ class FlightStrip(pygame.sprite.Sprite):
         fo = cls.__get_fontobj(size)
         img = fo.render(text, True, color)
         return img.subsurface(img.get_bounding_rect()).copy()
-
-    def __init__(self, plane, status):
-        super(FlightStrip, self).__init__()
-        self.plane = plane
-        # Draw fixed part of the strip
-        self.image = self.__get_empty(status)
-        self.image.blit(self.render_text('large', BLACK, plane.icao),
-                        (self.offset, self.offset))
-        task = '%s ] %s' % (plane.origin, plane.destination)
-        self.image.blit(self.render_text('small', BLACK, task),
-                        (STRIPS_RECT.w*0.60, self.offset))
-        # Save the empty one as bkground
-        self.bkground = self.image.copy()
-        # Initial position
-        self.rect = pygame.rect.Rect(0, 0, STRIPS_RECT.w, self.strip_h)
 
     def update(self, *args):
         #TODO: sliding animation

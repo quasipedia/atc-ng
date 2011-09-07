@@ -50,12 +50,13 @@ class Aeroport(object):
     '''
 
     def __init__(self, location=None, iata=None, name=None, strips=None,
-                       geolocation=None):
+                       geolocation=None, elevation=None):
         self.iata = iata
         self.name = name
         self.strips = strips
         self.location = location
         self.geolocation = geolocation
+        self.elevation = elevation
         self.__define_runways()
         self.__plain_image = None
         self.__labelled_image = None

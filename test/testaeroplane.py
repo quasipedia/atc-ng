@@ -26,7 +26,7 @@ class AtomicTest(unittest.TestCase):
     '''
 
     def setUp(self):
-        self.plane = aero.Aeroplane(icao='ABC1234', max_g=2.0)
+        self.plane = aero.Aeroplane(None, icao='ABC1234', max_g=2.0)
         self.pilot = self.plane.pilot
 
     def testInBetween(self):

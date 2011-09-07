@@ -71,7 +71,6 @@ class MainWindow(object):
             pygame.display.set_caption("FPS: %i" % self.clock.get_fps())
             self.handle_events()
             self.game_logic.update(self.clock.get_time())
-            self.game_logic.draw()
             pygame.display.flip()
             self.clock.tick(MAX_FRAMERATE)
 
