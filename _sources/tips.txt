@@ -42,3 +42,13 @@ Beside the standard :kbd:`Backspace` key, it is also possible to:
 
 * completely erase the prompt line with :kbd:`Esc`,
 * delete the last word on the prompt with :kbd:`Control-Backspace`.
+
+Approaching
+-----------
+Make sure to approach the airport for landing at a reasonable speed: **the
+slowest the speed, the easier** it will be for the aeroplane to *adjust their
+altitude* to that required for ILS approach.
+
+A slower speed also means that it will be easier for palnes to *keep separation*
+(just before landing, planes drop their speed to the minimum, so there is a
+risk for oncoming planes in the landing queue to come too close).
