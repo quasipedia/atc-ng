@@ -55,7 +55,7 @@ class Score(pygame.sprite.Sprite):
         self.image = pygame.surface.Surface(SCORE_RECT.size, SRCALPHA)
         self.rect = self.image.get_rect()
         self.score = self.gamelogic.score
-        self.fontobj = pygame.font.Font(MAIN_FONT, HUD_INFO_FONT_SIZE)
+        self.fontobj = pygame.font.Font(MAIN_FONT, rint(self.rect.h * 0.8))
         font_height = self.fontobj.get_height()
 
     def update(self):
@@ -69,7 +69,10 @@ class Score(pygame.sprite.Sprite):
             colour = GREEN
             self.score += 1
         score = str(self.score).zfill(6)
-        self.image.blit(self.fontobj.render(score, True, colour), (0,0))
+        score_img = self.fontobj.render(score, True, colour)
+        score_img.subsurface(score_img.get_bounding_rect()).copy()
+        pos = get_rect_at_centered_pos(score_img, self.rect.center)
+        self.image.blit(score_img, pos)
 
 
 class FlightStrip(pygame.sprite.Sprite):

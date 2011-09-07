@@ -469,7 +469,6 @@ class CommandLine(object):
                 # Processing of the answer
                 colour = GREEN
                 callsign = callable_.im_self.callsign
-                answer_prefix = ' '.join((callsign, PROMPT_SEPARATOR))
                 if ret == True:
                     if fname == 'execute_command':
                         answer = self.__randomel(AFFIRMATIVE_EXEC_ANSWERS)
@@ -478,8 +477,7 @@ class CommandLine(object):
                 else:
                     answer = ret
                     colour = RED
-                self.console_lines.append([colour,
-                                           ' '.join((answer_prefix,answer))])
+                self.say(callsign, answer, colour)
             # ...and the command line is finally emptied for a new command
             self.chars = []
 
@@ -558,3 +556,10 @@ class CommandLine(object):
         self.surface.blit(self.console_image, (x,y))
         self.surface.blit(image,
                           (x, 2*y+self.small_f.get_height()*CONSOLE_LINES_NUM))
+
+    def say(self, who, what, colour):
+        '''
+        Output a message on the console.
+        '''
+        self.console_lines.append((colour,
+                                   ' '.join([who, PROMPT_SEPARATOR, what])))

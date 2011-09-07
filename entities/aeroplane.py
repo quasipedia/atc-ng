@@ -119,9 +119,9 @@ class Aeroplane(object):
         if self.max_altitude == None:
             self.max_altitude = 10000
         if self.ground_accels == None:
-            self.ground_accels = (-2, 5)
+            self.ground_accels = (-4, 6)
         if self.landing_speed == None:
-            self.landing_speed = 100 / 3.6  #100kph
+            self.landing_speed = 250 / 3.6  #first number is kph
         if self.max_speed == None:
             self.max_speed = 1600 / 3.6
         if self.max_g == None:
@@ -308,9 +308,9 @@ class Aeroplane(object):
                 feasible = pilot.verify_existing_runway(*args)
                 if feasible != True:
                     return feasible
-                if pilot.land(*args) == pilot.ABORTED:
-                    msg = 'We cannot intercept the ILS from here'
-                    return msg
+                ret = pilot.land(*args)
+                if type(ret) != int:
+                    return ret
             # CIRCLE COMMAND
             elif command == 'circle':
                 param = args[0].lower()

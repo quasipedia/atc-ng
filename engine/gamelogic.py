@@ -126,10 +126,10 @@ class GameLogic(object):
         d = RADAR_RANGE/9
         rfn = self.airline_handler.random_flight
         self.aerospace.add_plane(position=Vector3(RADAR_RANGE+3*d,
-                                                  RADAR_RANGE-2*d, 500),
+                                                  RADAR_RANGE-3*d, 500),
                                  velocity=Vector3(100,-60,0),
                                  origin='ARN', destination='FRA', **rfn())
-        self.aerospace.add_plane(position=Vector3(2*RADAR_RANGE-d,
+        self.aerospace.add_plane(position=Vector3(RADAR_RANGE-d,
                                                   RADAR_RANGE-2*d, 500),
                                  velocity=Vector3(180,0,0),
                                  origin='ARN', destination='FRA', **rfn())
@@ -167,6 +167,12 @@ class GameLogic(object):
         cname, args = command
         if cname == 'quit':
             self.machine_state = MS_QUIT
+
+    def say(self, who, what, color):
+        '''
+        Output a message on the console.
+        '''
+        self.cli.say(who, what, color)
 
     def key_pressed(self, key):
         self.cli.process_keystroke(key)

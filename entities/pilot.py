@@ -51,9 +51,12 @@ class Lander(object):
         p2 = (pl.position + pl.velocity.normalized()*RADAR_RANGE*3).xy
         p3 = self.foot.xy
         p4 = (Vector3(*self.foot) + -self.ils.normalized()*RADAR_RANGE*3).xy
-        self.ip = segment_intersection(p1, p2, p3, p4)[0]
-        print [(rint(el[0]), rint(el[1])) for el in (p1, p2, p3, p4)]
-        print segment_intersection(p1, p2, p3, p4)
+        self.ip, comment = segment_intersection(p1, p2, p3, p4)
+        # If no point is due to overlapping, set the point as present position
+        # of the plane.
+        if comment == 'overlapping':
+            self.ip = self.plane.position.xy
+        # If there is a point, convert it to vector
         if self.ip:
             self.ip = Vector3(*self.ip)
         return self.ip
@@ -88,17 +91,25 @@ class Lander(object):
         hit the foot of the runway at landing speed.
             Return self.bd!!! [the distance between the plane and such point]
         '''
+#        pl = self.plane
+#        delta_speeds = 1.0 * pl.speed - pl.landing_speed
+#        secs = abs(delta_speeds / pl.ground_accels[0])
+#        # The integral over time for a lineraly decreasing function is the
+#        # area of the triangle.
+#        self.bd_from_ft = secs * (delta_speeds /2  + pl.landing_speed)
+#        print "BD --> %s" % self.bd
+#        return self.bd
         pl = self.plane
         dist = 0
         speed = pl.speed
         # To calculate the amount of space, simulate the breaking procedure
-        # and measure it.
+        # and measure it. Each loops is equivalent to one radar ping.
         while True:
+            dist += speed * PING_IN_SECONDS
             if speed <= pl.landing_speed:
                 self.bd_from_ft = dist
                 return self.bd
-            dist += speed * PING_IN_SECONDS
-            speed += pl.ground_accels[0]
+            speed += pl.ground_accels[0] * PING_IN_SECONDS
 
     @property
     def md(self):
@@ -173,10 +184,15 @@ class Pilot(object):
         variables.
         '''
         self.plane.flags.cleared_down = False
-        self.landing_info = None
-        self.landing_phase = None
-        print(msg)
-        return self.ABORTED
+        self.lander = None
+        return msg
+
+    def say(self, what, colour):
+        '''
+        Output a message on the console.
+        '''
+        self.plane.aerospace.gamelogic.say(self.plane.callsign, what, YELLOW)
+
 
     def verify_feasibility(self, speed=None, altitude=None):
         '''
@@ -311,14 +327,13 @@ class Pilot(object):
         return acc_module/speed
 
     def land(self, port_name=None, rnw_name=None):
-        #TODO: Fix bug that limit turning ration to 'normal'
+        #TODO:BUG - Fix bug that limit turning ration to 'normal'
         '''
         Guide a plane towards the ILS descent path and then makes it land.
         Return the phase of the landing sequence.
         '''
         assert not (port_name == rnw_name == None and not self.lander)
         pl = self.plane
-        print ("A:%s" % pl.speed)
         # The first time the land() method is called, generates a Lander()
         # object. This is a also a good place for early returns if we
         # already know it's impossible to land from current plane position
@@ -327,7 +342,8 @@ class Pilot(object):
             # EARLY RETURN - Maximum incidence angle into the ILS is 60°
             ils_heading = v3_to_heading(l.ils)
             if abs(pl.heading-ils_heading) > 60:
-                msg = 'The ILS heading must be within ±60° from plane heading'
+                msg = 'ILS heading must be within 60 degrees ' \
+                      'from current heading'
                 return self.__abort_landing(msg)
             # EARLY RETURN - No possible intersection (the RADAR_RANGE*3
             # ensures that the segments to test for intersection are long enough.
@@ -351,21 +367,21 @@ class Pilot(object):
             if l.md <= 0:
                 self.set_course_towards(l.foot.xy)
                 l.phase = self.MERGING
-            print "--- INTERCEPTING ---"
-            print "from veering point : %s" % (l.md)
-            print "from ft            : %s" % l.fd
+#            print "--- INTERCEPTING ---"
+#            print "from veering point : %s" % (l.md)
+#            print "from ft            : %s" % l.fd
         elif l.phase == self.MERGING:
             if self.course_towards == None:
                 l.phase = self.MATCHING
-            print "--- MERGING ---"
-            print "down     : %s" % pl.flags.cleared_down
-            print "expedite : %s" % pl.flags.expedite
-            print "from ft  : %s" % l.fd
+#            print "--- MERGING ---"
+#            print "heading  : %s" % pl.heading
+#            print "t head   : %s" % pl.target_conf['heading']
+#            print "from ft  : %s" % l.fd
         elif l.phase == self.MATCHING:
             secs_to_foot = l.fd / pl.speed
-            # Abort if the plane is too fast and will miss the runway foot.
+            # Abort if the plane is too fast to descend
             if abs(secs_to_foot * pl.climb_rate_limits[0]) < l.above_foot:
-                msg = 'Plane is flying to fast to lose enough altitude'
+                msg = 'Plane is flying too fast to lose enough altitude'
                 return self.__abort_landing(msg)
             # If the delta to the path is less than the climbing/descending
             # capabilities of the aeroplane, consider it on slope...
@@ -374,33 +390,37 @@ class Pilot(object):
             if alt_diff < 0 and alt_diff > pl.climb_rate_limits[0] or \
                alt_diff > 0 and alt_diff < pl.climb_rate_limits[1]:
                 pl.position.z = path_alt
-                l.set_bd()
                 l.phase = self.GLIDING
+                l.set_bd()
+                if l.bd_from_ft < 0:
+                    msg = 'Plane too fast to slow down to landing speed'
+                    self.__abort_landing(msg)
             # ...otherwise tell it to climb/descend!!
             else:
                 pl.target_conf['altitude'] = path_alt
-            print "--- MATCHING ---"
-            print "alt        : %s" % pl.altitude
-            print "path alt   : %s" % path_alt
-            print "alt diff   : %s" % alt_diff
-            print "from ft    : %s" % l.fd
+#            print "--- MATCHING ---"
+#            print "alt        : %s" % pl.altitude
+#            print "path alt   : %s" % path_alt
+#            print "alt diff   : %s" % alt_diff
+#            print "from ft    : %s" % l.fd
         elif l.phase == self.GLIDING:
+            # Abort if the plane is too fast to slow to landing speed
             if l.bd <= 0:
                 pl.target_conf['speed'] = pl.landing_speed
             if pl.position.z < l.foot.z:
-                print "LANDED!!!"
                 pl.terminate(PLANE_LAND)
                 return
-            ticks = 1.0 * l.fd / pl.speed / PING_IN_SECONDS
-            z_step = l.above_foot / ticks
+            ticks = 1.0 * l.fd / pl.target_conf['speed'] / PING_IN_SECONDS
+            z_step = 1.0 * l.above_foot / ticks
             pl.target_conf['altitude'] -= z_step
-            print "--- GLIDING ---"
-            print "alt          : %s" % pl.altitude
-            print "speed        : %s" % pl.speed
-            print "target speed : %s" % pl.target_conf['speed']
-            print "bd_from_ft   : %s" % l.bd_from_ft
-            print "from braking : %s" % l.bd
-            print "from ft      : %s" % l.fd
+#            print "--- GLIDING ---"
+#            print "alt on foot  : %s" % l.above_foot
+#            print "speed        : %s" % pl.speed
+#            print "target speed : %s" % pl.target_conf['speed']
+#            print "bd_from_ft   : %s" % l.bd_from_ft
+#            print "from braking : %s" % l.bd
+#            print "from ft      : %s" % l.fd
+        return l.phase
 
     def veer(self):
         '''
@@ -525,14 +545,15 @@ class Pilot(object):
         if self.course_towards:
             self.set_course_towards()
         if pl.heading != pl.target_conf['heading']:
-            print "######################"
             self.veer()
         if pl.altitude != pl.target_conf['altitude']:
             # Descending or ascending?
             index = pl.altitude < pl.target_conf['altitude']
             z_acc = pl.climb_rate_accels[index]*PING_IN_SECONDS
-            # Non expedite climbs are limited at 50% of maximum rate
-            if not pl.flags.expedite:
+            # Non expedite climbs / takeoffs / landings are limited at 50% of
+            # maximum rate.
+            if not (pl.flags.expedite or \
+                    pl.flags.cleared_down or pl.flags.cleared_up):
                 z_acc *= 0.5
             # Acceleration cannot produce a climb rate over or under the limits
             min_, max_ = pl.climb_rate_limits
@@ -545,9 +566,10 @@ class Pilot(object):
             index = pl.speed < pl.target_conf['speed']
             gr_acc = pl.ground_accels[index]*PING_IN_SECONDS
             # Non expedite accelerations are limited at 50% of maximum accels
-            if not pl.flags.expedite:
+            if not (pl.flags.expedite or \
+                   pl.flags.cleared_down or pl.flags.cleared_up):
                 gr_acc *= 0.5
-            norm_velocity = pl.velocity.normalized()
+            norm_velocity = Vector3(*pl.velocity.xy).normalized()
             acc_vector = norm_velocity * gr_acc
             # Acceleration cannot produce a speed over or under the limits
             if pl.flags.cleared_down:
@@ -567,7 +589,7 @@ class Pilot(object):
         t_head = pl.target_conf['heading']
         if self.test_heading_in_between((previous_heading,
                                          pl.heading), t_head):
-            mag = pl.velocity.magnitude()
+            mag = abs(Vector2(*pl.velocity.xy))
             theta = radians(90-t_head)
             pl.velocity.x = cos(theta)*mag
             pl.velocity.y = sin(theta)*mag
