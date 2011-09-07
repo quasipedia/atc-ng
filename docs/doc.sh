@@ -41,6 +41,6 @@ git push
 
 # revert to normal editing mode
 git checkout master
-cp /tmp/atc-project-files .
+cp -r /tmp/atc-project-files .
 rm -rf /tmp/atc-project-files
 git stash pop
