@@ -25,7 +25,7 @@ make_clean
 # save aptana project files
 cd ..
 mkdir /tmp/atc-project-files
-mv .project .pydevproject /tmp/atc-project-files
+mv .project .pydevproject .settings /tmp/atc-project-files
 
 # switch to GitHub pages repository and imports the build
 git checkout gh-pages
