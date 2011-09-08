@@ -1,17 +1,5 @@
-Get involved!
-=============
-
-Disclaimer
-----------
-This section of the manual explains how to get involved with the game
-development. This is just a stub, mainly to give a rought idea on what the
-possibility will be once the game will be released.
-
-At present **we don't accept yet external contributions** as the API is still
-not stable.
-
 Entities
---------
+========
 ATC-NG uses YAML to describe all its in-game entities.
 
 YAML_ is a *human friendly data serialization standard*, and this means that is

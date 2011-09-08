@@ -1,0 +1,4 @@
+Project documentation
+=====================
+
+Stub.

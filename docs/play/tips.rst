@@ -47,8 +47,16 @@ Approaching
 -----------
 Make sure to approach the airport for landing at a reasonable speed: **the
 slowest the speed, the easier** it will be for the aeroplane to *adjust their
-altitude* to that required for ILS approach.
+altitude* to that required for :term:`ILS` approach.
 
 A slower speed also means that it will be easier for palnes to *keep separation*
 (just before landing, planes drop their speed to the minimum, so there is a
 risk for oncoming planes in the landing queue to come too close).
+
+Running out of fuel
+-------------------
+Since aircraft running out of fuel still have the possibility to glide for quite
+some time, if you ever find yourself away from your target and low on fuel,
+climbing up will extend your gliding range of various kilometres. Also consider
+that given the simplified phisics implemented in ATC-NG, the descent ratio is
+fixed regardless of the ground speed, so: keep going as fast as you can!

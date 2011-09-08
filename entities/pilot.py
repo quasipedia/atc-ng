@@ -183,6 +183,7 @@ class Pilot(object):
         Abort landing, generating all events of the case and resetting relevant
         variables.
         '''
+        #TODO:BUG - landing abortions don't always "say" what they should
         self.plane.flags.cleared_down = False
         self.lander = None
         return msg
