@@ -50,7 +50,7 @@ SLOPE_ANGLE = 3                 # ILS gliding slope angle, in degrees
 # Console
 CONSOLE_HEIGHT = 0.14           # as a percentage of windows height
 CONSOLE_LINES_NUM = 5
-CONSOLE_FONT_SIZE_RATIO = 0.60  
+CONSOLE_FONT_SIZE_RATIO = 0.60
 VALID_CHARS = \
     'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890./ '
 OUTBOUND_ID = 'TOWER'
@@ -65,11 +65,19 @@ HORIZONTAL_CLEARANCE = 5000     # minimum distance in metres between planes
 # Game events (unique code event, base score)
 # NOTE: base score can be integrated at run-time (for example a landing plane
 # receives bonus points for the amount of fuel left in the tanks)
-PLANE_OUTOFRANGE  = 100, -100
-PLANE_LAND        = 101, +50
-PLANE_EXIT        = 102, +30
-PLANE_CRASH       = 103, -100
-FUEL_VALUE        = 1
+PLANE_LANDS_CORRECT_PORT  = 100,  +500
+PLANE_LANDS_WRONG_PORT    = 101,  -200
+PLANE_LEAVES_CORRECT_GATE = 110,  +300
+PLANE_LEAVES_WRONG_GATE   = 111,  -200
+PLANE_LEAVES_RANDOM       = 112,  -500
+PLANE_ENTERS              = 120    +50
+PLANE_BURNS_FUEL_UNIT     = 130,    -1
+PLANE_WAITS_ONE_SECOND    = 140,    -1
+PLANE_CRASHES             = 150, -1000
+COMMAND_IS_ISSUED         = 200,   -10
+EMERGENCY_FUEL            = 300,  -250
+EMERGENCY_TCAS            = 301,  -250
+FUEL_SCORE_WEIGHT         = 1
 
 # Colours
 WHITE = (255,255,255)

@@ -1,3 +1,5 @@
+.. index:: Fuel
+
 Fuel
 ====
 
@@ -17,6 +19,9 @@ to the amount of fuel needed to travel [1]_ four times along the diagonal of the
 aerospace monitored on the radar screen. However **each plane** enters the game
 loaded with just enough fuel to fly **four times between its entry and
 destination points** [1]_.
+
+.. index::
+   :pair: Fuel; Emergency
 
 Fuel emergency
 --------------

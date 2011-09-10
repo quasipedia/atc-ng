@@ -5,7 +5,9 @@ A small library with useful functions for ATC-NG.
 '''
 
 from engine.settings import *
-from euclid import Vector2
+from euclid import Vector2, Vector3
+from math import cos, sin, radians
+from random import randint
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -21,6 +23,18 @@ def rint(float_):
     Return the rounded integer of the float_.
     '''
     return int(round(float_))
+
+def randelement(sequence):
+    '''
+    Return a random element in a sequence.
+    '''
+    assert type(sequence) in (tuple, list, dict)
+    l = len(sequence)
+    index = randint(1, l)-1
+    if type(sequence) == dict:
+        keys = sequence.keys()
+        return sequence[keys[index]]
+    return sequence[index]
 
 def sc(vector):
     '''
@@ -38,6 +52,13 @@ def v3_to_heading(vector):
     Return the heading of a vector (CW degrees from North).
     '''
     return (90-degrees(atan2(vector.y, vector.x)))%360
+
+def heading_to_v3(heading):
+    '''
+    Return a normalised vector pointing in the heading direction.
+    '''
+    heading = radians(90-heading)
+    return Vector3(cos(heading), sin(heading)).normalized()
 
 def get_rect_at_centered_pos(img, pos):
     '''

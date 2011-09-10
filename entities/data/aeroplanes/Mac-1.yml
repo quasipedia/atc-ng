@@ -1,0 +1,21 @@
+# Immaginary aeroplane model - for testing purposes only!
+#
+# ©2011 Mac Ryan - Licensed under GPL v.3
+#
+# This file is intended to work with the ATC-NG game available at
+# https://github.com/quasipedia/atc-ng
+
+# Model and class Identifiers
+model             : Mac-1       # A380, B747, DC10...
+category          : jet         # propeller, jet, supersonic, [chopper]
+
+# STATIC / Vertical mobility
+max_altitude      : 10000       # metres - above sea level
+climb_rate_limits : [-30, 15]   # m/s    - [down, up] climb rates
+climb_rate_accels : [-20, 10]   # m/s^2  - [down, up] climb acceleration in
+
+# STATIC / Horizontal mobility
+max_speed         : 800         # kph    - max ground speed in
+landing_speed     : 150         # kph    - landing and takeoff speed
+ground_accels     : [-4, 6]     # m/s^2  - [decel, accel] ground accel
+max_g             : 3           # g's    - G-force for emergency manouvers

@@ -1,6 +1,8 @@
+.. index:: Landing
+
 Landing
 =======
-Landing at airports is done with the help of **ILS (Instrument Landing
+Landing at airports is done with the help of :term:`ILS` **(Instrument Landing
 System)**. This means that once the aeroplane is cleared for landing, it will
 try to intercept the gliding path for the foot of the runway.
 
@@ -12,7 +14,7 @@ There are a few things to consider when clearing an aeroplane for landing:
 * The aeroplane will **first** try to align itself with the runway, and
   **then** it will adjust its altitude and speed.
 
-* The gliding angle for an ILS is always the standard 3°.
+* The gliding angle for an :term:`ILS` is always the standard 3°.
 
 * The speed of the aeroplane will be kept constant as long as possible, then it
   will be progressively reduced in order for the plane to touch down at its

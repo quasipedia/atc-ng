@@ -1,3 +1,5 @@
+.. index:: Game interface
+
 The game interface
 ==================
 All the interaction with the game happens through the command console. The game

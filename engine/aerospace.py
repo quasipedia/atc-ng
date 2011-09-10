@@ -65,18 +65,14 @@ class Aerospace(object):
             pass
         return collisions
 
-    def add_plane(self, **kwargs):
+    def add_plane(self, plane):
         '''
         Add aeroplanes to the aerospace.
         '''
         # This record will contain all info relative to a given plane
-        record = {}
-        # Aeroplane object
-        plane = entities.aeroplane.Aeroplane(self, **kwargs)
-        record['plane'] = plane
-        record['sprites'] = []
+        record = dict(plane = plane, sprites = [])
         # Icon sprite
-        icon = sprites.radarsprites.AeroplaneIcon(plane, plane.model)
+        icon = sprites.radarsprites.AeroplaneIcon(plane, plane.category)
         self.flying_sprites.add(icon, layer=0)
         self.top_layer.add(icon)
         record['sprites'].append(icon)

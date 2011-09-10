@@ -3,6 +3,8 @@ The very basics
 
 This section provides the very essential information you need to play ATC-NG.
 
+.. index:: Game objective
+
 Objective
 ---------
 In ATC-NG you play the role of an air traffic controller. Your job is to safely
@@ -14,10 +16,14 @@ Three things to keep in mind
 #. You must maintain **separation between aircrafts**. That means that they each
    plane must be separated by the nearest one by either a ground distance of
    3000 metres or a vertical distance of 500 metres.
-#. Aeroplanes have a **limited amount of fuel** onboard. Make sure to make them
-   reach their destination before they run out of it and fall out the sky.
-#. The *three strikes out* rule applies: after you crashed three aeroplanes the
-   game will terminate.
+#. Aeroplanes have a **limited amount of fuel** onboard. Make sure to
+   make them reach their destination before they run out of it and fall out the
+   sky.
+#. The **three strikes out** rule applies: after you let three aeroplanes to
+   crash or to leave the aerospace not from a :term:`gate` the game will
+   terminate.
+
+.. index:: Gameplay
 
 How the game unfolds
 --------------------

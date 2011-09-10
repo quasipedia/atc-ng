@@ -4,6 +4,8 @@ Tips & Tricks
 This section of the manual contains some advice that you might find useful for
 increasing your performance while playing.
 
+.. index:: Console; Shorthand notation
+
 Shorthand notation
 ------------------
 Since ``HEADING``, ``SPEED`` and ``ALTITUDE`` are the most used command in the
@@ -12,6 +14,8 @@ a few keystrokes. The shorthand notation allows to issue these commands by their
 initial **joint** with their argument. Example:
 
 >>> QFA1234 H210 S200 A25
+
+.. index:: Console; Autocompletion
 
 Autocompletion
 --------------
@@ -31,13 +35,17 @@ autocompletion will react differently:
 This is especially useful for flight numbers, that can be tedious to be
 memorised.
 
+.. index:: Console; Command history
+
 Command history
 ---------------
 By pressing the :kbd:`Up` and :kbd:`Down` keys, it is possible to browse the
 command history.
 
-Deletion
---------
+.. index:: Console; Editing
+
+Cleaning the command line
+-------------------------
 Beside the standard :kbd:`Backspace` key, it is also possible to:
 
 * completely erase the prompt line with :kbd:`Esc`,

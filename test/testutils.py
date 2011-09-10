@@ -60,6 +60,37 @@ class Test(unittest.TestCase):
             vector = Vector3(*vector)
             self.assertEqual(v3_to_heading(vector), result)
 
+    def testHeading2Vector(self):
+        '''
+        heading_to_v3 - normalized vector pointint towards heading"
+        '''
+        TO_TEST = [(  0, ( 0,  1, 0)),
+                   ( 90, ( 1,  0, 0)),
+                   (180, ( 0, -1, 0)),
+                   (270, (-1,  0, 0)),
+                   (360, ( 0,  1, 0)),
+                   ( 45, (1/2**0.5, 1/2**0.5, 0))
+                   ]
+        for heading, xyz in TO_TEST:
+            res = heading_to_v3(heading)
+            tuples = zip(res.xyz, xyz)
+            for a, b in tuples:
+                self.assertAlmostEqual(a,b)
+
+    def testRandElement(self):
+        '''
+        randelement - return a random element in a sequence
+        '''
+        # Works with lists
+        l = (0,1,'aaa',3,(1,2,3),5,6,{'my':1, 'yours':'none'},8,None)
+        for i in range(100):
+            self.assertIn(randelement(l), l)
+        # Works with dictionaries
+        d = {'a':'hello', 'b':{1:3}, 42:'number', 'ython':13.5795, 3:[]}
+        vals = d.values()
+        for i in range(100):
+            self.assertIn(randelement(d), vals)
+
     def testIntersectSegment(self):
         '''
         intersect_by_points - intersect two lines

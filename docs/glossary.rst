@@ -6,13 +6,25 @@ Glossary
 .. glossary::
    :sorted:
 
-   airway
+   \*nix
+      The term *unix-like* (sometimes shortened to \*nix to circumvent trademark
+      issues) is widely used to describe operating systems that share many of
+      the characteristics of the original UNIX, which was written in 1969 by Ken
+      Thompson at Bell Labs. GNU/Linux and BSD are amongst the unix-like family
+      of operating systems.
+
+      Traditionally, users of \*nix systems are very versed in the shell
+      environment, a commandline interface operated from keyboard only, hence
+      the auxiliary origin of the ATC-NG game, which operates purely through
+      keyboard input.
+
+   Airway
       Airways are corridors of controlled airspace with a defined lower and
       upper base. In ATC-NG airways start/finish at the edge of the aerospace
       generating the so called :term:`gates<gate>`. All aeroplanes that are not
       on ground must enter and exit the aerospace from them.
 
-   gate
+   Gate
       Gates in ATC-NG are the entry/exit points for the aircrafts. An
       explanation of how to instruct an aeroplane to use a exit through a gate
       is available :doc:`here<play/leaving-aerospace>`
@@ -59,7 +71,7 @@ Glossary
       two or more aeroplanes, the TCAS will instruct the AI pilots to steer away
       from each other.
 
-   runway
+   Runway
       According to ICAO a runway is a *"defined rectangular area on a land
       aerodrome prepared for the landing and take-off of aircraft."*
 

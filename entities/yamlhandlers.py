@@ -16,9 +16,11 @@ import re
 import entities.aeroport
 import entities.waypoints
 import os.path as path
-from pkg_resources import resource_stream
+from os import listdir
+from pkg_resources import resource_stream, resource_listdir
 # Yaml imports. It tries to use the faster C version of the loader.
 from yaml import load
+from lib.utils import randelement
 try:
     from yaml import CLoader as Loader
 except ImportError:
@@ -59,8 +61,13 @@ class AirlinesHandler(YamlHandler):
 
     def __init__(self):
         self.load('airline-codes')
-        k, v = self.random_airline().popitem()
-        self.valid_attributes = [k for k in v.keys()]
+        # For a number of good reasons, the icao code of airlines is stored in
+        # the file as the key of the dictionary. We also want that bit of
+        # information stored amongs values, though.
+        for k in self._data.keys():
+            self._data[k]['icao'] = k
+        rdm = self.random_airline()
+        self.valid_attributes = [k for k in rdm.keys()]
 
     def __filter_keys(self, **kwargs):
         '''
@@ -102,18 +109,16 @@ class AirlinesHandler(YamlHandler):
         '''
         Return a list of only one random element from the complete list.
         '''
-        keys = self._data.keys()
-        key = keys[randint(1, len(keys))-1]
-        return { key : self._data[key]}
+        return randelement(self._data)
 
     def random_flight(self):
         '''
         Return a randomly-generated flight number and its callsign.
         '''
-        icao, vals = self.random_airline().popitem()
+        rnd = self.random_airline()
         num = randint(1,9999)
-        fn = icao + str(num).zfill(4)
-        cs = ' '.join((vals['callsign'], str(num))) if vals['callsign'] else fn
+        fn = rnd['icao'] + str(num).zfill(4)
+        cs = ' '.join((rnd['callsign'], str(num))) if rnd['callsign'] else fn
         return { 'icao' : fn, 'callsign' : cs}
 
     def shrink_self(self, **kwargs):
@@ -176,6 +181,26 @@ class ScenarioHandler(YamlHandler):
             beacon = entities.waypoints.Beacon(**item)
             self.beacons.append(beacon)
 
-    def adjust_settings(self):
-        pass
 
+class PlaneModelHandler(YamlHandler):
+
+    '''
+    Handle aeroplanes model descriptions.
+    '''
+
+    def __init__(self):
+        self.DIRECTORY = path.join(self.DIRECTORY, 'aeroplanes')
+        data = {}
+        fnames = resource_listdir('entities', self.DIRECTORY)
+        fnames = [n[:-4] for n in fnames if n[-4:] == '.yml']
+        for fname in fnames:
+            self.load(fname)
+            data[self._data['model']] = self._data
+        del self._data
+        self.__models = data
+
+    def random_model(self):
+        '''
+        Return the dictionary descriptor of a random model.
+        '''
+        return randelement(self.__models)

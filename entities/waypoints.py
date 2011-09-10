@@ -33,15 +33,17 @@ class Gate(object):
         self.radial = radial % 360
         self.heading = heading
         self.width = width
+        self.__set_location()
 
-    def draw(self, surface):
+    def __set_location(self):
         '''
-        Blit self on radar surface.
+        Find (x,y) coordinates in the aerospace corresponding to the centre of
+        the gate.
         '''
         # Convert "radial": from "CW deg from North" to "CCW rad from East"
         convert_angle = lambda ang : radians(90-ang)
         radial = convert_angle(self.radial)
-        # Find the pixel coordinates of the centre of the gate
+        # Find the coordinates of the centre of the gate
         s, c = sin(radial), cos(radial)
         ss, cs = cmp(s, 0), cmp(c, 0)
         sa, ca = abs(s), abs(c)
@@ -49,7 +51,16 @@ class Gate(object):
         rr = RADAR_RANGE
         x = cs * (rr if side <= 0 else rr/sa * ca) + rr
         y = ss * (rr if side >= 0 else rr/ca * sa) + rr
-        x, y = sc((x, y))
+        self.location = (x, y)
+        # For gates near 45° we want label treated as "corner", a delta of 0.12
+        # make this work 40°-50° (0.25, 0.37, 0.48) for following 5° increments
+        self.side = 0 if abs(sa-ca) < 0.12 else side
+
+    def draw(self, surface):
+        '''
+        Blit self on radar surface.
+        '''
+        x, y = sc(self.location)
         # GATE
         # In order to facilitate blitting information on the orientation of the
         # gate, we create the image already rotated 90° clockwise by swapping
@@ -86,12 +97,8 @@ class Gate(object):
         label = fontobj.render(self.name, True, RED)
         w, h = label.get_size()
         signed_offset = lambda n : cmp(1,n)*w
-        # For gates near 45° we want labe treated as "corner", a delta of 0.12
-        # make this work 40°-50° (0.25, 0.37, 0.48) for following 5° increments
-        if abs(sa-ca) < 0.12:
-            side = 0
-        x += (signed_offset(x) if side <=0 else 0) - w/2
-        y += (signed_offset(y) if side >=0 else 0) - h/2
+        x += (signed_offset(x) if self.side <=0 else 0) - w/2
+        y += (signed_offset(y) if self.side >=0 else 0) - h/2
         surface.blit(label, (x,y))
 
 

@@ -314,12 +314,13 @@ class AeroplaneIcon(SuperSprite):
         cls.sprite_sheets = sheets
         cls.initialised = True
 
-    def __init__(self, data_source, model='jet'):
+    def __init__(self, data_source, category):
         self.data_source = data_source
-        self.model = model
-        assert model in ('jet', 'propeller', 'supersonic')
+        assert category in ('jet', 'propeller', 'supersonic')
+        self.calss_ = category
         super(AeroplaneIcon, self).__init__()
-        self.sprites = self.get_sprites_from_sheet(self.sprite_sheets[model])
+        self.sprites = \
+                self.get_sprites_from_sheet(self.sprite_sheets[category])
         self.last_status = None
         self.last_heading = None
         self.update()

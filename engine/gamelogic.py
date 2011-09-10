@@ -11,13 +11,13 @@ Amongst others:
 
 from engine.settings import *
 from pygame.locals import *
-from lib.euclid import Vector3
 import pygame.draw
 import pygame.surface
 import aerospace
 import commander
 import entities.yamlhandlers
 import sprites.guisprites
+import engine.challenge
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -36,7 +36,6 @@ class GameLogic(object):
     '''
 
     def __init__(self, surface):
-        self.airline_handler = entities.yamlhandlers.AirlinesHandler()
         self.machine_state = MS_RUN
         # Surfaces
         self.global_surface = surface
@@ -58,12 +57,14 @@ class GameLogic(object):
         self.ms_from_last_ping = PING_PERIOD+1  #force update on first run
         self.strips = sprites.guisprites.StripsGroup()
         self.maps = []
-        self.parse_scenario()
-        self.set_challenge()
         # Scoring
         self.score = 0
+        self.fatalities = 0
+        # Game interface
         self.fixed_sprites = pygame.sprite.Group()
         self.fixed_sprites.add(sprites.guisprites.Score(self))
+        self.challenge = engine.challenge.Challenge(self)
+        self.parse_scenario(self.challenge.scenario)
 
     def __add_aeroport_map(self, port):
         '''
@@ -96,60 +97,43 @@ class GameLogic(object):
         a_map = a_map.subsurface(a_map.get_bounding_rect()).copy()
         self.maps.append(a_map)
 
-    def parse_scenario(self, fname=None):
+    def parse_scenario(self, scenario):
         '''
         Parse and render a scenario.
         '''
-        if fname == None:
-            fname = 'default'
-        scene = entities.yamlhandlers.ScenarioHandler(fname)
-        scene.adjust_settings()
         # AEROPORTS
-        for port in scene.aeroports:
+        for port in scenario.aeroports:
             self.aerospace.add_aeroport(port)
             self.__add_aeroport_map(port)
             port.del_cached_images()
         self.draw_maps()
         # GATES
-        for gate in scene.gates:
+        for gate in scenario.gates:
             self.aerospace.add_gate(gate)
         # BEACONS
-        for beacon in scene.beacons:
+        for beacon in scenario.beacons:
             self.aerospace.add_beacon(beacon)
         # Update the background of the aerospace
         self.aerospace.bkground = self.aerospace.surface.copy()
 
-    def set_challenge(self):
+    def add_plane(self, plane):
         '''
-        Start the challenge (place planes on the radar).
+        Add a plane from the game.
         '''
-        d = RADAR_RANGE/9
-        rfn = self.airline_handler.random_flight
-        self.aerospace.add_plane(position=Vector3(RADAR_RANGE+3*d,
-                                                  RADAR_RANGE-3*d, 500),
-                                 velocity=Vector3(100,-60,0),
-                                 origin='ARN', destination='FRA', **rfn())
-        self.aerospace.add_plane(position=Vector3(RADAR_RANGE-d,
-                                                  RADAR_RANGE-2*d, 500),
-                                 velocity=Vector3(180,0,0),
-                                 origin='ARN', destination='FRA', **rfn())
-        for plane in self.aerospace.aeroplanes:
-            status = INBOUND if plane.destination in \
-                     self.aerospace.aeroports.keys() else OUTBOUND
-            self.strips.add(sprites.guisprites.FlightStrip(plane, status))
+        self.aerospace.add_plane(plane)
+        status = INBOUND if plane.destination in \
+                            self.aerospace.aeroports.keys() else OUTBOUND
+        self.strips.add(sprites.guisprites.FlightStrip(plane, status))
 
     def remove_plane(self, plane, event):
         '''
         Remove a plane from the game.
         '''
-        score = event[1]
-        if event in (PLANE_LAND, PLANE_EXIT):
-            score += plane.fuel * FUEL_VALUE
-        elif event in (PLANE_OUTOFRANGE, PLANE_OUTOFRANGE):
-            score -= plane.fuel * FUEL_VALUE
-        self.score += score
+        self.score_event(event, plane=plane)
         self.aerospace.remove_plane(plane, event)
         self.strips.remove_strip(plane)
+        if event in (PLANE_CRASHES, PLANE_LEAVES_RANDOM):
+            self.fatalities += 1
 
     def draw_maps(self):
         '''
@@ -177,16 +161,42 @@ class GameLogic(object):
     def key_pressed(self, key):
         self.cli.process_keystroke(key)
 
+    def score_event(self, event, plane=None, multiplier=None):
+        '''
+        Process an event that influence the score.
+        Events are defined in the settings, other keyword arguments are passed
+        according the the event.
+        '''
+        # The second element of an event is the amount of points
+        score = event[1]
+        # If it's a aeroplane end-of-life event, compute the fuel effect.
+        if event in (PLANE_LANDS_CORRECT_PORT, PLANE_LANDS_WRONG_PORT,
+                     PLANE_LEAVES_CORRECT_GATE, PLANE_LEAVES_WRONG_GATE,
+                     PLANE_LEAVES_RANDOM, PLANE_CRASHES):
+            assert plane
+            fuel = plane.fuel * FUEL_SCORE_WEIGHT
+            score += fuel if score > 0 else -fuel
+        # if the event score needs a multiplier, use it
+        elif event in (PLANE_ENTERS, PLANE_BURNS_FUEL_UNIT,
+                       PLANE_WAITS_ONE_SECOND, EMERGENCY_TCAS):
+            assert multiplier
+            score *= multiplier
+        # otherwise... vanilla!
+        else:
+            assert event in (COMMAND_IS_ISSUED, EMERGENCY_FUEL)
+        self.score += score
+
     def update(self, milliseconds):
         self.ms_from_last_ping += milliseconds
-        if self.ms_from_last_ping > PING_PERIOD:
-            pings = self.ms_from_last_ping / PING_PERIOD
-            self.ms_from_last_ping %= PING_PERIOD
-            self.aerospace.update(pings)
-            self.aerospace.draw()
+        self.challenge.update()
         self.strips.update()
         self.strips.clear(self.strips_surface, self.strips_bkground)
         self.strips.draw(self.strips_surface)
         self.fixed_sprites.update()
         self.fixed_sprites.draw(self.score_surface)
+        if self.ms_from_last_ping > PING_PERIOD:
+            pings = self.ms_from_last_ping / PING_PERIOD
+            self.ms_from_last_ping %= PING_PERIOD
+            self.aerospace.update(pings)
+            self.aerospace.draw()
         self.cli.draw()

@@ -138,3 +138,23 @@ takeoff:
 
     >>> QFA1234 TAKEOFF 04L
     >>> DLH5678 UP 01 X
+
+squawk:
+  spellings: [squawk, touch, sq]
+  arguments: 0
+  flags: []
+  validator: none
+  description: >
+    The ``SQUAWK`` command instructs the target plane transponder to return
+    the destination and  current heading.
+
+      The info provided by the ``SQWAWK`` command are also available elsewhere
+      in the game interface. The main use of this command is that of updating a
+      plane's *time of last received command*. This can be useful if you cycle
+      through your flight strips ordered in this way, as it will move the strip
+      to the top of the rail without issuing any new instruction to the pilot.
+
+  examples: |
+
+    >>> QFA1234 SQUAWK
+    >>> DLH5678 TOUCH

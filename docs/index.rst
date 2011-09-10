@@ -22,7 +22,7 @@ Indices and tables
 
 .. * :ref:`modindex`
 
-.. [*] An alternative explanation for the *NG* part of the game is *"for *Nix
-       Geeks"*. This is a reference to the fact the game only offers a
-       commandline interface for playing (this is by design and is unlikely
-       to change in the future).
+.. [*] An alternative explanation for the *NG* part of the game is "for
+       :term:`\*nix` geeks". This is a reference to the fact the game only
+       offers a commandline interface for playing (this is by design and is
+       unlikely to change in the future).

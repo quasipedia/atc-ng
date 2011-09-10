@@ -8,7 +8,6 @@ from engine.settings import *
 from lib.utils import *
 from pygame.locals import *
 from collections import deque
-from random import randint
 from copy import copy
 from pkg_resources import resource_stream
 import pygame.font
@@ -332,12 +331,6 @@ class CommandLine(object):
         self.small_f = pygame.font.Font(MAIN_FONT, small_size)
         self.parser = Parser(aerospace, game_commands_processor)
 
-    def __randomel(self, list_):
-        '''
-        Return the random element of a list
-        '''
-        return list_[randint(0, len(list_)-1)]
-
     def _get_list_of_existing(self, what, context=None):
         '''
         Return a list of existing (=valid) strings representing `what`
@@ -471,9 +464,9 @@ class CommandLine(object):
                 callsign = callable_.im_self.callsign
                 if ret == True:
                     if fname == 'execute_command':
-                        answer = self.__randomel(AFFIRMATIVE_EXEC_ANSWERS)
+                        answer = randelement(AFFIRMATIVE_EXEC_ANSWERS)
                     elif fname == 'queue_command':
-                        answer = self.__randomel(AFFIRMATIVE_QUEUE_ANSWERS)
+                        answer = randelement(AFFIRMATIVE_QUEUE_ANSWERS)
                 else:
                     answer = ret
                     colour = RED

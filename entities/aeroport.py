@@ -113,10 +113,12 @@ class Aeroport(object):
                 tmp['to_point'] = strip.centre_pos
                 ils.z = abs(ils)*sin(radians(SLOPE_ANGLE))  #gliding slope = 3°
                 tmp['ils'] = -ils.normalized()
+                if rot == 0:
+                    rot = 360  #runways oriented north are conventionally '36'
                 runways['%s_%d' % (str(rot/10).zfill(2), n)] = tmp
         # ...then change the names to the permanent one in the form XXL|C|R...
         self.runways = {}
-        for angle in range(0, 360):
+        for angle in range(10, 370, 10):
             match = str(angle/10).zfill(2)
             old_keys = [key for key in runways.keys() if key.find(match) == 0]
             l = len(old_keys)

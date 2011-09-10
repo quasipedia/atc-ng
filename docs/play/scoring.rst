@@ -1,3 +1,5 @@
+.. index:: Scoring
+
 Scoring System
 ==============
 
@@ -25,7 +27,7 @@ The scoring system is based on the following chart:
 | consumption**     |                             | - using the expedite flag  |
 +-------------------+-----------------------------+----------------------------+
 | **Controller      | - handling several planes   | - issuing commands         |
-| proficiency**     |   at once                   |   (except touch/squack)    |
+| proficiency**     |   at once                   |   (except squawk/touch)    |
 |                   | - handling planes in a      |                            |
 |                   |   complex scenario          |                            |
 +-------------------+-----------------------------+----------------------------+
@@ -44,11 +46,11 @@ Plane leaves map at correct gate                   +300             [1]_
 The (X+1) :sup:`th` pane enters the game            +50*X           [2]_
 Burning one unit of fuel                             -1
 Waiting one second for takeoff                       -1
-Issuing a command (except touch/squack)             -10
-Plane lands at wrong aeroport                      -100             [1]_
-Plane leaves map at wrong gate                     -100             [1]_
-Triggering fuel emergency                          -200
-TCAS activation (per plane)                        -200
+Issuing a command (except touch/squawk)             -10
+Plane lands at wrong aeroport                      -200             [1]_
+Plane leaves map at wrong gate                     -200             [1]_
+Triggering fuel emergency                          -250
+TCAS activation (per plane)                        -250
 Plane does not leave map at gate                   -500             [1]_
 Plane crashes                                     -1000             [1]_
 =========================================  =====================  =======
@@ -57,6 +59,9 @@ Plane crashes                                     -1000             [1]_
 .. [2] See the `controller's proficiency`_ section for details
 
 .. _fuel:
+
+.. index::
+   :pair: Fuel; Scoring
 
 Fuel
 ----

@@ -8,9 +8,7 @@ import pilot
 from engine.settings import *
 from lib.utils import *
 from math import sqrt
-from lib.euclid import Vector3
 from collections import deque
-from random import randint
 from time import time
 
 
@@ -66,13 +64,14 @@ class Aeroplane(object):
     See the class `Flag` to see what status flag a plane can have.
     '''
 
+    # A list of propery names that *MUST* be passed when building the plane.
     KNOWN_PROPERTIES = [#STATIC / game logic
                         'icao',              # Three-letter code and flight n.
                         'callsign',          # Radio callsign
                         'model',             # Type of plane (name)
-                        'origin',       # Airport/exit name
-                        'destination',       # Airport/exit name
-                        'entry_time',        # Time of entry in airspace
+                        'category',          # Propeller, Chopper, Jet...
+                        'origin',            # Aeroport / Gate name
+                        'destination',       # Aeroport / Gate name
                         #STATIC / vertical modelling
                         'max_altitude',      # max altitude
                         'climb_rate_limits', # (down, up) climb rates
@@ -83,70 +82,29 @@ class Aeroplane(object):
                         'landing_speed',     # landing/takeoff speed
                         'max_g',             # Gforce for emergency manouvers
                         #DYNAMIC
-                        'target_conf',       # (heading, speed, altitude)
                         'position',          # 3D vector
                         'velocity',          # 3D vector
                         'fuel',              # remaining fuel
-                        'time_last_cmd',     # time of last received command
-                        'flags',             # flag object (see class `Flags`)
-                        'veering_direction', # self.LEFT or self.RIGHT
-                        'target_coords',     # target coordinates to reach
-                                             # (e.g.: a beacon location)
-                        'target_vector',     # target vector to align to
-                                             # (e.g.: ILS landing path)
                        ]
 
 
     def __init__(self, aerospace, **kwargs):
+        # Required parameters/properties
         self.aerospace = aerospace
         self.pilot = pilot.Pilot(self)
         for property in self.KNOWN_PROPERTIES:
-            value = kwargs[property] if kwargs.has_key(property) else None
-            setattr(self, property, value)
-        if self.icao == None:
-            raise BaseException('An ICAO id must be always specified.')
-        if self.position is None:
-            self.position = Vector3(RADAR_RANGE, RADAR_RANGE)
-        if self.velocity is None:
-            self.velocity = Vector3(randint(30,400), 0, 0)
-        if self.target_conf == None:
-            self.target_conf = {}
-            self.set_target_conf_to_current()
-        if self.climb_rate_limits == None:
-            self.climb_rate_limits = (-30, 15)
-        if self.climb_rate_accels == None:
-            self.climb_rate_accels = (-20, 10)
-        if self.max_altitude == None:
-            self.max_altitude = 10000
-        if self.ground_accels == None:
-            self.ground_accels = (-4, 6)
-        if self.landing_speed == None:
-            self.landing_speed = 250 / 3.6  #first number is kph
-        if self.max_speed == None:
-            self.max_speed = 1600 / 3.6
-        if self.max_g == None:
-            self.max_g = 3
-        if self.fuel == None:
-            self.fuel = randint(100,200)
-        self.time_last_cmd = time()
-        # Derived values
+            setattr(self, property, kwargs[property])
+        # Initialisation of other properties
+        self.entry_time = time()
         self.min_speed = self.landing_speed*1.5
-        # Dummy to test varius sprites
-        mag = self.velocity.magnitude()
-        if mag < 150:
-            self.model = 'propeller'
-        elif mag < 300:
-            self.model = 'jet'
-        else:
-            self.model = 'supersonic'
+        self.set_target_conf_to_current()
         self.flags = Flags()
-        # Initialise the trail
+        self.time_last_cmd = time()
+        self.veering_direction = None
+        self.target_coords = None
         self.trail = deque([sc(self.position.xy)] * TRAIL_LENGTH, TRAIL_LENGTH)
-        # Initialise the command queue
         self.queued_commands = []
-        # Initialise the colliding planes registry
         self.colliding_planes = []
-        # Initialise instrumentation
         self.__accelerometer = ' '
         self.__variometer = ' '
 

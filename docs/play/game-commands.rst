@@ -1,3 +1,6 @@
+.. index::
+   :pair: Commands; Game engine
+
 Game commands
 =============
 Game commands are those commands that are issued to the game engine (as opposed

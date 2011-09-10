@@ -1,7 +1,10 @@
+.. index::
+   :pair: Commands; Aeroplanes
+
 Aeroplane commands
 ==================
 Aeroplane commands are those commands that are issued to individual planes (as
-opposed to the game engine).
+opposed to the game engine, which is controlled by game commands).
 
 Game commands are **issued** by specifying the flight number, the command and
 possibly arguments and/or flags. For example:
@@ -26,7 +29,7 @@ prepend it with a dot (``.``). For example:
 
 >>> .AZA LAND FRA 35L
 
-Aeroplane commands
+Available commands
 ==================
 Following is a list of all implemented aeroplane commands.
 
