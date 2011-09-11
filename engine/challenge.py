@@ -87,12 +87,15 @@ class Challenge(object):
                 pos.z = levels.pop()
                 if not self.gamelogic.aerospace.check_proximity(pos):
                     vel = vel.copy()
-        tmp = random.choice(self.scenario.aeroports)
-        dest = tmp.iata
-        fuel = rint(ground_distance(pos, tmp.location)*4*self.fuel_per_metre)
-        return dict(origin=orig, position=pos, velocity=vel,
-                    destination=dest, fuel=fuel,
-                    fuel_efficiency=self.fuel_per_metre)
+                    found_ok = True
+                    tmp = random.choice(self.scenario.aeroports)
+                    dest = tmp.iata
+                    fuel = rint(ground_distance(pos, tmp.location)*
+                                4*self.fuel_per_metre)
+                    return dict(origin=orig, position=pos, velocity=vel,
+                                destination=dest, fuel=fuel,
+                                fuel_efficiency=self.fuel_per_metre)
+        return False
 
     def __add_plane(self):
         '''
@@ -103,8 +106,13 @@ class Challenge(object):
         kwargs.update(self.model_generator())
         # Flight number and callsign
         kwargs.update(self.flightnum_generator())
-        # Origin and destionation
-        kwargs.update(self.__generate_flight_plan())
+        # Origin and destionation. If for some reason the challenge engine
+        # hasn't find a viable entry point for the challenge logic, it will
+        # return False, and no aeroplane will be added to the game
+        result = self.__generate_flight_plan()
+        if not result:
+            return
+        kwargs.update(result)
         # Set the module of the velocity (until here a normalized vector)
         kwargs['velocity'] *= kwargs['max_speed']
         self.gamelogic.add_plane(Aeroplane(self.gamelogic.aerospace, **kwargs))

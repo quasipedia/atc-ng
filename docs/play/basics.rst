@@ -15,7 +15,7 @@ Three things to keep in mind
 ----------------------------
 #. You must maintain **separation between aircrafts**. That means that they each
    plane must be separated by the nearest one by either a ground distance of
-   3000 metres or a vertical distance of 500 metres.
+   5000 metres or a vertical distance of 500 metres.
 #. Aeroplanes have a **limited amount of fuel** onboard. Make sure to
    make them reach their destination before they run out of it and fall out the
    sky.
