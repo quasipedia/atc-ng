@@ -96,6 +96,13 @@ BLUE = (0,0,255)
 DARK_BLUE = (0,0,150)
 BLACK = (0,0,0)
 
+# SEMANTIC COLOURS
+OK_COLOUR = GREEN
+KO_COLOUR = RED
+ALERT_COLOUR = YELLOW
+EMERGENCY_COLOUR = RED
+NEUTRAL_COLOUR = WHITE
+
 # Sprites
 TRAIL_LENGTH = 15                 # number of dots in the trail
 SPRITE_SCALING = 0.1              # scaling factor (used for antialiasing)

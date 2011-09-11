@@ -29,63 +29,6 @@ class AtomicTest(unittest.TestCase):
         self.plane = aero.Aeroplane(None, icao='ABC1234', max_g=2.0)
         self.pilot = self.plane.pilot
 
-    def testInBetween(self):
-        '''
-        Is a number comprised between two?
-        '''
-        func = self.pilot.test_in_between
-        # Positive range
-        self.assertTrue(func((0, 10), 5))
-        self.assertTrue(func((10, 0), 5))
-        self.assertFalse(func((0, 10), 15))
-        self.assertFalse(func((10, 0), 15))
-        # Negative range
-        self.assertTrue(func((0, -10), -5))
-        self.assertTrue(func((-10, 0), -5))
-        self.assertFalse(func((0, -10), -15))
-        self.assertFalse(func((-10, 0), -15))
-        # Spanning range
-        self.assertTrue(func((10, -10), 5))
-        self.assertTrue(func((-10, 10), 5))
-        self.assertTrue(func((10, -10), -5))
-        self.assertTrue(func((-10, 10), -5))
-        self.assertFalse(func((10, -10), 15))
-        self.assertFalse(func((-10, 10), 15))
-        self.assertFalse(func((10, -10), -15))
-        self.assertFalse(func((-10, 10), -15))
-        # Edges
-        self.assertTrue(func((-10, 10), 10))
-        self.assertTrue(func((-10, 10), -10))
-        # Punctiform
-        self.assertTrue(func((10, 10), 10))
-
-    def testHeadingInBetween(self):
-        '''
-        Is a heading comprised in the shortest arc between other two?
-        '''
-        func = self.pilot.test_heading_in_between
-        # Normalised values
-        self.assertTrue(func((0, 90), 45))
-        self.assertFalse(func((270, 0), 45))
-        # Non-normalised values
-        self.assertTrue(func((-60, 60), -1))
-        self.assertTrue(func((-60, 60), -0))
-        self.assertTrue(func((-60, 60), 1))
-        self.assertTrue(func((60, -60), -1))
-        self.assertTrue(func((60, -60), -0))
-        self.assertTrue(func((60, -60), 1))
-        self.assertFalse(func((-60, 60), -179))
-        self.assertFalse(func((-60, 60), -180))
-        self.assertFalse(func((-60, 60), 180))
-        self.assertFalse(func((-60, 60), 179))
-        self.assertFalse(func((60, -60), -179))
-        self.assertFalse(func((60, -60), -180))
-        self.assertFalse(func((60, -60), 180))
-        self.assertFalse(func((60, -60), 179))
-        # Tricky cases
-        self.assertTrue(func((-90, 90), 0))
-        self.assertTrue(func((-90, 90), 180))
-
     def testPlaneLimits(self):
         '''
         Test that orders fails if exceed plane altitude and speed

@@ -34,9 +34,9 @@ class Challenge(object):
         self.model_handler = ymlhand.PlaneModelHandler()
         self.__init_scenario()
         self.__init_entry_data()
-        self.ref_time = time() - 57  #Lives 3 seconds before first plane
+        self.ref_time = time() - 60  #Lives 5 seconds before first plane
         self.simultaneous_planes = 0
-        self.max_fuel_in_metres = RADAR_RANGE*11.3936  #4 times diagonal
+        self.fuel_per_metre = 1000/(RADAR_RANGE*11.3936)  #4 times diagonal
 
     def __init_scenario(self):
         '''
@@ -69,15 +69,16 @@ class Challenge(object):
         '''
         Return intial position and velocity 3D vectors plus the origin and
         destination identifiers (aeroport or gate) for a plane. It also returns
-        the initial amount of onboard fuel.
+        the initial amount of onboard fuel and the fuel_efficiency values.
         '''
         orig, pos, vel = randelement(self.__entry_data['gates'])
         vel *= 500 / 3.6  #TODO: must match plane parameters!!!
         tmp = randelement(self.scenario.aeroports)
         dest = tmp.iata
-        fuel = rint(ground_distance(pos, tmp.location)/self.max_fuel_in_metres)
-        return dict(origin=orig, position=pos, velocity=vel, 
-                    destination=dest, fuel=fuel)
+        fuel = rint(ground_distance(pos, tmp.location)*4*self.fuel_per_metre)
+        return dict(origin=orig, position=pos.copy(), velocity=vel,
+                    destination=dest, fuel=fuel,
+                    fuel_efficiency=self.fuel_per_metre)
 
     def __add_plane(self):
         '''

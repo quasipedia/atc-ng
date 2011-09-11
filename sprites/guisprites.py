@@ -60,13 +60,13 @@ class Score(pygame.sprite.Sprite):
 
     def update(self):
         self.image.fill(BLACK)
-        if self.gamelogic.score == self.score:
+        if rint(self.gamelogic.score) == self.score:
             colour = WHITE
         elif self.gamelogic.score < self.score:
-            colour = RED
+            colour = KO_COLOUR
             self.score -= 1
         else:
-            colour = GREEN
+            colour = OK_COLOUR
             self.score += 1
         score = str(self.score).zfill(6)
         score_img = self.fontobj.render(score, True, colour)
@@ -164,8 +164,8 @@ class FlightStrip(pygame.sprite.Sprite):
         #TODO: sliding animation
         #TODO: alarm signaller
         self.image = self.bkground.copy()
-        fuel_msg = 'FUEL: %s' % str(self.plane.fuel).zfill(4)
-        color = DARK_GREEN if self.plane.fuel > 100 else RED
+        fuel_msg = 'FUEL: %s' % str(rint(self.plane.fuel)).zfill(3)
+        color = DARK_GREEN if self.plane.fuel > 100 else KO_COLOUR
         img = self.render_text('small', color, fuel_msg)
         self.image.blit(img, (STRIPS_RECT.w*0.60,
                               self.strip_h-self.offset-img.get_height()))

@@ -43,17 +43,6 @@ PLANE_COMMANDS = yaml.load(data)
 VALID_PLANE_COMMANDS_COMBOS = [('heading', 'altitude', 'speed'),
                                ('circle', 'altitude', 'speed')]
 
-AFFIRMATIVE_EXEC_ANSWERS = ['Roger that. Executing.',
-                            'Affirmative, initiating maneuver now.',
-                            'Roger, we\'re on it.',
-                            'Copy that.',
-                            'Okie dokie artichokie!']
-
-AFFIRMATIVE_QUEUE_ANSWERS = ['Roger that. Queued.',
-                             'Affirmative, command queued for execution.',
-                             'We\'ll do that as soon as possible.',
-                             'Copy that, command queued']
-
 
 class Parser(object):
 
@@ -192,9 +181,8 @@ class Parser(object):
         whose ICAO code is given.
         '''
         parsed_commands = []
-        aeroplane = self.aerospace.get_plane_by_icao(icao)
-        callable_ = aeroplane.queue_command if to_queue \
-                                            else aeroplane.execute_command
+        pilot = self.aerospace.get_plane_by_icao(icao).pilot
+        callable_ = pilot.queue_command if to_queue else pilot.execute_command
         while len(self.bits) != 0:
             # The first bit of a command sequence is either the command or
             # the condensed form for heading, altitude and speed (see below)
@@ -448,30 +436,17 @@ class CommandLine(object):
             answer_prefix = 'ERROR: '
             self.console_lines.append([RED, answer_prefix+parsed])
         else:
-            # Successfully parsed commands are executed...
             callable_, args = parsed
-            ret = callable_(args)
             fname = callable_.__name__
-            # ...if they are aeroplane commands, they get additional console
-            # and command-history processing...
+            # Successfully parsed commands get logged on console and inserted
+            # into command history
             if fname in ('execute_command', 'queue_command'):
-                # Processing of command
                 self.console_lines.append([WHITE,
                                     ' '.join((self.cmd_prefix,self.text))])
                 self.command_history.insert(0, self.text)
-                # Processing of the answer
-                colour = GREEN
-                callsign = callable_.im_self.callsign
-                if ret == True:
-                    if fname == 'execute_command':
-                        answer = randelement(AFFIRMATIVE_EXEC_ANSWERS)
-                    elif fname == 'queue_command':
-                        answer = randelement(AFFIRMATIVE_QUEUE_ANSWERS)
-                else:
-                    answer = ret
-                    colour = RED
-                self.say(callsign, answer, colour)
-            # ...and the command line is finally emptied for a new command
+            # ...and executed
+            callable_(args)
+            # Command line is emptied
             self.chars = []
 
     def process_keystroke(self, event):
@@ -554,5 +529,6 @@ class CommandLine(object):
         '''
         Output a message on the console.
         '''
+        #TODO: Multiline for long messages (?)
         self.console_lines.append((colour,
                                    ' '.join([who, PROMPT_SEPARATOR, what])))

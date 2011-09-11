@@ -36,6 +36,35 @@ def randelement(sequence):
         return sequence[keys[index]]
     return sequence[index]
 
+def in_between(boundaries, value):
+    '''
+    Return True if value is between boundaries.
+    Boundaries : any two values (tuple, list)
+    Value: the value to be tested
+    '''
+    PRECISION = 7
+    tmp = list(boundaries)
+    tmp.append(value)
+    tmp = [round(el, PRECISION) for el in tmp]
+    tmp.sort()
+    return tmp[1] == round(value, PRECISION)
+
+def heading_in_between(boundaries, value):
+    '''
+    This is a heading-specific implementation of `test_in_between`.
+    From a geometrical point of view, an angle is always between other two.
+    This method return True, if the tested value is between the *smallest*
+    angle between the other two.
+    '''
+    # special case for 180°: angles is always in-between
+    if (boundaries[0]-boundaries[1])%360 == 180:
+        return True
+    sort_a = lambda a,b : [a,b] if (a-b)%360 > (b-a)%360 else [b,a]
+    tmp = sort_a(*boundaries)
+    if tmp[0] > tmp[1]:
+        tmp[0] -= 360
+    return tmp[0] <= value <= tmp[1]
+
 def sc(vector):
     '''
     Return a version of a 2-elements iterable (coordinates) suitable for

@@ -178,7 +178,8 @@ class Aerospace(object):
             s = self.surface.get_rect()
             x, y = plane['sprites'][0].position
             if x < 0 or x > s.width or y < 0 or y > s.height:
-                self.gamelogic.remove_plane(plane['plane'], PLANE_OUTOFRANGE)
+                self.gamelogic.remove_plane(plane['plane'],
+                                            PLANE_LEAVES_RANDOM)
 
     def get_plane_by_icao(self, icao):
         icao = icao.upper()

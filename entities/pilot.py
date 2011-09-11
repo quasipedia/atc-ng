@@ -9,6 +9,7 @@ from lib.utils import *
 from math import sqrt, radians, cos, sin, tan
 from lib.euclid import Vector3
 from random import randint
+from time import time
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -22,7 +23,6 @@ __status__ = "Development"
 
 # Module variables
 PING_IN_SECONDS = PING_PERIOD / 1000.0
-
 
 class Lander(object):
 
@@ -155,6 +155,7 @@ class Pilot(object):
     the aeroplane.
     '''
 
+    # Spatial
     LEFT = CCW = -1
     RIGHT = CW = +1
     # Phases of the landing sequence
@@ -163,6 +164,17 @@ class Pilot(object):
     MERGING = 2
     MATCHING = 3
     GLIDING = 4
+    # Radio answers
+    AFFIRMATIVE_EXEC_ANSWERS = ['Roger that. Executing.',
+                                'Affirmative, initiating maneuver now.',
+                                'Roger, we\'re on it.',
+                                'Copy that.',
+                                'Okie dokie artichokie!']
+
+    AFFIRMATIVE_QUEUE_ANSWERS = ['Roger that. Queued.',
+                                 'Affirmative, command queued for execution.',
+                                 'We\'ll do that as soon as possible.',
+                                 'Copy that, command queued']
 
     @classmethod
     def set_aerospace(cls, aerospace):
@@ -174,6 +186,7 @@ class Pilot(object):
 
     def __init__(self, plane):
         self.plane = plane
+        self.queued_commands = []
         self.veering_direction = None
         self.course_towards = None
         self.lander = None
@@ -184,16 +197,146 @@ class Pilot(object):
         variables.
         '''
         #TODO:BUG - landing abortions don't always "say" what they should
+        self.say('Aborting landing: %s' % msg, ALERT_COLOUR)
         self.plane.flags.cleared_down = False
         self.lander = None
-        return msg
+
+    def _abort_command(self, last_only=False):
+        '''
+        Abort execution of a command (or the entire command buffer).
+        '''
+        if last_only == True and self.queued_commands:
+            self.queued_commands.pop()
+            return
+        self.set_target_conf_to_current()
+        self.queued_commands = []
+        self.veering_direction = None
+        self.flags.reset()
 
     def say(self, what, colour):
         '''
         Output a message on the console.
         '''
-        self.plane.aerospace.gamelogic.say(self.plane.callsign, what, YELLOW)
+        self.plane.aerospace.gamelogic.say(self.plane.callsign, what, colour)
 
+    def queue_command(self, commands):
+        '''
+        Add a command to the queue buffer.
+        Return True on message successfully queued, false otherwise.
+        '''
+        # Only valid commands must be queued!
+        for line in commands:
+            command, args, flags = line
+            if command == 'altitude':
+                feasible = self.verify_feasibility(altitude=args[0])
+                if feasible != True:
+                    return feasible
+            elif command == 'speed':
+                feasible = self.verify_feasibility(speed=args[0])
+                if feasible != True:
+                    return feasible
+        # Queuing can only be performed after commands whose implementation
+        # will eventually finish...
+        if self.plane.flags.circling:
+            msg = 'This makes no sense... when should we stop circling?!'
+            return msg
+        # And before the end of the flight!
+        if self.plane.flags.cleared_down:
+            msg = 'Once landed, the flight is over!'
+            return msg
+        self.queued_commands.append(commands)
+        self.say(randelement(self.pilot.AFFIRMATIVE_QUEUE_ANSWERS), OK_COLOUR)
+        return True
+
+    def execute_command(self, commands):
+        '''
+        Execute commands.
+        Input is a list of triplets each of them in the format:
+        [command, [arg1, arg2, ...], [flag1, flag2, ...]].
+        Return True on message successfully executed, false otherwise.
+        '''
+        self.plane.time_last_cmd = time()
+        # Speedup hack
+        pl_flags = self.plane.flags
+        # Points event
+        if commands[0][0] != 'squawk':
+            self.aerospace.gamelogic.score_event(COMMAND_IS_ISSUED)
+        # Reject orders if busy
+        if pl_flags.busy == True and commands[0][0] != 'abort':
+            msg = 'Still maneuvering, please specify abort/append command'
+            self.say(msg, KO_COLOUR)
+            return False
+        # Reject order if imminent collision
+        if pl_flags.collision == True:
+            msg = '...'
+            self.say(msg, KO_COLOUR)
+            return False
+        # Otherwise execute what requested
+        for line in commands:
+            command, args, cmd_flags = line
+            # EXPEDITE FLAG
+            if 'expedite' in cmd_flags:
+                pl_flags.expedite = True
+            # HEADING COMMAND
+            if command == 'heading':
+                if type(args[0]) == int:  #the argument is a heading
+                    self.target_conf['heading'] = args[0]
+                else:  #the argument is a location (a beacon's one)
+                    self.set_course_towards(args[0])
+                # Veering direction
+                self.veering_direction = self.shortest_veering_direction()
+                if 'long_turn' in cmd_flags:
+                    self.veering_direction *= -1  #invert direction
+            # ALTITUDE COMMAND
+            elif command == 'altitude':
+                feasible = self.verify_feasibility(altitude=args[0])
+                if feasible != True:
+                    self.say(feasible, KO_COLOUR)
+                    return False
+                self.target_conf['altitude'] = args[0]
+            elif command == 'speed':
+                feasible = self.verify_feasibility(speed=args[0])
+                if feasible != True:
+                    self.say(feasible, KO_COLOUR)
+                    return False
+                self.target_conf['speed'] = args[0]
+            # TAKE OFF COMMAND
+            elif command == 'takeoff':
+                pass
+            # LAND COMMAND
+            elif command == 'land':
+                feasible = self.verify_existing_runway(*args)
+                if feasible != True:
+                    self.say(feasible, KO_COLOUR)
+                    return False
+                ret = self.land(*args)
+                if type(ret) != int:
+                    return ret
+            # CIRCLE COMMAND
+            elif command == 'circle':
+                param = args[0].lower()
+                if param in ('l', 'left', 'ccw'):
+                    self.veering_direction = self.LEFT
+                elif param in ('r', 'right', 'cw'):
+                    self.veering_direction = self.RIGHT
+                else:
+                    msg = 'Unknown parameter for circle command.'
+                    raise BaseException(msg)
+                pl_flags.circling = True
+            # ABORT COMMAND
+            elif command == 'abort':
+                self._abort_command('lastonly' in cmd_flags)
+                return True  #need to skip setting flag.busy to True!
+            # SQUAWK COMMAND
+            elif command == 'squawk':
+                self.say('Currently heading %s, directed to %s' %
+                          (rint(self.heading), self.destination), OK_COLOUR)
+                return True  #need to skip setting flag.busy to True!
+            else:
+                raise BaseException('Unknown command: %s' % command)
+        pl_flags.busy = True
+        self.say(randelement(self.AFFIRMATIVE_EXEC_ANSWERS), OK_COLOUR)
+        return True
 
     def verify_feasibility(self, speed=None, altitude=None):
         '''
@@ -225,40 +368,17 @@ class Pilot(object):
             return 'Aeroport %s does not have runway %s!' % (port, runway)
         return True
 
-    def test_in_between(self, boundaries, value):
+    def set_target_conf_to_current(self):
         '''
-        Return True if value is between boundaries.
-        Boundaries : any two values (tuple, list)
-        Value: the value to be tested
+        Set the target configuration for the current one.
         '''
-        PRECISION = 7
-        tmp = list(boundaries)
-        tmp.append(value)
-        tmp = [round(el, PRECISION) for el in tmp]
-        tmp.sort()
-        return tmp[1] == round(value, PRECISION)
-
-    def test_heading_in_between(self, boundaries, value):
-        '''
-        This is a heading-specific implementation of `test_in_between`.
-        From a geometrical point of view, an angle is always between other two.
-        This method return True, if the tested value is between the *smallest*
-        angle between the other two.
-        '''
-        # special case for 180°: angles is always in-between
-        if (boundaries[0]-boundaries[1])%360 == 180:
-            return True
-        sort_a = lambda a,b : [a,b] if (a-b)%360 > (b-a)%360 else [b,a]
-        tmp = sort_a(*boundaries)
-        if tmp[0] > tmp[1]:
-            tmp[0] -= 360
-        return tmp[0] <= value <= tmp[1]
+        self.target_conf = self.plane.get_current_configuration()
 
     def test_target_conf_reached(self):
         '''
         Return True if the current plane configuration matches the target one.
         '''
-        tc = self.plane.target_conf
+        tc = self.target_conf
         return self.plane.heading == tc['heading'] and \
                self.plane.altitude == tc['altitude'] and \
                self.plane.speed == tc['speed']
@@ -268,7 +388,7 @@ class Pilot(object):
         Return self.LEFT or self.RIGHT according to whatever the shortest
         veering to a certain course is.
         '''
-        theta = (self.plane.heading - self.plane.target_conf['heading']) % 360
+        theta = (self.plane.heading - self.target_conf['heading']) % 360
         return self.LEFT if theta < 180 else self.RIGHT
 
     def get_intersection_point(self, vector, point):
@@ -376,7 +496,7 @@ class Pilot(object):
                 l.phase = self.MATCHING
 #            print "--- MERGING ---"
 #            print "heading  : %s" % pl.heading
-#            print "t head   : %s" % pl.target_conf['heading']
+#            print "t head   : %s" % self.target_conf['heading']
 #            print "from ft  : %s" % l.fd
         elif l.phase == self.MATCHING:
             secs_to_foot = l.fd / pl.speed
@@ -398,7 +518,7 @@ class Pilot(object):
                     self.__abort_landing(msg)
             # ...otherwise tell it to climb/descend!!
             else:
-                pl.target_conf['altitude'] = path_alt
+                self.target_conf['altitude'] = path_alt
 #            print "--- MATCHING ---"
 #            print "alt        : %s" % pl.altitude
 #            print "path alt   : %s" % path_alt
@@ -407,17 +527,20 @@ class Pilot(object):
         elif l.phase == self.GLIDING:
             # Abort if the plane is too fast to slow to landing speed
             if l.bd <= 0:
-                pl.target_conf['speed'] = pl.landing_speed
+                self.target_conf['speed'] = pl.landing_speed
             if pl.position.z < l.foot.z:
-                pl.terminate(PLANE_LAND)
+                if pl.destination == l.port_name:
+                    pl.terminate(PLANE_LANDS_CORRECT_PORT)
+                else:
+                    pl.terminate(PLANE_LANDS_WRONG_PORT)
                 return
-            ticks = 1.0 * l.fd / pl.target_conf['speed'] / PING_IN_SECONDS
+            ticks = 1.0 * l.fd / self.target_conf['speed'] / PING_IN_SECONDS
             z_step = 1.0 * l.above_foot / ticks
-            pl.target_conf['altitude'] -= z_step
+            self.target_conf['altitude'] -= z_step
 #            print "--- GLIDING ---"
 #            print "alt on foot  : %s" % l.above_foot
 #            print "speed        : %s" % pl.speed
-#            print "target speed : %s" % pl.target_conf['speed']
+#            print "target speed : %s" % self.target_conf['speed']
 #            print "bd_from_ft   : %s" % l.bd_from_ft
 #            print "from braking : %s" % l.bd
 #            print "from ft      : %s" % l.fd
@@ -487,7 +610,7 @@ class Pilot(object):
         delta = Vector3(*coords) - self.plane.position
         new_head = v3_to_heading(delta)
         if new_head != self.plane.heading:
-            self.plane.target_conf['heading'] = new_head
+            self.target_conf['heading'] = new_head
         else:
             self.course_towards = None
             self.veering_direction = None
@@ -508,7 +631,7 @@ class Pilot(object):
         vector = reduce(lambda x,y : x+y, vectors)
         # Set the target configuration
         self.plane.flags.expedite = True
-        tc = self.plane.target_conf
+        tc = self.target_conf
         if vector.z == 0:
             vector.z = randint(0,1)  #if two planes fly at the same level...
         tc['altitude'] = self.plane.max_altitude if vector.z > 0 else 0
@@ -538,18 +661,18 @@ class Pilot(object):
                 target = (self.heading + 179) % 360
             else:
                 raise BaseException('Veering direction not set for circling.')
-            pl.target_conf['heading'] = target
+            self.target_conf['heading'] = target
         # Landing loop (affects all parameters at various landing phases)
         if pl.flags.cleared_down:
             self.land()
         # Course towards action affects heading only, can be set by landing
         if self.course_towards:
             self.set_course_towards()
-        if pl.heading != pl.target_conf['heading']:
+        if pl.heading != self.target_conf['heading']:
             self.veer()
-        if pl.altitude != pl.target_conf['altitude']:
+        if pl.altitude != self.target_conf['altitude']:
             # Descending or ascending?
-            index = pl.altitude < pl.target_conf['altitude']
+            index = pl.altitude < self.target_conf['altitude']
             z_acc = pl.climb_rate_accels[index]*PING_IN_SECONDS
             # Non expedite climbs / takeoffs / landings are limited at 50% of
             # maximum rate.
@@ -563,8 +686,8 @@ class Pilot(object):
             # if out of boundaries, uses min and max
             else:
                 pl.velocity.z = max_ if index else min_
-        if pl.speed != pl.target_conf['speed']:
-            index = pl.speed < pl.target_conf['speed']
+        if pl.speed != self.target_conf['speed']:
+            index = pl.speed < self.target_conf['speed']
             gr_acc = pl.ground_accels[index]*PING_IN_SECONDS
             # Non expedite accelerations are limited at 50% of maximum accels
             if not (pl.flags.expedite or \
@@ -587,31 +710,30 @@ class Pilot(object):
         # POST-UPDATE OPS #
         ###################
         # Heading dampener (act on velocity vector)
-        t_head = pl.target_conf['heading']
-        if self.test_heading_in_between((previous_heading,
-                                         pl.heading), t_head):
+        t_head = self.target_conf['heading']
+        if heading_in_between((previous_heading, pl.heading), t_head):
             mag = abs(Vector2(*pl.velocity.xy))
             theta = radians(90-t_head)
             pl.velocity.x = cos(theta)*mag
             pl.velocity.y = sin(theta)*mag
-            pl.target_conf['heading'] = pl.heading  #Fixes decimal approx.
+            self.target_conf['heading'] = pl.heading  #Fixes decimal approx.
             self.course_towards = None  #Make sure new heading is re-caculated
         # Speed dampener (act on velocity vector)
-        t_speed = pl.target_conf['speed']
-        if self.test_in_between((previous_speed, pl.speed), t_speed):
+        t_speed = self.target_conf['speed']
+        if in_between((previous_speed, pl.speed), t_speed):
             mag = t_speed
             # this is ground speed, so we want to normalise that without
             # affecting the z component...
             saved_z = pl.velocity.z
             pl.velocity = Vector3(*pl.velocity.xy).normalized() * t_speed
             pl.velocity.z = saved_z
-            pl.target_conf['speed'] = pl.speed  #Fixes decimal approx.
+            self.target_conf['speed'] = pl.speed  #Fixes decimal approx.
         # Update onboard instruments, as the following dampener will modify
         # the data they would access
         pl.update_instruments()
         # Altitude dampener (act on position vector)
-        t_alt = pl.target_conf['altitude']
-        if self.test_in_between((previous_altitude, pl.altitude), t_alt):
+        t_alt = self.target_conf['altitude']
+        if in_between((previous_altitude, pl.altitude), t_alt):
             pl.position.z = t_alt
             pl.velocity.z = 0
         # Update busy flag or start execution of next command
@@ -620,8 +742,8 @@ class Pilot(object):
                       (fl.cleared_beacon or fl.cleared_down or fl.cleared_up):
             fl.busy = False  #execute commands will check this flag
             fl.expedite = False  #reset
-            if pl.queued_commands:
-                pl.execute_command(pl.queued_commands.pop(0))
+            if self.queued_commands:
+                self.execute_command(self.queued_commands.pop(0))
         # If the plane is en route towards a given point...
 #        if self.course_towards:
 #            self.test_closest_pass()

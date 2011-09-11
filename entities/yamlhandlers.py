@@ -195,6 +195,9 @@ class PlaneModelHandler(YamlHandler):
         fnames = [n[:-4] for n in fnames if n[-4:] == '.yml']
         for fname in fnames:
             self.load(fname)
+            # Convert data in kph to m/s
+            self._data['max_speed'] /= 3.6
+            self._data['landing_speed'] /= 3.6
             data[self._data['model']] = self._data
         del self._data
         self.__models = data

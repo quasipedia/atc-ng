@@ -72,6 +72,7 @@ class Aeroplane(object):
                         'category',          # Propeller, Chopper, Jet...
                         'origin',            # Aeroport / Gate name
                         'destination',       # Aeroport / Gate name
+                        'fuel_efficiency',   # Unit of fuel per meter
                         #STATIC / vertical modelling
                         'max_altitude',      # max altitude
                         'climb_rate_limits', # (down, up) climb rates
@@ -97,13 +98,12 @@ class Aeroplane(object):
         # Initialisation of other properties
         self.entry_time = time()
         self.min_speed = self.landing_speed*1.5
-        self.set_target_conf_to_current()
+        self.pilot.set_target_conf_to_current()
         self.flags = Flags()
         self.time_last_cmd = time()
         self.veering_direction = None
         self.target_coords = None
         self.trail = deque([sc(self.position.xy)] * TRAIL_LENGTH, TRAIL_LENGTH)
-        self.queued_commands = []
         self.colliding_planes = []
         self.__accelerometer = ' '
         self.__variometer = ' '
@@ -142,7 +142,8 @@ class Aeroplane(object):
             indicator = CHAR_DOWN
         self.__variometer = indicator
         # SPEEDOMETER
-        t_speed = self.target_conf['speed']
+        # TODO: Decouple from pilot and use acceleration?
+        t_speed = self.pilot.target_conf['speed']
         indicator = ' '
         if t_speed > self.speed:
             indicator = CHAR_UP
@@ -172,7 +173,7 @@ class Aeroplane(object):
         '''
         value = CONTROLLED
         fl = self.flags
-        if fl.busy or self.queued_commands or fl.circling or \
+        if fl.busy or self.pilot.queued_commands or fl.circling or \
            fl.cleared_down or fl.cleared_up or fl.cleared_beacon:
             value = INSTRUCTED
         if fl.priority:
@@ -189,119 +190,6 @@ class Aeroplane(object):
         '''
         self.aerospace.gamelogic.remove_plane(self, event)
 
-    def queue_command(self, commands):
-        '''
-        Add a command to the queue buffer.
-        '''
-        # Only valid commands must be queued!
-        for line in commands:
-            command, args, flags = line
-            if command == 'altitude':
-                feasible = self.pilot.verify_feasibility(altitude=args[0])
-                if feasible != True:
-                    return feasible
-            elif command == 'speed':
-                feasible = self.pilot.verify_feasibility(speed=args[0])
-                if feasible != True:
-                    return feasible
-        # Queuing can only be performed after commands whose implementation
-        # will eventually finish...
-        if self.flags.circling:
-            msg = 'This makes no sense... when should we stop circling?!'
-            return msg
-        # And before the end of the flight!
-        if self.flags.cleared_down:
-            msg = 'Once landed, the flight is over!'
-            return msg
-        self.queued_commands.append(commands)
-        return True
-
-    def execute_command(self, commands):
-        '''
-        Execute commands.
-        Input is a list of triplets each of them in the format:
-        [command, [arg1, arg2, ...], [flag1, flag2, ...]].
-        Return True or a message error.
-        '''
-        # Speedup
-        pilot = self.pilot
-        # Reject orders if busy
-        if self.flags.busy == True and commands[0][0] != 'abort':
-            return 'Still maneuvering, please specify abort/append command'
-        # Reject order if imminent collision
-        if self.flags.collision == True:
-            return '...'
-        # Otherwise execute what requested
-        for line in commands:
-            command, args, flags = line
-            # EXPEDITE FLAG
-            if 'expedite' in flags:
-                self.flags.expedite = True
-            # HEADING COMMAND
-            if command == 'heading':
-                if type(args[0]) == int:  #the argument is a heading
-                    self.target_conf['heading'] = args[0]
-                else:  #the argument is a location (a beacon's one)
-                    pilot.set_course_towards(args[0])
-                # Veering direction
-                pilot.veering_direction = pilot.shortest_veering_direction()
-                if 'long_turn' in flags:
-                    pilot.veering_direction *= -1  #invert direction
-            # ALTITUDE COMMAND
-            elif command == 'altitude':
-                feasible = pilot.verify_feasibility(altitude=args[0])
-                if feasible != True:
-                    return feasible
-                self.target_conf['altitude'] = args[0]
-            elif command == 'speed':
-                feasible = pilot.verify_feasibility(speed=args[0])
-                if feasible != True:
-                    return feasible
-                self.target_conf['speed'] = args[0]
-            # TAKE OFF COMMAND
-            elif command == 'takeoff':
-                pass
-            # LAND COMMAND
-            elif command == 'land':
-                feasible = pilot.verify_existing_runway(*args)
-                if feasible != True:
-                    return feasible
-                ret = pilot.land(*args)
-                if type(ret) != int:
-                    return ret
-            # CIRCLE COMMAND
-            elif command == 'circle':
-                param = args[0].lower()
-                if param in ('l', 'left', 'ccw'):
-                    self.veering_direction = self.LEFT
-                elif param in ('r', 'right', 'cw'):
-                    self.veering_direction = self.RIGHT
-                else:
-                    msg = 'Unknown parameter for circle command.'
-                    raise BaseException(msg)
-                self.flags.circling = True
-            # ABORT COMMAND
-            elif command == 'abort':
-                self._abort_command('lastonly' in flags)
-                return True  #need to skip setting flag.busy to True!
-            else:
-                raise BaseException('Unknown command: %s' % command)
-            self.flags.busy = True
-        self.time_last_cmd = time()
-        return True
-
-    def _abort_command(self, last_only=False):
-        '''
-        Abort execution of a command (or the entire command buffer).
-        '''
-        if last_only == True and self.queued_commands:
-            self.queued_commands.pop()
-            return
-        self.set_target_conf_to_current()
-        self.queued_commands = []
-        self.veering_direction = None
-        self.flags.reset()
-
     def set_aversion(self, other_plane):
         '''
         Instruct the plane to avoid collision with `other_plane`
@@ -317,11 +205,17 @@ class Aeroplane(object):
         Update the plane status according to the elapsed time.
         Pings = number of radar pings from last update.
         '''
+        burning_speed = 1 if self.flags.expedite == False else 2
+        initial = self.position.copy()
         for i in range(pings):
             # Pilot's updates
             self.pilot.update()
-            # Decrease fuel consumption
-            self.fuel -= 1*pings if self.fuel else 0
+        # Decrease fuel consumption
+        dist = ground_distance(initial, self.position)
+        burnt = burning_speed * dist * self.fuel_efficiency
+        self.fuel -= burnt
+        self.aerospace.gamelogic.score_event(PLANE_BURNS_FUEL_UNIT,
+                                             multiplier=burnt)
         # Update sprite
         self.rect = sc(self.position.xy)
         self.trail.appendleft(sc(self.position.xy))
@@ -333,9 +227,3 @@ class Aeroplane(object):
         return dict(speed = self.speed,
                     altitude = self.altitude,
                     heading = self.heading)
-
-    def set_target_conf_to_current(self):
-        '''
-        Set the target configuration for the current one.
-        '''
-        self.target_conf = self.get_current_configuration()

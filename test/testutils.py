@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8  -*-
 '''
-Test the util functions for ATC-NG game.
+Test the util heading_in_betweentions for ATC-NG game.
 '''
 
 import unittest
@@ -23,7 +23,7 @@ __status__ = "Development"
 class Test(unittest.TestCase):
 
     '''
-    Test the utility functions.
+    Test the utility heading_in_betweentions.
     '''
 
     def testRint(self):
@@ -140,6 +140,62 @@ class Test(unittest.TestCase):
         for v1, v2, r in TO_TEST:
             back = ground_distance(Vector3(*v1), Vector3(*v2))
             self.assertAlmostEqual(back, r, 5)
+
+    def testInBetween(self):
+        '''
+        in_between - number comprised between two?
+        '''
+        # Positive range
+        self.assertTrue(in_between((0, 10), 5))
+        self.assertTrue(in_between((10, 0), 5))
+        self.assertFalse(in_between((0, 10), 15))
+        self.assertFalse(in_between((10, 0), 15))
+        # Negative range
+        self.assertTrue(in_between((0, -10), -5))
+        self.assertTrue(in_between((-10, 0), -5))
+        self.assertFalse(in_between((0, -10), -15))
+        self.assertFalse(in_between((-10, 0), -15))
+        # Spanning range
+        self.assertTrue(in_between((10, -10), 5))
+        self.assertTrue(in_between((-10, 10), 5))
+        self.assertTrue(in_between((10, -10), -5))
+        self.assertTrue(in_between((-10, 10), -5))
+        self.assertFalse(in_between((10, -10), 15))
+        self.assertFalse(in_between((-10, 10), 15))
+        self.assertFalse(in_between((10, -10), -15))
+        self.assertFalse(in_between((-10, 10), -15))
+        # Edges
+        self.assertTrue(in_between((-10, 10), 10))
+        self.assertTrue(in_between((-10, 10), -10))
+        # Punctiform
+        self.assertTrue(in_between((10, 10), 10))
+
+    def testHeadingInBetween(self):
+        '''
+        heading_in_between - heading in the shortest arc between other two
+        '''
+        # Normalised values
+        self.assertTrue(heading_in_between((0, 90), 45))
+        self.assertFalse(heading_in_between((270, 0), 45))
+        # Non-normalised values
+        self.assertTrue(heading_in_between((-60, 60), -1))
+        self.assertTrue(heading_in_between((-60, 60), -0))
+        self.assertTrue(heading_in_between((-60, 60), 1))
+        self.assertTrue(heading_in_between((60, -60), -1))
+        self.assertTrue(heading_in_between((60, -60), -0))
+        self.assertTrue(heading_in_between((60, -60), 1))
+        self.assertFalse(heading_in_between((-60, 60), -179))
+        self.assertFalse(heading_in_between((-60, 60), -180))
+        self.assertFalse(heading_in_between((-60, 60), 180))
+        self.assertFalse(heading_in_between((-60, 60), 179))
+        self.assertFalse(heading_in_between((60, -60), -179))
+        self.assertFalse(heading_in_between((60, -60), -180))
+        self.assertFalse(heading_in_between((60, -60), 180))
+        self.assertFalse(heading_in_between((60, -60), 179))
+        # Tricky cases
+        self.assertTrue(heading_in_between((-90, 90), 0))
+        self.assertTrue(heading_in_between((-90, 90), 180))
+
 
 
 if __name__ == "__main__":
