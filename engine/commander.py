@@ -100,18 +100,19 @@ class Parser(object):
             else:
                 return [self.aerospace.beacons[arg].location]
 
-    def _validate_altitude(self, altitude):
+    def _validate_altitude(self, alt):
         '''
         Valid altitudes are given in hundreds of meters, and are multiple of
         500. They must also be in the range between min and max altitudes for
         the game.
         '''
-        #TODO: Parametrise the min and max in-game altitudes
         try:
-            num_a = int(altitude)
+            num_a = int(alt)
         except ValueError:
             return False
-        if not (0 < num_a < 100 and len(altitude) == 2 and num_a % 5 == 0):
+        min_ = MIN_FLIGHT_LEVEL/100
+        max_ = MAX_FLIGHT_LEVEL/100
+        if not (min_<= num_a <= max_ and len(alt) == 2 and num_a % 5 == 0):
             return False
         return [num_a * 100]  #return in metres
 
@@ -181,7 +182,10 @@ class Parser(object):
         whose ICAO code is given.
         '''
         parsed_commands = []
-        pilot = self.aerospace.get_plane_by_icao(icao).pilot
+        try:
+            pilot = self.aerospace.get_plane_by_icao(icao).pilot
+        except KeyError:
+            return 'Flight %s is not on the radar.' % icao.upper()
         callable_ = pilot.queue_command if to_queue else pilot.execute_command
         while len(self.bits) != 0:
             # The first bit of a command sequence is either the command or
@@ -271,6 +275,7 @@ class Parser(object):
         return (callable_, parsed_commands)
 
     def parse_game_command(self):
+        #TODO:BUG - double slash crashes the game
         try:
             issued = self.bits.pop()
         except IndexError:  # Empty bits --> No command issued

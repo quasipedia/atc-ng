@@ -52,6 +52,7 @@ class Aerospace(object):
         self.__aeroports = {}
         self.__beacons = {}
         self.__gates = {}
+        self.tcas_data = {}
         entities.pilot.Pilot.set_aerospace(self)
 
     def __filter_self_collisions(self, sprite, collisions):
@@ -178,6 +179,8 @@ class Aerospace(object):
             s = self.surface.get_rect()
             x, y = plane['sprites'][0].position
             if x < 0 or x > s.width or y < 0 or y > s.height:
+                msg = 'Tower? ... Tower? ... Aaaaahhhh!'
+                plane['plane'].pilot.say(msg, KO_COLOUR)
                 self.gamelogic.remove_plane(plane['plane'],
                                             PLANE_LEAVES_RANDOM)
 
@@ -213,30 +216,42 @@ class Aerospace(object):
         '''
         return self.__beacons
 
-    def tcas(self):
+    def check_proximity(self, point):
         '''
-        TCAS = Traffic Collision Avoidance System. Verify if any plane is
-        about to collide with another one and take appropriate counter-
-        measures.
+        Check if a given point is near enough to another plane to trigger the
+        TCAS alarm.
         '''
-        # Reset all collision data
-        for p in self.aeroplanes:
-            if p.flags.collision == True:
-                p.flags.collision = False
-                p.colliding_planes = []
-                p.pilot.set_target_conf_to_current()
-        # Recalculate it
+        for plane in self.aeroplanes:
+            distance = point - plane.position
+            if abs(distance.z) < VERTICAL_CLEARANCE and \
+               distance.x**2 + distance.y**2 < HORIZONTAL_CLEARANCE**2:
+                return True
+        return False
+
+    def set_tcas_data(self):
+        '''
+        TCAS = Traffic Collision Avoidance System. Set the data that will be
+        queried by individual TCAS onboard each plane.
+        '''
+        data = {}
         for p1, p2 in combinations(self.aeroplanes, 2):
             distance = p1.position - p2.position
             if abs(distance.z) < VERTICAL_CLEARANCE and \
                distance.x**2 + distance.y**2 < HORIZONTAL_CLEARANCE**2:
-                p1.set_aversion(p2)
-                p2.set_aversion(p1)
+                try:
+                    data[p1.icao].append(p2)
+                except KeyError:
+                    data[p1.icao] = [p2]
+                try:
+                    data[p2.icao].append(p1)
+                except KeyError:
+                    data[p2.icao] = [p1]
+        self.tcas_data = data
 
     def update(self, pings):
         for plane in self.__planes.values():
             plane['plane'].update(pings)
-        self.tcas()
+        self.set_tcas_data()
         self.flying_sprites.update()
         self.kill_escaped()
         self.place_tags()

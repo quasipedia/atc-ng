@@ -61,6 +61,8 @@ OUTBOUND = 0
 INBOUND = 1
 VERTICAL_CLEARANCE = 500        # minimum distance in metres between planes
 HORIZONTAL_CLEARANCE = 5000     # minimum distance in metres between planes
+MIN_FLIGHT_LEVEL = 500
+MAX_FLIGHT_LEVEL = 9500
 
 # Game events (unique code event, base score)
 # NOTE: base score can be integrated at run-time (for example a landing plane

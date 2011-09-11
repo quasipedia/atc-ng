@@ -29,21 +29,29 @@ gates:
   radial     : 0
   heading    : 0
   width      : 10000
+  bottom     : 5000
+  top        : 8000
 
 - name       : EX1
   radial     : 45
   heading    : 45
   width      : 10000
+  bottom     : 5000
+  top        : 8000
 
 - name       : EX2
   radial     : 200
   heading    : 200
   width      : 10000
+  bottom     : 5000
+  top        : 8000
 
 - name       : EX3
   radial     : 270
   heading    : 270
   width      : 10000
+  bottom     : 5000
+  top        : 8000
 
 beacons:
 

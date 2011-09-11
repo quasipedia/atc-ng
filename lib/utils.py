@@ -24,18 +24,6 @@ def rint(float_):
     '''
     return int(round(float_))
 
-def randelement(sequence):
-    '''
-    Return a random element in a sequence.
-    '''
-    assert type(sequence) in (tuple, list, dict)
-    l = len(sequence)
-    index = randint(1, l)-1
-    if type(sequence) == dict:
-        keys = sequence.keys()
-        return sequence[keys[index]]
-    return sequence[index]
-
 def in_between(boundaries, value):
     '''
     Return True if value is between boundaries.

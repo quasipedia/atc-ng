@@ -4,6 +4,7 @@
 The piloting system for the ATC-NG aeroplanes.
 '''
 
+import random
 from engine.settings import *
 from lib.utils import *
 from math import sqrt, radians, cos, sin, tan
@@ -246,7 +247,7 @@ class Pilot(object):
             msg = 'Once landed, the flight is over!'
             return msg
         self.queued_commands.append(commands)
-        self.say(randelement(self.AFFIRMATIVE_QUEUE_ANSWERS), OK_COLOUR)
+        self.say(random.choice(self.AFFIRMATIVE_QUEUE_ANSWERS), OK_COLOUR)
         return True
 
     def execute_command(self, commands):
@@ -268,7 +269,7 @@ class Pilot(object):
             self.say(msg, KO_COLOUR)
             return False
         # Reject order if imminent collision
-        if pl_flags.collision == True:
+        if self.plane.tcas.state == True:
             msg = '...'
             self.say(msg, KO_COLOUR)
             return False
@@ -336,7 +337,7 @@ class Pilot(object):
             else:
                 raise BaseException('Unknown command: %s' % command)
         pl_flags.busy = True
-        self.say(randelement(self.AFFIRMATIVE_EXEC_ANSWERS), OK_COLOUR)
+        self.say(random.choice(self.AFFIRMATIVE_EXEC_ANSWERS), OK_COLOUR)
         return True
 
     def verify_feasibility(self, speed=None, altitude=None):
@@ -531,8 +532,12 @@ class Pilot(object):
                 self.target_conf['speed'] = pl.landing_speed
             if pl.position.z < l.foot.z:
                 if pl.destination == l.port_name:
+                    msg = 'Thank you tower, we\'ve hit home. Over and out!'
+                    self.say(msg, OK_COLOUR)
                     pl.terminate(PLANE_LANDS_CORRECT_PORT)
                 else:
+                    msg = 'Well, well... we just landed at the WRONG airport!'
+                    self.say(msg, KO_COLOUR)
                     pl.terminate(PLANE_LANDS_WRONG_PORT)
                 return
             ticks = 1.0 * l.fd / self.target_conf['speed'] / PING_IN_SECONDS
@@ -555,7 +560,7 @@ class Pilot(object):
         # aeroplane is in.
         if self.plane.flags.expedite or self.plane.flags.cleared_down:
             veer_type = 'expedite'
-        if self.plane.flags.collision:
+        if self.plane.tcas.state == True:
             veer_type = 'emergency'
         else:
             veer_type = 'normal'
@@ -616,30 +621,6 @@ class Pilot(object):
             self.course_towards = None
             self.veering_direction = None
 
-    def set_aversion_course(self):
-        '''
-        Calculate the best course to avoid the colliding plane(s).
-        This is done by:
-        - Reducing speed to the minimum for increased manoeuvrability
-        - Calculating opposite vectors to colliding planes and assigning to
-          them a magnitude which is proportional to their distance.
-        - Setting the course for the resulting vector.
-        '''
-        # Calculate the avoidance vector
-        vectors = [self.plane.position - p.position
-                   for p in self.plane.colliding_planes]
-        vectors = [v.normalized()/abs(v) for v in vectors]
-        vector = reduce(lambda x,y : x+y, vectors)
-        # Set the target configuration
-        self.plane.flags.expedite = True
-        tc = self.target_conf
-        if vector.z == 0:
-            vector.z = randint(0,1)  #if two planes fly at the same level...
-        tc['altitude'] = self.plane.max_altitude if vector.z > 0 else 0
-        tc['speed'] = self.plane.min_speed
-        tc['heading'] = (90-degrees(atan2(vector.y, vector.x)))%360
-        self.veering_direction = self.shortest_veering_direction()
-
     def update(self):
         '''
         Modify aeroplane configuration according to pilot's instructions.
@@ -650,9 +631,9 @@ class Pilot(object):
         previous_altitude = pl.altitude
         previous_heading = pl.heading
         previous_speed = pl.speed
-        # In case of imminent collision:
-        if pl.flags.collision:
-            self.set_aversion_course()
+        # Run the TCAS subroutine, which can override any order given to the
+        # pilot in case of risk of imminent collision
+        pl.tcas.update()
         # Circling action affects heading only (can be combined with changes in
         # speed and/or altitude)
         if pl.flags.circling:

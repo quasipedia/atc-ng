@@ -11,7 +11,7 @@ module.
 '''
 
 # Regular imports
-from random import randint
+import random
 import re
 import entities.aeroport
 import entities.waypoints
@@ -20,7 +20,6 @@ from os import listdir
 from pkg_resources import resource_stream, resource_listdir
 # Yaml imports. It tries to use the faster C version of the loader.
 from yaml import load
-from lib.utils import randelement
 try:
     from yaml import CLoader as Loader
 except ImportError:
@@ -109,14 +108,14 @@ class AirlinesHandler(YamlHandler):
         '''
         Return a list of only one random element from the complete list.
         '''
-        return randelement(self._data)
+        return random.choice(self._data.values())
 
     def random_flight(self):
         '''
         Return a randomly-generated flight number and its callsign.
         '''
         rnd = self.random_airline()
-        num = randint(1,9999)
+        num = random.randint(1,9999)
         fn = rnd['icao'] + str(num).zfill(4)
         cs = ' '.join((rnd['callsign'], str(num))) if rnd['callsign'] else fn
         return { 'icao' : fn, 'callsign' : cs}
@@ -206,4 +205,4 @@ class PlaneModelHandler(YamlHandler):
         '''
         Return the dictionary descriptor of a random model.
         '''
-        return randelement(self.__models)
+        return random.choice(self.__models.values())

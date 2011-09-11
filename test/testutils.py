@@ -77,20 +77,6 @@ class Test(unittest.TestCase):
             for a, b in tuples:
                 self.assertAlmostEqual(a,b)
 
-    def testRandElement(self):
-        '''
-        randelement - return a random element in a sequence
-        '''
-        # Works with lists
-        l = (0,1,'aaa',3,(1,2,3),5,6,{'my':1, 'yours':'none'},8,None)
-        for i in range(100):
-            self.assertIn(randelement(l), l)
-        # Works with dictionaries
-        d = {'a':'hello', 'b':{1:3}, 42:'number', 'ython':13.5795, 3:[]}
-        vals = d.values()
-        for i in range(100):
-            self.assertIn(randelement(d), vals)
-
     def testIntersectSegment(self):
         '''
         intersect_by_points - intersect two lines

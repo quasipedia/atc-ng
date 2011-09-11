@@ -28,11 +28,13 @@ class Gate(object):
     Basically all entering and exiting planes should do so from a gate.
     '''
 
-    def __init__(self, name, radial, heading, width):
+    def __init__(self, name, radial, heading, width, bottom, top):
         self.name = name
         self.radial = radial % 360
         self.heading = heading
         self.width = width
+        self.bottom = bottom
+        self.top = top
         self.__set_location()
 
     def __set_location(self):

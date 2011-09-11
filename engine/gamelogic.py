@@ -126,6 +126,8 @@ class GameLogic(object):
         status = INBOUND if plane.destination in \
                             self.aerospace.aeroports.keys() else OUTBOUND
         self.strips.add(sprites.guisprites.FlightStrip(plane, status))
+        plane.pilot.say('Hello tower, we are ready to copy instructions!',
+                        ALERT_COLOUR)
 
     def remove_plane(self, plane, event):
         '''
@@ -180,12 +182,12 @@ class GameLogic(object):
             score += fuel if score > 0 else -fuel
         # if the event score needs a multiplier, use it
         elif event in (PLANE_ENTERS, PLANE_BURNS_FUEL_UNIT,
-                       PLANE_WAITS_ONE_SECOND, EMERGENCY_TCAS):
+                       PLANE_WAITS_ONE_SECOND):
             assert multiplier != None
             score *= multiplier
         # otherwise... vanilla!
         else:
-            assert event in (COMMAND_IS_ISSUED, EMERGENCY_FUEL)
+            assert event in (COMMAND_IS_ISSUED, EMERGENCY_FUEL, EMERGENCY_TCAS)
         self.score += score
 
     def update(self, milliseconds):

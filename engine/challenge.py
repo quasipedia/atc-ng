@@ -6,11 +6,12 @@ Provide the logic for the playing mode of ATC-NG.
 
 #TODO: Convert to plugin-based challenges (time based, one against other, etc)
 
+import entities.yamlhandlers as ymlhand
+import random
 from engine.settings import *
 from entities.aeroplane import Aeroplane
 from lib.euclid import Vector3
 from time import time
-import entities.yamlhandlers as ymlhand
 from lib.utils import *
 
 __author__ = "Mac Ryan"
@@ -54,9 +55,11 @@ class Challenge(object):
         '''
         gates_data = []
         for gate in self.scenario.gates:
-            position = Vector3(*gate.location, z=5000)  #5000 mt asl
+            position = Vector3(*gate.location)
             velocity = heading_to_v3((gate.heading + 180)%360)
-            gates_data.append((gate.name, position, velocity))
+            levels = range(gate.top, gate.bottom-500, -500)
+            levels = [l for l in levels if l%1000 == 500]
+            gates_data.append((gate.name, position, velocity, levels))
         ports_data = []
         for port in self.scenario.aeroports:
             position = port.location.copy()
@@ -71,12 +74,20 @@ class Challenge(object):
         destination identifiers (aeroport or gate) for a plane. It also returns
         the initial amount of onboard fuel and the fuel_efficiency values.
         '''
-        orig, pos, vel = randelement(self.__entry_data['gates'])
-        # Prevent in-place modification on __entry_data
-        pos = pos.copy()
-        vel = vel.copy()
-        vel *= 500 / 3.6  #TODO: must match plane parameters!!!
-        tmp = randelement(self.scenario.aeroports)
+        random.shuffle(self.__entry_data['gates'])
+        entry_data_gates = self.__entry_data['gates'][:]
+        # Attempt to make planes enter the aerospace without making them
+        # collide with each other
+        while entry_data_gates:
+            orig, pos, vel, levels = entry_data_gates.pop()
+            levels = levels[:]
+            while levels:
+                # Prevent in-place modification on __entry_data
+                pos = pos.copy()
+                pos.z = levels.pop()
+                if not self.gamelogic.aerospace.check_proximity(pos):
+                    vel = vel.copy()
+        tmp = random.choice(self.scenario.aeroports)
         dest = tmp.iata
         fuel = rint(ground_distance(pos, tmp.location)*4*self.fuel_per_metre)
         return dict(origin=orig, position=pos, velocity=vel,
@@ -94,6 +105,8 @@ class Challenge(object):
         kwargs.update(self.flightnum_generator())
         # Origin and destionation
         kwargs.update(self.__generate_flight_plan())
+        # Set the module of the velocity (until here a normalized vector)
+        kwargs['velocity'] *= kwargs['max_speed']
         self.gamelogic.add_plane(Aeroplane(self.gamelogic.aerospace, **kwargs))
 
     def update(self):
@@ -103,7 +116,7 @@ class Challenge(object):
         '''
         # Every minute increase of one unit the amount of desired planes that
         # should be on radar at any time
-        if time() - self.ref_time > 60:
+        if time() - self.ref_time > 5:
             self.simultaneous_planes += 1
             self.ref_time = time()
         # Adjust the amount of actual planes to the desired one
@@ -112,3 +125,4 @@ class Challenge(object):
         # If there have been 3 (or more) destroyed planes, terminate the match
         if self.gamelogic.fatalities > 2:
             print ("Match is over!")
+            self.gamelogic.machine_state = MS_QUIT

@@ -24,6 +24,13 @@ Glossary
       generating the so called :term:`gates<gate>`. All aeroplanes that are not
       on ground must enter and exit the aerospace from them.
 
+   Flight level
+      In ATC-NG, a flight level is the standard nominal altitude of an aircraft
+      above the sea level, expressed in hundreds of metres. For example FL 05
+      means "500 metres asl".
+
+      Flight levels are the parameter for the ``ALTITUDE`` command.
+
    Gate
       Gates in ATC-NG are the entry/exit points for the aircrafts. An
       explanation of how to instruct an aeroplane to use a exit through a gate

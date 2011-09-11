@@ -47,8 +47,72 @@ class Flags(object):
         self.priority = False
         self.circling = False
         self.locked = False            # The plane is under computer control
-        self.collision = False         # The plane is on a collision path
         self.busy = False              # The plane is executing a command
+
+
+class Tcas(object):
+
+    '''
+    TCAS = Traffic Collision Avoidance System. This class provides the methods
+    needed to avoid collisions between planes. This class relies on "server
+    data" made available from the aerospace. Such server data indicates which
+    planes are about to collide. This class establishes the counter-measures.
+    '''
+
+    def __init__(self, plane):
+        self.plane = plane
+        self.state = False  #OFF state
+
+    def set_aversion_course(self, colliding):
+        '''
+        Calculate the best course to avoid the colliding plane(s).
+        This is done by:
+        - Reducing speed to the minimum for increased manoeuvrability
+        - Calculating opposite vectors to colliding planes and assigning to
+          them a magnitude which is proportional to their distance.
+        - Setting the course for the resulting vector.
+        '''
+        plane = self.plane
+        pilot = self.plane.pilot
+        # CALCULATE THE AVOIDANCE VECTOR
+        # Prevents unresolved cases but altering slighly the plane position if
+        # two planes are stacked one on top of the other or fly at the same
+        # level.
+        while True:
+            vectors = [plane.position - p.position for p in colliding]
+            vectors = [v.normalized()/abs(v) for v in vectors]
+            vector = reduce(lambda x,y : x+y, vectors)
+            if vector.z == 0:
+                plane.position.z += 0.01
+            elif vector.x == vector.y == 0:
+                plane.position.x += 0.01
+            else:
+                break
+        # SET THE TARGET CONFIGURATION
+        tc = pilot.target_conf
+        max_up = min(plane.max_altitude, MAX_FLIGHT_LEVEL)
+        tc['altitude'] = max_up if vector.z > 0 else MIN_FLIGHT_LEVEL
+        tc['speed'] = plane.min_speed
+        tc['heading'] = (90-degrees(atan2(vector.y, vector.x)))%360
+        pilot.veering_direction = pilot.shortest_veering_direction()
+
+    def update(self):
+        '''
+        Check if there is danger of collsion. If this is the case, take
+        appropriate counter-measures.
+        '''
+        try:
+            colliding = self.plane.aerospace.tcas_data[self.plane.icao]
+            # Aversion is an emergency and voids any order and order queue
+            self.plane.flags.reset()
+            self.plane.queued_commands = []
+            if self.state == False:
+                self.plane.aerospace.gamelogic.score_event(EMERGENCY_TCAS)
+            self.state = True
+            self.set_aversion_course(colliding)
+        except KeyError:
+            self.plane.pilot.set_target_conf_to_current()
+            self.state = False
 
 
 class Aeroplane(object):
@@ -93,6 +157,7 @@ class Aeroplane(object):
         # Required parameters/properties
         self.aerospace = aerospace
         self.pilot = pilot.Pilot(self)
+        self.tcas = Tcas(self)
         for property in self.KNOWN_PROPERTIES:
             setattr(self, property, kwargs[property])
         # Initialisation of other properties
@@ -176,7 +241,7 @@ class Aeroplane(object):
             value = INSTRUCTED
         if fl.priority:
             value = PRIORITIZED
-        if fl.collision:
+        if self.tcas.state:
             value = COLLISION
         if fl.locked:
             value = NON_CONTROLLED
@@ -187,16 +252,6 @@ class Aeroplane(object):
         Terminate an aeroplane.
         '''
         self.aerospace.gamelogic.remove_plane(self, event)
-
-    def set_aversion(self, other_plane):
-        '''
-        Instruct the plane to avoid collision with `other_plane`
-        '''
-        # Aversion is an emergency, and voids any other order and order queue
-        self.flags.reset()
-        self.queued_commands = []
-        self.colliding_planes.append(other_plane)
-        self.flags.collision = True
 
     def update(self, pings):
         '''
