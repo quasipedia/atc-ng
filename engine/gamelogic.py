@@ -120,6 +120,8 @@ class GameLogic(object):
         '''
         Add a plane from the game.
         '''
+        already_there = len(self.aerospace.aeroplanes)
+        self.score_event(PLANE_ENTERS, multiplier=already_there)
         self.aerospace.add_plane(plane)
         status = INBOUND if plane.destination in \
                             self.aerospace.aeroports.keys() else OUTBOUND
@@ -179,7 +181,7 @@ class GameLogic(object):
         # if the event score needs a multiplier, use it
         elif event in (PLANE_ENTERS, PLANE_BURNS_FUEL_UNIT,
                        PLANE_WAITS_ONE_SECOND, EMERGENCY_TCAS):
-            assert multiplier
+            assert multiplier != None
             score *= multiplier
         # otherwise... vanilla!
         else:

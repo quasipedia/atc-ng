@@ -18,6 +18,15 @@ __email__ = "quasipedia@gmail.com"
 __status__ = "Development"
 
 
+# Mock classes to allow creation of Aeroplanes that do not throw exceptions.
+class MockGameLogic(object):
+    def score_event(self, *args, **kwargs):
+        pass
+class MockAerospace(object):
+    @property
+    def gamelogic(self):
+        return MockGameLogic()
+
 class AtomicTest(unittest.TestCase):
 
     '''
@@ -26,7 +35,25 @@ class AtomicTest(unittest.TestCase):
     '''
 
     def setUp(self):
-        self.plane = aero.Aeroplane(None, icao='ABC1234', max_g=2.0)
+        kwargs = {'icao' : 'ABC1234',
+                  'callsign' : 'CALLME PLANE',
+                  'model' : 'A380',
+                  'category' : 'jet',
+                  'origin' : 'XXX',
+                  'destination' : 'YYY',
+                  'fuel_efficiency' : 1,
+                  'max_altitude' : 10000,
+                  'climb_rate_limits' : [-30, 15],
+                  'climb_rate_accels' : [-20, 10],
+                  'max_speed' : 800,
+                  'ground_accels' : [-4, 6],
+                  'landing_speed' : 150,
+                  'max_g' : 2,
+                  'position' : Vector3(),
+                  'velocity' : Vector3(),
+                  'fuel' : 500}
+        mock_aerospace = MockAerospace()
+        self.plane = aero.Aeroplane(mock_aerospace, **kwargs)
         self.pilot = self.plane.pilot
 
     def testPlaneLimits(self):
@@ -113,13 +140,13 @@ class AtomicTest(unittest.TestCase):
             self.plane.velocity = Vector3(0)
             self.pilot.set_course_towards((10000+x, 10000+y))
         perform(10000,10000)
-        self.assertEqual(self.plane.target_conf['heading'], 45)
+        self.assertEqual(self.plane.pilot.target_conf['heading'], 45)
         perform(-10000,-10000)
-        self.assertEqual(self.plane.target_conf['heading'], 225)
+        self.assertEqual(self.plane.pilot.target_conf['heading'], 225)
         perform(0, 10000)
-        self.assertEqual(self.plane.target_conf['heading'], 0)
+        self.assertEqual(self.plane.pilot.target_conf['heading'], 0)
         perform(-5000*3**0.5, 5000)
-        self.assertEqual(self.plane.target_conf['heading'], 300)
+        self.assertEqual(self.plane.pilot.target_conf['heading'], 300)
 
     def testIndependentControls(self):
         '''
@@ -128,31 +155,31 @@ class AtomicTest(unittest.TestCase):
         def setup():
             self.plane.position = Vector3(10000,10000,0)
             self.plane.velocity = Vector3(150, 0, 0)  #~500kpm eastbound
-            self.plane.set_target_conf_to_current()
+            self.plane.pilot.set_target_conf_to_current()
         def perform():
             changed_keys = set()
             for i in range(500):  #arbitrary but reasonable limit...
                 self.plane.update(1)
                 current_conf = self.plane.get_current_configuration()
-                if self.plane.target_conf != current_conf:
+                if self.plane.pilot.target_conf != current_conf:
                     for k in current_conf:
-                        if current_conf[k] != self.plane.target_conf[k]:
+                        if current_conf[k] != self.plane.pilot.target_conf[k]:
                             changed_keys.add(k)
             return changed_keys
+        # Test speed variation
+        setup()
+        self.plane.max_speed = 1000 / 3.6  #1000 kph
+        self.plane.pilot.target_conf['speed'] = 900
+        self.assertEqual(perform(), set(['speed']))
         # Test altitude variation
         setup()
-        self.plane.target_conf['altitude'] = 5000
+        self.plane.pilot.target_conf['altitude'] = 5000
         self.assertEqual(perform(), set(['altitude']))
         # Test heading variation
         setup()
         self.pilot.veering_direction = self.pilot.LEFT
-        self.plane.target_conf['heading'] = 265
+        self.plane.pilot.target_conf['heading'] = 265
         self.assertEqual(perform(), set(['heading']))
-        # Test speed variation
-        setup()
-        self.plane.max_speed = 1000
-        self.plane.target_conf['speed'] = 500
-        self.assertEqual(perform(), set(['speed']))
 
     def testDoNotOscillate(self):
         '''
@@ -161,40 +188,41 @@ class AtomicTest(unittest.TestCase):
         def setup():
             self.plane.position = Vector3(10000,10000,0)
             self.plane.velocity = Vector3(150, 0, 0)  #~500kpm eastbound
-            self.plane.set_target_conf_to_current()
+            self.plane.pilot.set_target_conf_to_current()
         def perform():
             previous = None
             for i in range(500):  #arbitrary but reasonable limit...
                 self.plane.update(1)
-                if self.plane.target_conf == \
+                if self.plane.pilot.target_conf == \
                    self.plane.get_current_configuration() == previous:
                     return True
                 previous = self.plane.get_current_configuration()
             return False
         # Test altitude variation
         setup()
-        self.plane.target_conf['altitude'] = 5000
+        self.plane.pilot.target_conf['altitude'] = 5000
         self.assertTrue(perform())
         # Test heading variation (left)
         setup()
         self.pilot.veering_direction = self.pilot.LEFT
-        self.plane.target_conf['heading'] = 265
+        self.plane.pilot.target_conf['heading'] = 265
         self.assertTrue(perform())
         # Test heading variation (right)
         setup()
         self.pilot.veering_direction = self.pilot.RIGHT
-        self.plane.target_conf['heading'] = 87
+        self.plane.pilot.target_conf['heading'] = 87
         self.assertTrue(perform())
         # Test speed variation
         setup()
         self.plane.max_speed = 1000
-        self.plane.target_conf['speed'] = 300
+        self.plane.pilot.target_conf['speed'] = 300
         self.assertTrue(perform())
         # Test combined variation
         setup()
         self.pilot.veering_direction = self.pilot.LEFT
         self.plane.max_speed = 1000
-        self.plane.target_conf = dict(speed = 677, altitude=3543, heading=123)
+        self.plane.pilot.target_conf = dict(speed = 677, altitude=3543,
+                                            heading=123)
         self.assertTrue(perform())
 
 

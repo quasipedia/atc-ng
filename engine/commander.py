@@ -91,7 +91,7 @@ class Parser(object):
         arg = arg.upper()
         try:  #argument is a numerical heading
             num_h = int(arg)
-            if not 0 <= num_h <= 360 and len(arg) == 3:
+            if not (0 <= num_h <= 360 and len(arg) == 3):
                 return False
             return [num_h]
         except ValueError:  #argument is a beacon id
@@ -111,7 +111,7 @@ class Parser(object):
             num_a = int(altitude)
         except ValueError:
             return False
-        if not 0 <= num_a <= 80 and len(altitude) == 2 and num_a % 5 == 0:
+        if not (0 < num_a < 100 and len(altitude) == 2 and num_a % 5 == 0):
             return False
         return [num_a * 100]  #return in metres
 

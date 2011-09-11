@@ -188,6 +188,7 @@ class Pilot(object):
         self.plane = plane
         self.queued_commands = []
         self.veering_direction = None
+        self.target_coords = None
         self.course_towards = None
         self.lander = None
 
@@ -211,7 +212,7 @@ class Pilot(object):
         self.set_target_conf_to_current()
         self.queued_commands = []
         self.veering_direction = None
-        self.flags.reset()
+        self.plane.flags.reset()
 
     def say(self, what, colour):
         '''
@@ -245,7 +246,7 @@ class Pilot(object):
             msg = 'Once landed, the flight is over!'
             return msg
         self.queued_commands.append(commands)
-        self.say(randelement(self.pilot.AFFIRMATIVE_QUEUE_ANSWERS), OK_COLOUR)
+        self.say(randelement(self.AFFIRMATIVE_QUEUE_ANSWERS), OK_COLOUR)
         return True
 
     def execute_command(self, commands):

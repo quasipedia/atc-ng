@@ -101,8 +101,6 @@ class Aeroplane(object):
         self.pilot.set_target_conf_to_current()
         self.flags = Flags()
         self.time_last_cmd = time()
-        self.veering_direction = None
-        self.target_coords = None
         self.trail = deque([sc(self.position.xy)] * TRAIL_LENGTH, TRAIL_LENGTH)
         self.colliding_planes = []
         self.__accelerometer = ' '

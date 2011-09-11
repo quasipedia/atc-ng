@@ -33,7 +33,9 @@ altitude:
   validator: _validate_altitude
   description: >
     The ``ALTITUDE`` command alters the flying target altitude of an aeroplane.
-    Altitude is expressed in hundreds of metres above sea level.
+    Altitude is expressed in hundreds of metres above sea level, in the form
+    of a two-digit number. Altitude must be above 0 and below 10000 asl and a
+    multiple of 500.
 
       The ``EXPEDITE`` flag doubles the speed at which an aeroplane climbs or
       descends.

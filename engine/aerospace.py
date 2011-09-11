@@ -213,9 +213,9 @@ class Aerospace(object):
         '''
         return self.__beacons
 
-    def acas(self):
+    def tcas(self):
         '''
-        ACAS = Airborne Collision Avoidance System. Verify if any plane is
+        TCAS = Traffic Collision Avoidance System. Verify if any plane is
         about to collide with another one and take appropriate counter-
         measures.
         '''
@@ -224,7 +224,7 @@ class Aerospace(object):
             if p.flags.collision == True:
                 p.flags.collision = False
                 p.colliding_planes = []
-                p.set_target_conf_to_current()
+                p.pilot.set_target_conf_to_current()
         # Recalculate it
         for p1, p2 in combinations(self.aeroplanes, 2):
             distance = p1.position - p2.position
@@ -236,7 +236,7 @@ class Aerospace(object):
     def update(self, pings):
         for plane in self.__planes.values():
             plane['plane'].update(pings)
-        self.acas()
+        self.tcas()
         self.flying_sprites.update()
         self.kill_escaped()
         self.place_tags()

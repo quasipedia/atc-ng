@@ -72,11 +72,14 @@ class Challenge(object):
         the initial amount of onboard fuel and the fuel_efficiency values.
         '''
         orig, pos, vel = randelement(self.__entry_data['gates'])
+        # Prevent in-place modification on __entry_data
+        pos = pos.copy()
+        vel = vel.copy()
         vel *= 500 / 3.6  #TODO: must match plane parameters!!!
         tmp = randelement(self.scenario.aeroports)
         dest = tmp.iata
         fuel = rint(ground_distance(pos, tmp.location)*4*self.fuel_per_metre)
-        return dict(origin=orig, position=pos.copy(), velocity=vel,
+        return dict(origin=orig, position=pos, velocity=vel,
                     destination=dest, fuel=fuel,
                     fuel_efficiency=self.fuel_per_metre)
 
