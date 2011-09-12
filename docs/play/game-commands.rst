@@ -1,5 +1,5 @@
 .. index::
-   :pair: Commands; Game engine
+   pair:Commands; Game engine
 
 Game commands
 =============

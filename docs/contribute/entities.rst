@@ -1,20 +1,18 @@
+.. index:: Entity
+
 Entities
 ========
-ATC-NG uses YAML to describe all its in-game entities.
 
-YAML_ is a *human friendly data serialization standard*, and this means that is
+With the term *entities* we refer to all those in-game elements whose difference
+of behaviour is purely due to a difference between the parameters they are
+intialised with. We use this term to mark a clear distintion with the
+:doc:`plugins`.
+
+This means that to contribute a new entity to the game (for example a new
+aeroport map) **you do not need to be able to program**. In fact ATC-NG uses
+:term:`YAML` to describe all its in-game *entities*. YAML is a
+*human friendly data serialization standard*, and this means that is
 very straightforward to create new entities or modify the existing ones.
-
-.. _YAML: http://yaml.org/
-
-The in-game *entities* that have already been implemented are:
-
-- Airlines
-- Aeroports
-- Scenarios (including Beacons and Gates)
-
-As soon as the development will reach a point where it will make sense to do so,
-the *aeroplane models* will also be implemented.
 
 You can have a preview of how the yaml files look like for each of the
 implemented entities by browsing through the `appropriate folder`_ of the main
@@ -25,3 +23,25 @@ repo.
 Please observe that there is yet no guarantee this is the final format for the
 game. As soon as the format will be deemed stable for the 1.x series, this
 page will be expanded with an explanation of each entity data.
+
+.. index::
+   pair:Aeroplane; Entity
+
+Aeroplane models
+----------------
+Stub.
+
+.. index::
+   pair:Aeroport; Entity
+
+Aeroports
+---------
+Stub.
+
+.. index::
+   pair:Scenario; Entity
+
+Scenarios
+---------
+Also contains Beacons and Gates.
+Stub.

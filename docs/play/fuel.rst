@@ -21,7 +21,7 @@ loaded with just enough fuel to fly **four times between its entry and
 destination points** [1]_.
 
 .. index::
-   :pair: Fuel; Emergency
+   pair:Fuel; Emergency
 
 Fuel emergency
 --------------

@@ -1,5 +1,5 @@
 .. index::
-   :pair: Commands; Aeroplanes
+   pair:Commands; Aeroplanes
 
 Aeroplane commands
 ==================
@@ -29,8 +29,6 @@ prepend it with a dot (``.``). For example:
 
 >>> .AZA LAND FRA 35L
 
-Available commands
-==================
 Following is a list of all implemented aeroplane commands.
 
 .. include:: ../pcommands.inc

@@ -61,7 +61,7 @@ Plane crashes                                     -1000             [1]_
 .. _fuel:
 
 .. index::
-   :pair: Fuel; Scoring
+   pair:Fuel; Scoring
 
 Fuel
 ----

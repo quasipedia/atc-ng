@@ -78,6 +78,25 @@ Glossary
       two or more aeroplanes, the TCAS will instruct the AI pilots to steer away
       from each other.
 
+   Markup language
+      A mark-up language is a modern system for annotating a text in a way that
+      is syntactically distinguishable from that text. The idea and terminology
+      evolved from the "marking up" of manuscripts. Markup is typically omitted
+      from the version of the text which is displayed for end-user consumption.
+
+      ATC-NG uses two markup languages internally: :term:`reStructuredText` for
+      its documentation and :term:`YAML` for its entities, although it should be
+      mentioned that the latter is not a markup in the strict sense of the word.
+
+   reStructuredText
+      reStructuredText is an easy-to-read, what-you-see-is-what-you-get
+      plaintext markup syntax and parser system. reStructuredText is a revision
+      and reinterpretation of the StructuredText and Setext lightweight markup
+      systems. More info on the format are available on the
+      `reStructuredText website`_.
+
+.. _reStructuredText website: http://docutils.sourceforge.net/rst.html
+
    Runway
       According to ICAO a runway is a *"defined rectangular area on a land
       aerodrome prepared for the landing and take-off of aircraft."*
@@ -94,3 +113,14 @@ Glossary
       of the runways is the real one. ATC-NG - though - doesn't simulate Earth's
       magnetic field, and thus the orientation of runways is relative to the
       geographical north.
+
+   YAML
+      YAML is a human-readable data serialization format (that is: a format for
+      displaying computer-readable data which is nice to the eye of humans).
+      YAML is a recursive acronym for "YAML Ain't Markup Language". Early in its
+      development, YAML was said to mean "Yet Another Markup Language", but was
+      retronymed to distinguish its purpose as data-oriented, rather than
+      document markup. More info on the format are available on the
+      `YAML website`_.
+
+.. _YAML website: http://yaml.org/
