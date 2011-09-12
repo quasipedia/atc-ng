@@ -9,6 +9,14 @@ function make_clean {
     set -e
 }
 
+# Ibid with a "fix-previous-broken-attempts" pass to clan tmp/ directories
+function clean_tmp_dirs {
+    set +e
+    rm -r -d -f /tmp/atc-docs
+    rm -r -d -f /tmp/atc-project-files
+    set -e
+}
+
 # exit immediately in case of errors
 set -e
 
@@ -16,6 +24,7 @@ set -e
 git stash
 
 # make a clean build of the html files and moves it out of the way.
+clean_tmp_dirs
 make_clean
 make html
 mkdir /tmp/atc-docs
@@ -41,6 +50,6 @@ git push
 
 # revert to normal editing mode
 git checkout master
-cp -r /tmp/atc-project-files .
+cp -r /tmp/atc-project-files/ .
 rm -rf /tmp/atc-project-files
 git stash pop
