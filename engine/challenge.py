@@ -35,7 +35,7 @@ class Challenge(object):
         self.model_handler = ymlhand.PlaneModelHandler()
         self.__init_scenario()
         self.__init_entry_data()
-        self.ref_time = time() - 60  #Lives 5 seconds before first plane
+        self.ref_time = time() - 115  #Lives 5 seconds before first plane
         self.simultaneous_planes = 0
         self.fuel_per_metre = 1000/(RADAR_RANGE*11.3936)  #4 times diagonal
 
@@ -124,7 +124,7 @@ class Challenge(object):
         '''
         # Every minute increase of one unit the amount of desired planes that
         # should be on radar at any time
-        if time() - self.ref_time > 5:
+        if time() - self.ref_time > 120:
             self.simultaneous_planes += 1
             self.ref_time = time()
         # Adjust the amount of actual planes to the desired one

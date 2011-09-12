@@ -291,7 +291,7 @@ class Parser(object):
         if command:
             args = self.bits
         else:
-            msg = 'Invalid game command! (%s)' % command.upper()
+            msg = 'Invalid game command! (%s)' % issued.upper()
             return msg
         return (self.game_commands_processor, [command_name, args])
 

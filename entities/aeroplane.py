@@ -111,7 +111,8 @@ class Tcas(object):
             self.state = True
             self.set_aversion_course(colliding)
         except KeyError:
-            self.plane.pilot.set_target_conf_to_current()
+            if self.state == True:
+                self.plane.pilot.set_target_conf_to_current()
             self.state = False
 
 
@@ -156,18 +157,18 @@ class Aeroplane(object):
     def __init__(self, aerospace, **kwargs):
         # Required parameters/properties
         self.aerospace = aerospace
-        self.pilot = pilot.Pilot(self)
         self.tcas = Tcas(self)
         for property in self.KNOWN_PROPERTIES:
             setattr(self, property, kwargs[property])
         # Initialisation of other properties
         self.entry_time = time()
         self.min_speed = self.landing_speed*1.5
-        self.pilot.set_target_conf_to_current()
         self.flags = Flags()
         self.time_last_cmd = time()
         self.trail = deque([sc(self.position.xy)] * TRAIL_LENGTH, TRAIL_LENGTH)
         self.colliding_planes = []
+        self.pilot = pilot.Pilot(self)
+        self.pilot.set_target_conf_to_current()
         self.__accelerometer = ' '
         self.__variometer = ' '
 

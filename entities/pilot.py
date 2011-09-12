@@ -264,7 +264,7 @@ class Pilot(object):
         if commands[0][0] != 'squawk':
             self.aerospace.gamelogic.score_event(COMMAND_IS_ISSUED)
         # Reject orders if busy
-        if pl_flags.busy == True and commands[0][0] != 'abort':
+        if pl_flags.busy == True and commands[0][0] not in ['abort', 'squawk']:
             msg = 'Still maneuvering, please specify abort/append command'
             self.say(msg, KO_COLOUR)
             return False
@@ -283,11 +283,12 @@ class Pilot(object):
             if command == 'heading':
                 if type(args[0]) == int:  #the argument is a heading
                     self.target_conf['heading'] = args[0]
+                    pass
                 else:  #the argument is a location (a beacon's one)
                     self.set_course_towards(args[0])
                 # Veering direction
                 self.veering_direction = self.shortest_veering_direction()
-                if 'long_turn' in cmd_flags:
+                if 'long' in cmd_flags:
                     self.veering_direction *= -1  #invert direction
             # ALTITUDE COMMAND
             elif command == 'altitude':
@@ -332,7 +333,8 @@ class Pilot(object):
             # SQUAWK COMMAND
             elif command == 'squawk':
                 self.say('Currently heading %s, directed to %s' %
-                          (rint(self.heading), self.destination), OK_COLOUR)
+                          (rint(self.plane.heading),
+                           self.plane.destination), OK_COLOUR)
                 return True  #need to skip setting flag.busy to True!
             else:
                 raise BaseException('Unknown command: %s' % command)
@@ -638,9 +640,9 @@ class Pilot(object):
         # speed and/or altitude)
         if pl.flags.circling:
             if self.veering_direction == self.LEFT:
-                target = (self.heading - 179) % 360
+                target = (pl.heading - 179) % 360
             elif self.veering_direction == self.RIGHT:
-                target = (self.heading + 179) % 360
+                target = (pl.heading + 179) % 360
             else:
                 raise BaseException('Veering direction not set for circling.')
             self.target_conf['heading'] = target
@@ -700,6 +702,7 @@ class Pilot(object):
             pl.velocity.y = sin(theta)*mag
             self.target_conf['heading'] = pl.heading  #Fixes decimal approx.
             self.course_towards = None  #Make sure new heading is re-caculated
+            self.veering_direction = None
         # Speed dampener (act on velocity vector)
         t_speed = self.target_conf['speed']
         if in_between((previous_speed, pl.speed), t_speed):

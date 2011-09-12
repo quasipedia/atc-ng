@@ -6,7 +6,10 @@ Testing suite for entities/aeroplane.
 
 import unittest
 import entities.aeroplane as aero
+import entities.pilot as pilo
+import engine.commander
 from lib.euclid import Vector3
+from lib.utils import *
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -17,15 +20,16 @@ __maintainer__ = "Mac Ryan"
 __email__ = "quasipedia@gmail.com"
 __status__ = "Development"
 
-
 # Mock classes to allow creation of Aeroplanes that do not throw exceptions.
 class MockGameLogic(object):
     def score_event(self, *args, **kwargs):
         pass
+    def say(self, *args, **kwargs):
+        pass
 class MockAerospace(object):
-    @property
-    def gamelogic(self):
-        return MockGameLogic()
+    def __init__(self):
+        self.tcas_data = {}
+        self.gamelogic = MockGameLogic()
 
 class AtomicTest(unittest.TestCase):
 
@@ -53,6 +57,7 @@ class AtomicTest(unittest.TestCase):
                   'velocity' : Vector3(),
                   'fuel' : 500}
         mock_aerospace = MockAerospace()
+        pilo.Pilot.set_aerospace(mock_aerospace)
         self.plane = aero.Aeroplane(mock_aerospace, **kwargs)
         self.pilot = self.plane.pilot
 
@@ -225,6 +230,35 @@ class AtomicTest(unittest.TestCase):
                                             heading=123)
         self.assertTrue(perform())
 
+    def testCommandsDoNotRaise(self):
+        '''
+        Test that the commands do not raise exceptions (complete returning
+        True or False).
+        '''
+        TO_TEST = [('circle', ['ccw'], []),
+                   ('squawk', [], []),
+                   ('land', ['abc', '36'], []),
+                   ('altitude', [5], ['expedite']),
+                   ('abort', [], ['lastonly']),
+                   ('takeoff', [1000], []),
+                   ('speed', [500], []),
+                   ('heading', [270], ['long'])]
+        # This tests if this test is complete, by verifying there is at least
+        # a test command for each existing command
+        self.assertEqual(set(engine.commander.PLANE_COMMANDS.keys()),
+                         set([a for a,b,c in TO_TEST]))
+        for command in TO_TEST:
+            self.assertIsInstance(self.pilot.execute_command([command]),
+                                  bool)
+
+    def testHeadingLongFlag(self):
+        '''
+        Test that the plane execute veering in the right direction.
+        '''
+        self.plane.velocity = heading_to_v3(90).normalized() * 300 / 3.6
+        self.pilot.execute_command([('heading', [180], ['long'])])
+        self.plane.update(5)
+        self.assertFalse(heading_in_between([90,180], self.plane.heading))
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']

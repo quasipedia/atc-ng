@@ -68,7 +68,8 @@ class MainWindow(object):
         False.
         '''
         while self.game_logic.machine_state == MS_RUN:
-            pygame.display.set_caption("FPS: %i" % self.clock.get_fps())
+            capt = "Air Traffic Controller - NG     (FPS: %i)"
+            pygame.display.set_caption(capt % self.clock.get_fps())
             self.handle_events()
             self.game_logic.update(self.clock.get_time())
             pygame.display.flip()
