@@ -1,8 +1,11 @@
-Game screen
-===========
-The game screen is organised in four main areas:
+.. index:: Game interface
 
-.. image:: _static/game-interface.png
+The game interface
+==================
+All the interaction with the game happens through the command console. The game
+screen is organised in four main areas:
+
+.. image:: /_static/game-interface.png
 
 **radar screen** (1)
   You can see here the aeroplanes, aeroports, beacons and gates which are used
@@ -25,7 +28,7 @@ The game screen is organised in four main areas:
 The radar screen
 ----------------
 
-.. image:: _static/radar-screen.png
+.. image:: /_static/radar-screen.png
 
 The radar screen gives you an overview of the situation in the aerospace you are
 controlling. The typical elements you will find in it are:
@@ -43,7 +46,7 @@ controlling. The typical elements you will find in it are:
 The command console
 -------------------
 
-.. image:: _static/command-console.png
+.. image:: /_static/command-console.png
 
 The command console is the area you use to control the game. In ATC-NG **all**
 commands (whether they are game commands like ``QUIT`` or plane commands like
@@ -56,7 +59,7 @@ show the history of the past commands, and what happened once executed.
 The flight strips
 -----------------
 
-.. image:: _static/flight-strips.png
+.. image:: /_static/flight-strips.png
 
 The flight strips show some data that is not available on the main radar screen,
 such the departure and destination, or the amount of fuel still available
@@ -65,7 +68,7 @@ onboard the aeroplane).
 The aeroport maps
 -----------------
 
-.. image:: _static/aeroport-maps.png
+.. image:: /_static/aeroport-maps.png
 
 The main function of the aeroport maps is to give you a detailed view of the
 available runways, so that you can decide which ones to use for takeoffs and

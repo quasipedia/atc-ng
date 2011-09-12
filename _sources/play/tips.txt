@@ -4,6 +4,8 @@ Tips & Tricks
 This section of the manual contains some advice that you might find useful for
 increasing your performance while playing.
 
+.. index:: Console; Shorthand notation
+
 Shorthand notation
 ------------------
 Since ``HEADING``, ``SPEED`` and ``ALTITUDE`` are the most used command in the
@@ -12,6 +14,8 @@ a few keystrokes. The shorthand notation allows to issue these commands by their
 initial **joint** with their argument. Example:
 
 >>> QFA1234 H210 S200 A25
+
+.. index:: Console; Autocompletion
 
 Autocompletion
 --------------
@@ -31,13 +35,17 @@ autocompletion will react differently:
 This is especially useful for flight numbers, that can be tedious to be
 memorised.
 
+.. index:: Console; Command history
+
 Command history
 ---------------
 By pressing the :kbd:`Up` and :kbd:`Down` keys, it is possible to browse the
 command history.
 
-Deletion
---------
+.. index:: Console; Editing
+
+Cleaning the command line
+-------------------------
 Beside the standard :kbd:`Backspace` key, it is also possible to:
 
 * completely erase the prompt line with :kbd:`Esc`,
@@ -47,8 +55,16 @@ Approaching
 -----------
 Make sure to approach the airport for landing at a reasonable speed: **the
 slowest the speed, the easier** it will be for the aeroplane to *adjust their
-altitude* to that required for ILS approach.
+altitude* to that required for :term:`ILS` approach.
 
 A slower speed also means that it will be easier for palnes to *keep separation*
 (just before landing, planes drop their speed to the minimum, so there is a
 risk for oncoming planes in the landing queue to come too close).
+
+Running out of fuel
+-------------------
+Since aircraft running out of fuel still have the possibility to glide for quite
+some time, if you ever find yourself away from your target and low on fuel,
+climbing up will extend your gliding range of various kilometres. Also consider
+that given the simplified phisics implemented in ATC-NG, the descent ratio is
+fixed regardless of the ground speed, so: keep going as fast as you can!

@@ -1,0 +1,213 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Glossary &mdash; documentation .dev version</title>
+    <link rel="stylesheet" href="_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     'dev.snapshot',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="top" title="documentation .dev version" href="index.html" />
+    <link rel="prev" title="Translations" href="contribute/translations.html" /> 
+  </head>
+  <body>
+    <div class="header-wrapper">
+      <div class="header">
+          <p class="logo"><a href="index.html">
+            <img class="logo" src="_static/radar.png" alt="Logo"/>
+          </a></p>
+        <h1><a href="index.html">Air Traffic Controller - NG</a></h1>
+        <div class="rel">
+          <a href="contribute/translations.html" title="Translations"
+             accesskey="P">previous</a> |
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="glossary">
+<span id="id1"></span><h1>Glossary<a class="headerlink" href="#glossary" title="Permalink to this headline">¶</a></h1>
+<dl class="glossary docutils">
+<dt id="term-nix">*nix</dt>
+<dd><p class="first">The term <em>unix-like</em> (sometimes shortened to *nix to circumvent trademark
+issues) is widely used to describe operating systems that share many of
+the characteristics of the original UNIX, which was written in 1969 by Ken
+Thompson at Bell Labs. GNU/Linux and BSD are amongst the unix-like family
+of operating systems.</p>
+<p class="last">Traditionally, users of *nix systems are very versed in the shell
+environment, a commandline interface operated from keyboard only, hence
+the auxiliary origin of the ATC-NG game, which operates purely through
+keyboard input.</p>
+</dd>
+<dt id="term-airway">Airway</dt>
+<dd>Airways are corridors of controlled airspace with a defined lower and
+upper base. In ATC-NG airways start/finish at the edge of the aerospace
+generating the so called <a class="reference internal" href="#term-gate"><em class="xref std std-term">gates</em></a>. All aeroplanes that are not
+on ground must enter and exit the aerospace from them.</dd>
+<dt id="term-flight-level">Flight level</dt>
+<dd><p class="first">In ATC-NG, a flight level is the standard nominal altitude of an aircraft
+above the sea level, expressed in hundreds of metres. For example FL 05
+means &#8220;500 metres asl&#8221;.</p>
+<p class="last">Flight levels are the parameter for the <tt class="docutils literal"><span class="pre">ALTITUDE</span></tt> command.</p>
+</dd>
+<dt id="term-gate">Gate</dt>
+<dd>Gates in ATC-NG are the entry/exit points for the aircrafts. An
+explanation of how to instruct an aeroplane to use a exit through a gate
+is available <a class="reference internal" href="play/leaving-aerospace.html"><em>here</em></a></dd>
+<dt id="term-iata">IATA</dt>
+<dd><p class="first">IATA stands for <em>International Air Transport Association</em>. IATA&#8217;s mission
+is to represent, lead, and serve the airline industry. IATA represents
+some 230 airlines comprising 93% of scheduled international air traffic.</p>
+<p class="last">ATC-NG uses the IATA airport designators, for example <tt class="docutils literal"><span class="pre">ARN</span></tt> for the
+Stockholm Arlanda airport and <tt class="docutils literal"><span class="pre">FRA</span></tt> for the Frankfurt Main one.</p>
+</dd>
+<dt id="term-icao">ICAO</dt>
+<dd><p class="first">ICAO stands for <em>International Civil Aviation Organization</em>. ICAO is a
+specialized agency of the United Nations. It codifies the principles and
+techniques of international air navigation and fosters the planning and
+development of international air transport to ensure safe and orderly
+growth.</p>
+<p class="last">ATC-NG uses the ICAO airline designators, for example <tt class="docutils literal"><span class="pre">SAS</span></tt> for
+Scandinavian Airlines or <tt class="docutils literal"><span class="pre">DLH</span></tt> for Lufthansa.</p>
+</dd>
+<dt id="term-ils">ILS</dt>
+<dd><p class="first">ILS stands for <em>Instrument Landing System</em>. ILS is a system that provides
+precision guidance to an aircraft approaching and landing on a runway,
+using a combination of radio signals and, in many cases, high-intensity
+lighting arrays to enable a safe landing.</p>
+<p class="last">ATC-NG simulates the presence of ILS at each runways of each aeroport on
+in the scenario. The AI pilots use the simulated ILS to touch down
+autonomously when instructed to land.</p>
+</dd>
+<dt id="term-markup-language">Markup language</dt>
+<dd><p class="first">A mark-up language is a modern system for annotating a text in a way that
+is syntactically distinguishable from that text. The idea and terminology
+evolved from the &#8220;marking up&#8221; of manuscripts. Markup is typically omitted
+from the version of the text which is displayed for end-user consumption.</p>
+<p class="last">ATC-NG uses two markup languages internally: <a class="reference internal" href="#term-restructuredtext"><em class="xref std std-term">reStructuredText</em></a> for
+its documentation and <em class="xref std std-term">YAML</em> for its entities, although it should be
+mentioned that the latter is not a markup in the strict sense of the word.</p>
+</dd>
+<dt id="term-restructuredtext">reStructuredText</dt>
+<dd>reStructuredText is an easy-to-read, what-you-see-is-what-you-get
+plaintext markup syntax and parser system. reStructuredText is a revision
+and reinterpretation of the StructuredText and Setext lightweight markup
+systems. More info on the format are available on the
+<a class="reference external" href="http://docutils.sourceforge.net/rst.html">reStructuredText website</a>.</dd>
+<dt id="term-tcas">TCAS</dt>
+<dd><p class="first">TCAS stands for <em>Traffic Collision Avoidance System</em>. TCAS is an aircraft
+collision avoidance system designed to reduce the incidence of mid-air
+collisions between aircraft. It monitors the airspace around an aircraft
+for other aircraft equipped with a corresponding active transponder,
+independent of air traffic control, and warns pilots of the presence of
+other transponder-equipped aircraft which may present a threat of mid-air
+collision.</p>
+<p class="last">ATC-NG simulates the presence of a TCAS on each aircraft in the game
+in the scenario. Whenever the player fails to maintain separation between
+two or more aeroplanes, the TCAS will instruct the AI pilots to steer away
+from each other.</p>
+</dd>
+</dl>
+<blockquote>
+<div><dl class="docutils">
+<dt>Runway</dt>
+<dd><p class="first">According to ICAO a runway is a <em>&#8220;defined rectangular area on a land
+aerodrome prepared for the landing and take-off of aircraft.&#8221;</em></p>
+<p>Runways are named by a number between 01 and 36, which is generally one
+tenth of the magnetic azimuth of the runway&#8217;s heading: a runway numbered
+09 points east (90°), runway 18 is south (180°), runway 27 points west
+(270°) and runway 36 points to the north (360° rather than 0°). If there
+is more than one runway pointing in the same direction (parallel runways),
+each runway is identified by appending Left (L), Center (C) and Right (R)
+to the number.</p>
+<p class="last">ATC-NG models its aeroport on real ones, and therefore the size and naming
+of the runways is the real one. ATC-NG - though - doesn&#8217;t simulate Earth&#8217;s
+magnetic field, and thus the orientation of runways is relative to the
+geographical north.</p>
+</dd>
+<dt>YAML</dt>
+<dd>YAML is a human-readable data serialization format (that is: a format for
+displaying computer-readable data which is nice to the eye of humans).
+YAML is a recursive acronym for &#8220;YAML Ain&#8217;t Markup Language&#8221;. Early in its
+development, YAML was said to mean &#8220;Yet Another Markup Language&#8221;, but was
+retronymed to distinguish its purpose as data-oriented, rather than
+document markup. More info on the format are available on the
+<a class="reference external" href="http://yaml.org/">YAML website</a>.</dd>
+</dl>
+</div></blockquote>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="play/index.html">How to play ATC-NG</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contribute/index.html">Get involved!</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Glossary</a></li>
+</ul>
+
+          <h3 style="margin-top: 1.5em;">Search</h3>
+          <form class="search" action="search.html" method="get">
+            <input type="text" name="q" size="18" />
+            <input type="submit" value="Go" />
+            <input type="hidden" name="check_keywords" value="yes" />
+            <input type="hidden" name="area" value="default" />
+          </form>
+          <p class="searchtip" style="font-size: 90%">
+            Enter search terms or a module, class or function name.
+          </p>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <a href="contribute/translations.html" title="Translations"
+             >previous</a> |
+          <a href="genindex.html" title="General Index"
+             >index</a>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer">
+        &copy; Copyright 2011, Mac Ryan.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

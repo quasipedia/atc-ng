@@ -1,0 +1,325 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Aeroplane commands &mdash; documentation .dev version</title>
+    <link rel="stylesheet" href="../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     'dev.snapshot',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="top" title="documentation .dev version" href="../index.html" />
+    <link rel="up" title="How to play ATC-NG" href="index.html" />
+    <link rel="next" title="Fuel" href="fuel.html" />
+    <link rel="prev" title="Game commands" href="game-commands.html" /> 
+  </head>
+  <body>
+    <div class="header-wrapper">
+      <div class="header">
+          <p class="logo"><a href="../index.html">
+            <img class="logo" src="../_static/radar.png" alt="Logo"/>
+          </a></p>
+        <h1><a href="../index.html">Air Traffic Controller - NG</a></h1>
+        <div class="rel">
+          <a href="game-commands.html" title="Game commands"
+             accesskey="P">previous</a> |
+          <a href="fuel.html" title="Fuel"
+             accesskey="N">next</a> |
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="aeroplane-commands">
+<span id="index-0"></span><h1>Aeroplane commands<a class="headerlink" href="#aeroplane-commands" title="Permalink to this headline">¶</a></h1>
+<p>Aeroplane commands are those commands that are issued to individual planes (as
+opposed to the game engine, which is controlled by game commands).</p>
+<p>Game commands are <strong>issued</strong> by specifying the flight number, the command and
+possibly arguments and/or flags. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">AZA1234</span> <span class="n">HEADING</span> <span class="mo">000</span> <span class="n">X</span>
+</pre></div>
+</div>
+<p>where <tt class="docutils literal"><span class="pre">AZA1234</span></tt> is the flight number <tt class="docutils literal"><span class="pre">HEADING</span></tt> is the command <tt class="docutils literal"><span class="pre">000</span></tt> is
+the command argument and <tt class="docutils literal"><span class="pre">X</span></tt> is the command flag.</p>
+<p>Compatible aeroplane commands can be <strong>combined</strong>. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">AZA1234</span> <span class="n">HEADING</span> <span class="mo">000</span> <span class="n">SPEED</span> <span class="mi">200</span> <span class="n">ALTITUDE</span> <span class="mi">55</span>
+</pre></div>
+</div>
+<p>Incompatible commands (e.g.: <tt class="docutils literal"><span class="pre">CIRCLE</span></tt> and <tt class="docutils literal"><span class="pre">LAND</span></tt>) will generate an error in
+the console.</p>
+<p>Aeroplanes commands can also be <strong>queued</strong> (meaning that the aeroplane will
+execute them only when the command (or command sequence) currently being
+executed will have terminated. Multiple command (or command sequences) can be
+queued for execution. To append a command (or command sequence) to the queue,
+prepend it with a dot (<tt class="docutils literal"><span class="pre">.</span></tt>). For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="o">.</span><span class="n">AZA</span> <span class="n">LAND</span> <span class="n">FRA</span> <span class="il">35L</span>
+</pre></div>
+</div>
+<p>Following is a list of all implemented aeroplane commands.</p>
+<div class="section" id="squawk">
+<h2>SQUAWK<a class="headerlink" href="#squawk" title="Permalink to this headline">¶</a></h2>
+<p><strong>Example Usage:</strong></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">QFA1234</span> <span class="n">SQUAWK</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">DLH5678</span> <span class="n">TOUCH</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt><strong>Description:</strong></dt>
+<dd><p class="first">The <tt class="docutils literal"><span class="pre">SQUAWK</span></tt> command instructs the target plane transponder to return the destination and  current heading.</p>
+<p class="last">The info provided by the <tt class="docutils literal"><span class="pre">SQWAWK</span></tt> command are also available elsewhere
+in the game interface. The main use of this command is that of updating a
+plane&#8217;s <em>time of last received command</em>. This can be useful if you cycle
+through your flight strips ordered in this way, as it will move the strip
+to the top of the rail without issuing any new instruction to the pilot.</p>
+</dd>
+<dt><strong>Possible spellings:</strong></dt>
+<dd>SQUAWK, TOUCH, SQ</dd>
+<dt><strong>Accepted flags:</strong></dt>
+<dd>&#8212;</dd>
+</dl>
+</div>
+<div class="section" id="land">
+<h2>LAND<a class="headerlink" href="#land" title="Permalink to this headline">¶</a></h2>
+<p><strong>Example Usage:</strong></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">QFA1234</span> <span class="n">LAND</span> <span class="n">FRA</span> <span class="mo">07</span><span class="n">R</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">DLH5678</span> <span class="n">DOWN</span> <span class="n">ARN</span> <span class="mi">26</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt><strong>Description:</strong></dt>
+<dd><p class="first">The <tt class="docutils literal"><span class="pre">LAND</span></tt> command instruct the plane to intercept the descent flight path to the foot of a given runaway, and perform the landing.</p>
+<p class="last">The command takes two arguments: the <strong>IATA code of the aeroport</strong> and
+the <strong>runaway name</strong>.</p>
+</dd>
+<dt><strong>Possible spellings:</strong></dt>
+<dd>LAND, L, DOWN</dd>
+<dt><strong>Accepted flags:</strong></dt>
+<dd>&#8212;</dd>
+</dl>
+</div>
+<div class="section" id="altitude">
+<h2>ALTITUDE<a class="headerlink" href="#altitude" title="Permalink to this headline">¶</a></h2>
+<p><strong>Example Usage:</strong></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">QFA1234</span> <span class="n">ALTITUDE</span> <span class="mi">55</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">DLH5678</span> <span class="n">ALTITUDE</span> <span class="mi">80</span> <span class="n">X</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt><strong>Description:</strong></dt>
+<dd><p class="first">The <tt class="docutils literal"><span class="pre">ALTITUDE</span></tt> command alters the flying target altitude of an aeroplane. Altitude is expressed as a <a class="reference internal" href="../glossary.html#term-flight-level"><em class="xref std std-term">Flight level</em></a> (hundreds of metres above sea level) in the form of a two-digit number. Altitude must be above 0 and below 10000 metres asl and a multiple of 500.</p>
+<p class="last">The <tt class="docutils literal"><span class="pre">EXPEDITE</span></tt> flag doubles the speed at which an aeroplane climbs or
+descends.</p>
+</dd>
+<dt><strong>Possible spellings:</strong></dt>
+<dd>ALTITUDE, A, ALT</dd>
+<dt><strong>Accepted flags:</strong></dt>
+<dd><ul class="first last simple">
+<li>EXPEDITE  (<em>spellings:</em> EXPEDITE, X)</li>
+</ul>
+</dd>
+</dl>
+</div>
+<div class="section" id="abort">
+<h2>ABORT<a class="headerlink" href="#abort" title="Permalink to this headline">¶</a></h2>
+<p><strong>Example Usage:</strong></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">QFA1234</span> <span class="n">ABORT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">DLH5678</span> <span class="n">PURGE</span> <span class="n">LAST</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt><strong>Description:</strong></dt>
+<dd><p class="first">An aeroplane that is maneuvering can&#8217;t execute a new command until the maneuver is completed. The <tt class="docutils literal"><span class="pre">ABORT</span></tt> command makes a plane that is perfoming a command to stop its execution (mantaining heading, speed and altitude) and makes it available to receive new commands.</p>
+<p class="last">Beside halting command execution, an <tt class="docutils literal"><span class="pre">ABORT</span></tt> command will also flush the
+command queue. The <tt class="docutils literal"><span class="pre">LASTONLY</span></tt> flag - on the other hand - allows to
+eliminate <em>only the last</em> command in the queue.</p>
+</dd>
+<dt><strong>Possible spellings:</strong></dt>
+<dd>ABORT, PURGE</dd>
+<dt><strong>Accepted flags:</strong></dt>
+<dd><ul class="first last simple">
+<li>LASTONLY  (<em>spellings:</em> LASTONLY, LAST, L)</li>
+</ul>
+</dd>
+</dl>
+</div>
+<div class="section" id="takeoff">
+<h2>TAKEOFF<a class="headerlink" href="#takeoff" title="Permalink to this headline">¶</a></h2>
+<p><strong>Example Usage:</strong></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">QFA1234</span> <span class="n">TAKEOFF</span> <span class="mo">04</span><span class="n">L</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">DLH5678</span> <span class="n">UP</span> <span class="mo">01</span> <span class="n">X</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt><strong>Description:</strong></dt>
+<dd><p class="first">The <tt class="docutils literal"><span class="pre">TAKEOFF</span></tt> command instructs the plane to take off a given runaway. Once airborne, the plane will keep on climbing until its maximum flight altitude.</p>
+<p class="last">The <tt class="docutils literal"><span class="pre">EXPEDITE</span></tt> flag increses the climbing rate, making the maneuver to
+execute faster.</p>
+</dd>
+<dt><strong>Possible spellings:</strong></dt>
+<dd>TAKEOFF, TO, UP, FLY</dd>
+<dt><strong>Accepted flags:</strong></dt>
+<dd><ul class="first last simple">
+<li>EXPEDITE  (<em>spellings:</em> EXPEDITE, X)</li>
+</ul>
+</dd>
+</dl>
+</div>
+<div class="section" id="circle">
+<h2>CIRCLE<a class="headerlink" href="#circle" title="Permalink to this headline">¶</a></h2>
+<p><strong>Example Usage:</strong></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">QFA1234</span> <span class="n">CIRCLE</span> <span class="n">CCW</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">DLH5678</span> <span class="n">HOLD</span> <span class="n">R</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt><strong>Description:</strong></dt>
+<dd><p class="first">The <tt class="docutils literal"><span class="pre">CIRCLE</span></tt> command will make an aeroplane to fly a circular pattern, basically holding position.</p>
+<p class="last">The command takes a single argument which is the direction of the
+circling: clockwise (<tt class="docutils literal"><span class="pre">CW</span></tt>, <tt class="docutils literal"><span class="pre">RIGHT</span></tt> or <tt class="docutils literal"><span class="pre">R</span></tt>) or counter-clockwise
+(<tt class="docutils literal"><span class="pre">CCW</span></tt>, <tt class="docutils literal"><span class="pre">LEFT</span></tt> or <tt class="docutils literal"><span class="pre">L</span></tt>)</p>
+</dd>
+<dt><strong>Possible spellings:</strong></dt>
+<dd>CIRCLE, C, HOLD</dd>
+<dt><strong>Accepted flags:</strong></dt>
+<dd>&#8212;</dd>
+</dl>
+</div>
+<div class="section" id="speed">
+<h2>SPEED<a class="headerlink" href="#speed" title="Permalink to this headline">¶</a></h2>
+<p><strong>Example Usage:</strong></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">QFA1234</span> <span class="n">SPEED</span> <span class="mi">800</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">DLH5678</span> <span class="n">SP</span> <span class="mi">450</span> <span class="n">EXPEDITE</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt><strong>Description:</strong></dt>
+<dd><p class="first">The <tt class="docutils literal"><span class="pre">SPEED</span></tt> command alter the target ground speed of an aeroplane. The target speed of the aeroplane is expressed in <strong>kph</strong> (kilometres per hour).</p>
+<p class="last">The <tt class="docutils literal"><span class="pre">EXPEDITE</span></tt> flag increses the acceleration/deceleration, making the
+maneuver to execute faster.</p>
+</dd>
+<dt><strong>Possible spellings:</strong></dt>
+<dd>SPEED, S, SP</dd>
+<dt><strong>Accepted flags:</strong></dt>
+<dd><ul class="first last simple">
+<li>EXPEDITE  (<em>spellings:</em> EXPEDITE, X)</li>
+</ul>
+</dd>
+</dl>
+</div>
+<div class="section" id="heading">
+<h2>HEADING<a class="headerlink" href="#heading" title="Permalink to this headline">¶</a></h2>
+<p><strong>Example Usage:</strong></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">QFA1234</span> <span class="n">HEADING</span> <span class="mi">080</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">DLH5678</span> <span class="n">H</span> <span class="mi">150</span> <span class="n">X</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">QFA1234</span> <span class="n">HEAD</span> <span class="mi">270</span> <span class="n">L</span> <span class="n">X</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">DLH5678</span> <span class="n">HEADING</span> <span class="n">NDB1</span> <span class="n">LONG</span> <span class="n">EXPEDITE</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt><strong>Description:</strong></dt>
+<dd><p class="first">The <tt class="docutils literal"><span class="pre">HEADING</span></tt> command alter the target heading of an aeroplane. The argument of the command can either be a <em>new degree heading</em> (expressed as a three-digit figure or the code of a <em>beacon</em>, for which the most appropriate heading will be calculated.</p>
+<p>The <tt class="docutils literal"><span class="pre">EXPEDITE</span></tt> flag increses the banking angle of the aeroplane,
+effectively decreasing the time needed for the aeroplane to reach its
+target heading.</p>
+<p class="last">The plane will always perform the turn in the direction that requires less
+time to complete (smaller angle). The <tt class="docutils literal"><span class="pre">LONG</span></tt> flag - on the other hand -
+allows to perform the turn in the opposite direction.</p>
+</dd>
+<dt><strong>Possible spellings:</strong></dt>
+<dd>HEADING, H, HEAD</dd>
+<dt><strong>Accepted flags:</strong></dt>
+<dd><ul class="first last simple">
+<li>EXPEDITE  (<em>spellings:</em> EXPEDITE, X)</li>
+<li>LONG  (<em>spellings:</em> L, LONG)</li>
+</ul>
+</dd>
+</dl>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">How to play ATC-NG</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="basics.html">The very basics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="interface.html">The game interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="game-commands.html">Game commands</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="">Aeroplane commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fuel.html">Fuel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="landing.html">Landing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="leaving-aerospace.html">Leaving the aerospace</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scoring.html">Scoring System</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tips.html">Tips &amp; Tricks</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../contribute/index.html">Get involved!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../glossary.html">Glossary</a></li>
+</ul>
+
+          <h3 style="margin-top: 1.5em;">Search</h3>
+          <form class="search" action="../search.html" method="get">
+            <input type="text" name="q" size="18" />
+            <input type="submit" value="Go" />
+            <input type="hidden" name="check_keywords" value="yes" />
+            <input type="hidden" name="area" value="default" />
+          </form>
+          <p class="searchtip" style="font-size: 90%">
+            Enter search terms or a module, class or function name.
+          </p>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <a href="game-commands.html" title="Game commands"
+             >previous</a> |
+          <a href="fuel.html" title="Fuel"
+             >next</a> |
+          <a href="../genindex.html" title="General Index"
+             >index</a>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer">
+        &copy; Copyright 2011, Mac Ryan.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>
