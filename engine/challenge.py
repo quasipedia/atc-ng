@@ -61,17 +61,17 @@ class Challenge(object):
             levels = [l for l in levels if l%1000 == 500]
             gates_data.append((gate.name, position, velocity, levels))
         ports_data = []
-        for port in self.scenario.aeroports:
+        for port in self.scenario.airports:
             position = port.location.copy()
             position.z = -1  #-1 --> not on radar
             velocity = Vector3()
             ports_data.append((port.iata, position, velocity))
-        self.__entry_data = dict(gates=gates_data, aeroports=ports_data)
+        self.__entry_data = dict(gates=gates_data, airports=ports_data)
 
     def __generate_flight_plan(self):
         '''
         Return intial position and velocity 3D vectors plus the origin and
-        destination identifiers (aeroport or gate) for a plane. It also returns
+        destination identifiers (airport or gate) for a plane. It also returns
         the initial amount of onboard fuel and the fuel_efficiency values.
         '''
         entry_data_gates = self.__entry_data['gates'][:]
@@ -88,7 +88,7 @@ class Challenge(object):
                 if not self.gamelogic.aerospace.check_proximity(pos):
                     vel = vel.copy()
                     found_ok = True
-                    tmp = random.choice(self.scenario.aeroports)
+                    tmp = random.choice(self.scenario.airports)
                     dest = tmp.iata
                     fuel = rint(ground_distance(pos, tmp.location)*
                                 4*self.fuel_per_metre)

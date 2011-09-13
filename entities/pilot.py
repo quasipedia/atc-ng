@@ -36,7 +36,7 @@ class Lander(object):
         self.plane = plane
         self.port_name = port_name
         self.rnw_name = rnw_name
-        port = plane.aerospace.aeroports[port_name]
+        port = plane.aerospace.airports[port_name]
         tmp = port.runways[rnw_name]
         self.foot = tmp['location'] + port.location
         self.ils = tmp['ils']
@@ -382,10 +382,10 @@ class Pilot(object):
         '''
         Verify that a given port/runway combo actually exist in the aerospace.
         '''
-        if port not in self.aerospace.aeroports:
-            return 'Aeroport %s is not on the map!' % port
-        if runway not in self.aerospace.aeroports[port].runways:
-            return 'Aeroport %s does not have runway %s!' % (port, runway)
+        if port not in self.aerospace.airports:
+            return 'airport %s is not on the map!' % port
+        if runway not in self.aerospace.airports[port].runways:
+            return 'airport %s does not have runway %s!' % (port, runway)
         return True
 
     def set_target_conf_to_current(self):

@@ -11,7 +11,7 @@ description  : A test scenario that will eventually evolve to be the default
                be possibly included on radar.
 radar_range  : 40000
 
-aeroports:
+airports:
 
 - real_iata  : FRA
   new_iata   : MAC

@@ -66,9 +66,9 @@ class GameLogic(object):
         self.challenge = engine.challenge.Challenge(self)
         self.parse_scenario(self.challenge.scenario)
 
-    def __add_aeroport_map(self, port):
+    def __add_airport_map(self, port):
         '''
-        Add an aeroport map to the map collection.
+        Add an airport map to the map collection.
         '''
         margin = 7
         a_map = pygame.surface.Surface((MAPS_RECT.w, MAPS_RECT.h), SRCALPHA)
@@ -101,10 +101,10 @@ class GameLogic(object):
         '''
         Parse and render a scenario.
         '''
-        # AEROPORTS
-        for port in scenario.aeroports:
-            self.aerospace.add_aeroport(port)
-            self.__add_aeroport_map(port)
+        # airportS
+        for port in scenario.airports:
+            self.aerospace.add_airport(port)
+            self.__add_airport_map(port)
             port.del_cached_images()
         self.draw_maps()
         # GATES
@@ -124,7 +124,7 @@ class GameLogic(object):
         self.score_event(PLANE_ENTERS, multiplier=already_there)
         self.aerospace.add_plane(plane)
         status = INBOUND if plane.destination in \
-                            self.aerospace.aeroports.keys() else OUTBOUND
+                            self.aerospace.airports.keys() else OUTBOUND
         self.strips.add(sprites.guisprites.FlightStrip(plane, status))
         plane.pilot.say('Hello tower, we are ready to copy instructions!',
                         ALERT_COLOUR)

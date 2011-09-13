@@ -30,7 +30,7 @@ How the game unfolds
 * The game starts with an empty aerospace.
 * After a few seconds (just giving you the time to get acquainted with the
   scenario) the first aeroplane will appear on screen. All aeroplanes appear at
-  either an aeroport (if they are on the ground) or at one of the *gates* on the
+  either an airport (if they are on the ground) or at one of the *gates* on the
   edges of your radar screen (if they are airborne).
 * At the same time, on your left hand side, you will see a *flight strip*
   appearing. You can find here where the plane is headed and how much fuel it

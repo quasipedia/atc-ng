@@ -11,7 +11,7 @@ pygame.display.set_mode((64,48))
 import unittest
 import entities.aeroplane
 import entities.pilot
-import entities.aeroport
+import entities.airport
 import engine.aerospace
 import engine.commander
 from lib.euclid import Vector3
@@ -75,9 +75,9 @@ class LanderTest(unittest.TestCase):
         surface = pygame.surface.Surface((64, 48))
         gamelogic = MockGameLogic()
         aerospace = engine.aerospace.Aerospace(gamelogic, surface)
-        strip = entities.aeroport.AsphaltStrip(**strip_kwargs)
-        a_port = entities.aeroport.Aeroport(strips=[strip], **port_kwargs)
-        aerospace.add_aeroport(a_port)
+        strip = entities.airport.AsphaltStrip(**strip_kwargs)
+        a_port = entities.airport.airport(strips=[strip], **port_kwargs)
+        aerospace.add_airport(a_port)
         entities.pilot.Pilot.set_aerospace(aerospace)
         self.plane = entities.aeroplane.Aeroplane(aerospace, **plane_kwargs)
         self.pilot = self.plane.pilot

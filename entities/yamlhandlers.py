@@ -6,14 +6,14 @@ Manage data stored as YAML files on system.
 The collection of ICAO codes for airlines is huge. This module provide a class
 to handle it, trying to optimise memory usage and processing speed.
 
-Aeroplanes, Aeroports and Scenarios are also built through classes of this
+Aeroplanes, airports and Scenarios are also built through classes of this
 module.
 '''
 
 # Regular imports
 import random
 import re
-import entities.aeroport
+import entities.airport
 import entities.waypoints
 import os.path as path
 from os import listdir
@@ -137,19 +137,19 @@ class AirlinesHandler(YamlHandler):
         return len(self.__allcodes)
 
 
-class AeroportHandler(YamlHandler):
+class airportHandler(YamlHandler):
 
     '''
     Handle airports descriptions.
     '''
 
     def __init__(self, iata):
-        self.DIRECTORY = path.join(self.DIRECTORY, 'aeroports')
+        self.DIRECTORY = path.join(self.DIRECTORY, 'airports')
         self.load(iata)
-        strips = [entities.aeroport.AsphaltStrip(**rw)
+        strips = [entities.airport.AsphaltStrip(**rw)
                   for rw in self._data['strips']]
-        self.aeroport = \
-            entities.aeroport.Aeroport(strips=strips, **self._data['aeroport'])
+        self.airport = \
+            entities.airport.airport(strips=strips, **self._data['airport'])
 
 
 class ScenarioHandler(YamlHandler):
@@ -161,14 +161,14 @@ class ScenarioHandler(YamlHandler):
     def __init__(self, fname):
         self.DIRECTORY = path.join(self.DIRECTORY, 'scenarios')
         self.load(fname)
-        # Aeroports
-        self.aeroports = []
-        for item in self._data['aeroports']:
-            ap = AeroportHandler(item['real_iata']).aeroport
+        # airports
+        self.airports = []
+        for item in self._data['airports']:
+            ap = airportHandler(item['real_iata']).airport
             ap.iata = item['new_iata']
             ap.name = item['new_name']
             ap.location = item['location']
-            self.aeroports.append(ap)
+            self.airports.append(ap)
         # Gates
         self.gates = []
         for item in self._data['gates']:

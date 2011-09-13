@@ -3,7 +3,7 @@
 '''
 Provides the sprite classes used in the radar window.
 
-These are: flight strips, aeroport maps,
+These are: flight strips, airport maps,
 '''
 
 from engine.settings import *
@@ -56,7 +56,6 @@ class Score(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.score = self.gamelogic.score
         self.fontobj = pygame.font.Font(MAIN_FONT, rint(self.rect.h * 0.8))
-        font_height = self.fontobj.get_height()
 
     def update(self):
         self.image.fill(BLACK)

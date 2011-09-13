@@ -1,11 +1,11 @@
-# [ARN] Stockholm-Arlanda Aeroport, Stockholm Sweden
+# [ARN] Stockholm-Arlanda airport, Stockholm Sweden
 #
 # ©2011 Mac Ryan - Licensed under GPL v.3
 #
 # This file is intended to work with the ATC-NG game available at
 # https://github.com/quasipedia/atc-ng
 
-aeroport:
+airport:
 
   iata        : ARN
   name        : Stockholm-Arlanda

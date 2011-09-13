@@ -11,7 +11,7 @@ The scoring system is based on the following chart:
 |                   | REWARDED                    | PENALISED                  |
 +===================+=============================+============================+
 | **Aeroplane       | - landing at designated     | - landing at wrong         |
-| fate**            |   aeroport                  |   aeroport                 |
+| fate**            |   airport                  |   airport                 |
 |                   | - leaving map from          | - leaving map at any other |
 |                   |   designated gate           |   point than the           |
 |                   |                             |   one                      |
@@ -41,13 +41,13 @@ The following events imply a variation of the score:
 =========================================  =====================  =======
 Event                                         Score variation      Notes
 =========================================  =====================  =======
-Plane lands at correct aeroport                    +500             [1]_
+Plane lands at correct airport                    +500             [1]_
 Plane leaves map at correct gate                   +300             [1]_
 The (X+1) :sup:`th` pane enters the game            +50*X           [2]_
 Burning one unit of fuel                             -1
 Waiting one second for takeoff                       -1
 Issuing a command (except touch/squawk)             -10
-Plane lands at wrong aeroport                      -200             [1]_
+Plane lands at wrong airport                      -200             [1]_
 Plane leaves map at wrong gate                     -200             [1]_
 Triggering fuel emergency                          -250
 TCAS activation (per plane)                        -250

@@ -1,11 +1,11 @@
-# [FRA] Stockholm-Arlanda Aeroport, Stockholm Sweden
+# [FRA] Stockholm-Arlanda airport, Stockholm Sweden
 #
 # ©2011 Mac Ryan - Licensed under GPL v.3
 #
 # This file is intended to work with the ATC-NG game available at
 # https://github.com/quasipedia/atc-ng
 
-aeroport:
+airport:
 
   iata        : FRA
   name        : Frankfurt am Main

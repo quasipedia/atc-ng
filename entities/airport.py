@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8  -*-
 '''
-Aeroports modelling of the ATC simulation game.
+airports modelling of the ATC simulation game.
 '''
 
 from engine.settings import *
@@ -26,7 +26,7 @@ __status__ = "Development"
 class AsphaltStrip(object):
 
     '''
-    Base class used as a building element for aeroports. Each AsphaltStrip()
+    Base class used as a building element for airports. Each AsphaltStrip()
     object will generate two landing runways (the two direction one can land on
     it). Example: if the orientation is 90° the landing runaways will be 09 and
     27.
@@ -42,10 +42,10 @@ class AsphaltStrip(object):
         self.centre_pos = Vector3(*centre_pos) #in mt from aribitrary point
 
 
-class Aeroport(object):
+class airport(object):
 
     '''
-    Modelling description of the aeroport. Note that the runaway naming happens
+    Modelling description of the airport. Note that the runaway naming happens
     here and not in the Runway class.
     '''
 
@@ -133,13 +133,13 @@ class Aeroport(object):
                 new_keys = ['%s%s' % (numeric, letter) for letter in letters]
             else:
                 raise BaseException('Max 3 runways with the same orientation!')
-            # Set the property of the Aeroport object
+            # Set the property of the airport object
             for n, old_key in enumerate(old_keys):
                 new_key = new_keys[n]
                 self.runways[new_key] = runways[old_key]
         # ...finally, we need to kconsider the arbitrary reference point for the
         # asphalt strips, so that we can locate this arbitrary point within
-        # the representation of the aeroport.
+        # the representation of the airport.
         xx = []
         yy = []
         for rnwy in self.runways.values():
@@ -147,7 +147,7 @@ class Aeroport(object):
             yy.append(rnwy['location'].y)
         # The coorection offset is the delta between the arbitrary vector for
         # a given point (centre of the strip) and the arbitrary position of the
-        # geometrical centre of the aeroport
+        # geometrical centre of the airport
         geo_centre = Vector3(max(xx)-min(xx), max(yy)-min(yy))
         geo_centre /= 2.0
         geo_centre += Vector3(min(xx), min(yy))
@@ -162,7 +162,7 @@ class Aeroport(object):
 
     def get_image(self, square_side=None, scale=None, with_labels=False):
         '''
-        Return a pygame squared surface with the map of the aeroport.
+        Return a pygame squared surface with the map of the airport.
         A master image is stored internally at 10mt:1px scale, either argument
         is provided, the method will return either the bounding image scaled
         as requested, either a squared image with the side measuring
@@ -179,7 +179,7 @@ class Aeroport(object):
         # master images already partially scaled down. Here's the helper func
         # [note that it convert scalars, iterables, and a series of values]
         def r(*args):
-            tmp = lambda n : rint(n/AEROPORT_MASTER_IMG_SCALING)
+            tmp = lambda n : rint(n/AIRPORT_MASTER_IMG_SCALING)
             ret = []
             for arg in args:
                 if type(arg) in (tuple, list):
@@ -220,7 +220,7 @@ class Aeroport(object):
                 label = fontobj.render(k, True, WHITE)
                 loc = v['location'] + trasl + \
                       -v['ils'].normalized() * font_size * \
-                      AEROPORT_MASTER_IMG_SCALING * 1.2
+                      AIRPORT_MASTER_IMG_SCALING * 1.2
                 my_blit(a_canvas, label, r(loc.xy))  #r
             self.__labelled_image = a_canvas.subsurface(
                                     a_canvas.get_bounding_rect()).copy()
@@ -237,7 +237,7 @@ class Aeroport(object):
             img = pygame.surface.Surface((square_side, square_side), SRCALPHA)
             img.blit(tmp, pos)
         if scale:
-            scale *= AEROPORT_MASTER_IMG_SCALING
+            scale *= AIRPORT_MASTER_IMG_SCALING
             img = pygame.transform.smoothscale(img,
                                                (rint(w*scale), rint(h*scale)))
         return img

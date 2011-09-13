@@ -29,6 +29,6 @@ A better way to report the same problem:
 
     *"On a standard scenario, if I instruct the two planes to land at the
     opposite ends of a runway (for example runways 18 and 36 of the Stockholm-
-    Arlanda aeroport), the program will crash."*
+    Arlanda airport), the program will crash."*
 
 .. _GitHub issue tracker: https://github.com/quasipedia/atc-ng/issues

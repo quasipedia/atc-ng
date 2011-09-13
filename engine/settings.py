@@ -7,6 +7,7 @@ Typical usage: "from globals import *"
 '''
 
 import os
+import pygame.display
 import pygame.rect
 from math import atan2, degrees
 from pkg_resources import resource_filename
@@ -20,6 +21,23 @@ __maintainer__ = "Mac Ryan"
 __email__ = "quasipedia@gmail.com"
 __status__ = "Development"
 
+pygame.init()
+def __get_ratioed_max_size(aspect_ratio):
+    '''
+    Return a list of screen modes that have the target ratio.
+    '''
+    w, h = [float(n) for n in aspect_ratio.split(':')]
+    if USE_FULLSCREEN:
+        modes = pygame.display.list_modes()
+    else:
+        modes = pygame.display.list_modes(0,0)
+    if modes == -1:
+        width = pygame.display.Info().current_w
+        return width, int(width/w*h)
+    else:
+        for ww, hh in modes:
+            if ww/w == hh/h:
+                return ww, hh
 
 # State-machine constants
 MS_QUIT   = 0
@@ -31,11 +49,14 @@ PING_PERIOD = 3000              # milliseconds between radar pings
 MAX_FRAMERATE = 60              # FPS
 
 # Dimensions
+USE_FULLSCREEN = False
+ASPECT_RATIO = '16:9'
+WINDOW_SIZE = __get_ratioed_max_size(ASPECT_RATIO)
 # 4:3
 #WINDOW_SIZE = (1024, 768)       # in pixels
 # 16:10
 #WINDOW_SIZE = (800, 500)        # in pixels
-WINDOW_SIZE = (1200, 750)       # in pixels
+#WINDOW_SIZE = (1200, 750)       # in pixels
 #WINDOW_SIZE = (1800, 1125)      # in pixels
 #WINDOW_SIZE = (1920, 1200)      # in pixels
 # 16:9
@@ -109,7 +130,7 @@ NEUTRAL_COLOUR = WHITE
 TRAIL_LENGTH = 15                 # number of dots in the trail
 SPRITE_SCALING = 0.1              # scaling factor (used for antialiasing)
 MIN_PLANE_ICON_SIZE = 10          # minimum size of aeroplan icons in pixels
-AEROPORT_MASTER_IMG_SCALING = 10  # scaling of master images for aeroports
+AIRPORT_MASTER_IMG_SCALING = 10  # scaling of master images for airports
 
 # Aeroplane states and colors
 PLANE_STATES_NUM = 5            # number fo possible states for a plane
@@ -138,7 +159,7 @@ CLI_RECT = pygame.rect.Rect(RADAR_RECT.x, RADAR_RECT.h+2,
                             RADAR_RECT.w, WINDOW_SIZE[1]-RADAR_RECT.h-2)
 SCORE_RECT = pygame.rect.Rect(0, WINDOW_SIZE[1] - CLI_RECT.h/2,
                     # -2 for the lines separating GUI elements
-                    (WINDOW_SIZE[0] - RADAR_RECT.w - 2) / 2, CLI_RECT.h/2)
+                    (WINDOW_SIZE[0] - RADAR_RECT.w - 3) / 2, CLI_RECT.h/2)
 STRIPS_RECT = pygame.rect.Rect(0, 0,
                     SCORE_RECT.w, WINDOW_SIZE[1] - SCORE_RECT.h - 1)
 MAPS_RECT = pygame.rect.Rect(RADAR_RECT.x + RADAR_RECT.w + 1, 0,

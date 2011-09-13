@@ -10,8 +10,11 @@ This module sole purpose is to initialise and manage the pygame environment.
 '''
 
 from engine.settings import *
+import engine.settings
 from pygame.locals import *
 import pygame.display
+import pygame.image
+from pkg_resources import resource_filename
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -27,13 +30,15 @@ class MainWindow(object):
 
     def __init__(self):
         # Initialisation of pygame environment
-        pygame.init()
-        if WINDOW_SIZE == (1920, 1200):
+        fn = resource_filename(__name__, os.path.join('data', 'icon.png'))
+        icon = pygame.image.load(fn)
+        pygame.display.set_icon(icon)
+        if USE_FULLSCREEN:
             self.screen = pygame.display.set_mode(WINDOW_SIZE,
                                                   pygame.FULLSCREEN)
+            pygame.display.toggle_fullscreen()
         else:
             self.screen = pygame.display.set_mode(WINDOW_SIZE)
-#            pygame.display.toggle_fullscreen()
         self.screen.fill(BLACK)
         pygame.display.flip()
         # Create timer

@@ -1,4 +1,4 @@
-# [ARN] Stockholm-Arlanda Aeroport, Stockholm Sweden
+# [ARN] Stockholm-Arlanda airport, Stockholm Sweden
 #
 # ©2011 Mac Ryan - Licensed under GPL v.3
 #
@@ -97,7 +97,7 @@ land:
     The ``LAND`` command instruct the plane to intercept the descent flight path
     to the foot of a given runaway, and perform the landing.
 
-      The command takes two arguments: the **IATA code of the aeroport** and
+      The command takes two arguments: the **IATA code of the airport** and
       the **runaway name**.
 
   examples: |

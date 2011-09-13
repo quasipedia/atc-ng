@@ -9,7 +9,7 @@ intialised with. We use this term to mark a clear distintion with the
 :doc:`plugins`.
 
 This means that to contribute a new entity to the game (for example a new
-aeroport map) **you do not need to be able to program**. In fact ATC-NG uses
+airport map) **you do not need to be able to program**. In fact ATC-NG uses
 :term:`YAML` to describe all its in-game *entities*. YAML is a
 *human friendly data serialization standard*, and this means that is
 very straightforward to create new entities or modify the existing ones.
@@ -32,9 +32,9 @@ Aeroplane models
 Stub.
 
 .. index::
-   pair:Aeroport; Entity
+   pair:airport; Entity
 
-Aeroports
+airports
 ---------
 Stub.
 

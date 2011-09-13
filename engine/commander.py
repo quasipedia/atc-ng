@@ -326,19 +326,19 @@ class CommandLine(object):
     def _get_list_of_existing(self, what, context=None):
         '''
         Return a list of existing (=valid) strings representing `what`
-        ('planes', 'aeroports', 'runaways' or 'beacons'). The `contex` value
+        ('planes', 'airports', 'runaways' or 'beacons'). The `contex` value
         is used for those `what` which are not global to the aerospace (e.g.:
-        runaways can be given for a given aeroport, not aerospace).
+        runaways can be given for a given airport, not aerospace).
         '''
         if what == 'planes':
             return [p.icao for p in self.aerospace.aeroplanes]
         elif what == 'plane_commands':
             return [key for key in PLANE_COMMANDS.keys()]
-        elif what == 'aeroports':
-            return [iata for iata in self.aerospace.aeroports.keys()]
+        elif what == 'airports':
+            return [iata for iata in self.aerospace.airports.keys()]
         elif what == 'runaways':
-            assert context != None  #Context must be the name of the aeroport
-            for iata, ap in self.aerospace.aeroports.items():
+            assert context != None  #Context must be the name of the airport
+            for iata, ap in self.aerospace.airports.items():
                 if iata == context:
                     return [r for r in ap.runways.keys()]
             return []
@@ -403,7 +403,7 @@ class CommandLine(object):
             # understood as the shorthand for 'LAND'
             elif pre in PLANE_COMMANDS['land']['spellings'] and \
                  prepre not in PLANE_COMMANDS['circle']['spellings']:
-                what = 'aeroports'
+                what = 'airports'
             elif pre in PLANE_COMMANDS['heading']['spellings']:
                 what = 'beacons'
             elif prepre:

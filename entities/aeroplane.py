@@ -135,8 +135,8 @@ class Aeroplane(object):
                         'callsign',          # Radio callsign
                         'model',             # Type of plane (name)
                         'category',          # Propeller, Chopper, Jet...
-                        'origin',            # Aeroport / Gate name
-                        'destination',       # Aeroport / Gate name
+                        'origin',            # airport / Gate name
+                        'destination',       # airport / Gate name
                         'fuel_efficiency',   # Unit of fuel per meter
                         #STATIC / vertical modelling
                         'max_altitude',      # max altitude

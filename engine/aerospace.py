@@ -49,7 +49,7 @@ class Aerospace(object):
         self.top_layer = pygame.sprite.Group()
         self.tags = pygame.sprite.Group()
         self.__planes = {}
-        self.__aeroports = {}
+        self.__airports = {}
         self.__beacons = {}
         self.__gates = {}
         self.tcas_data = {}
@@ -104,14 +104,14 @@ class Aerospace(object):
             sprite.kill()
         del self.__planes[plane.icao]
 
-    def add_aeroport(self, a_port):
+    def add_airport(self, a_port):
         '''
-        Add an aeroport to the aerospace.
+        Add an airport to the aerospace.
         '''
-        self.__aeroports[a_port.iata] = a_port
+        self.__airports[a_port.iata] = a_port
         a_image = a_port.get_image(scale=1.0/METRES_PER_PIXELS,
                                    with_labels=False)
-        # Place aeroport on radar
+        # Place airport on radar
         offset = Vector3(-a_image.get_width()/2, -a_image.get_height()/2).xy
         centre = sc(a_port.location.xy)
         pos = (centre[0]+offset[0], centre[1]+offset[1])
@@ -196,11 +196,11 @@ class Aerospace(object):
         return [v['plane'] for v in self.__planes.values()]
 
     @property
-    def aeroports(self):
+    def airports(self):
         '''
-        Return a list of the available aeroports on the map.
+        Return a list of the available airports on the map.
         '''
-        return self.__aeroports
+        return self.__airports
 
     @property
     def gates(self):

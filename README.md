@@ -16,12 +16,12 @@ activities.
 What is similar to the original game:
  - Keyboard only interface
  - Game logic
- - Game elements (planes, aeroports, gates and beacons)
+ - Game elements (planes, airports, gates and beacons)
 
 What is "next generation":
  - Graphical environment
  - Basic physics modelling of plane behaviour
- - Aeroport runways
+ - airport runways
  - Flight strips
 
 For the moment the game aims to be... a game. When version 1.0 will be out I
