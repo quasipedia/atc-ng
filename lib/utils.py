@@ -24,6 +24,17 @@ def rint(float_):
     '''
     return int(round(float_))
 
+def sc(vector):
+    '''
+    Return a version of a 2-elements iterable (coordinates) suitable for
+    screen representation. That means:
+    - Scaled (to window resolution)
+    - Translated (to below x axis)
+    - With the y sign reversed (y are positive under x, on screen)
+    '''
+    x, y = [int(round(c/METRES_PER_PIXELS)) for c in vector]
+    return (x, -(y-RADAR_RECT.height))
+
 def in_between(boundaries, value):
     '''
     Return True if value is between boundaries.
@@ -47,28 +58,31 @@ def heading_in_between(boundaries, value):
     # special case for 180°: angles is always in-between
     if (boundaries[0]-boundaries[1])%360 == 180:
         return True
+    # early return: if the tested value is == to a limit, is always in-between
+    if value in boundaries:
+        return True
     sort_a = lambda a,b : [a,b] if (a-b)%360 > (b-a)%360 else [b,a]
     tmp = sort_a(*boundaries)
-    if tmp[0] > tmp[1]:
-        tmp[0] -= 360
-    return tmp[0] <= value <= tmp[1]
-
-def sc(vector):
-    '''
-    Return a version of a 2-elements iterable (coordinates) suitable for
-    screen representation. That means:
-    - Scaled (to window resolution)
-    - Translated (to below x axis)
-    - With the y sign reversed (y are positive under x, on screen)
-    '''
-    x, y = [int(round(c/METRES_PER_PIXELS)) for c in vector]
-    return (x, -(y-RADAR_RECT.height))
+    a, b = [heading_to_v3(el) for el in tmp]
+    v = heading_to_v3(value)
+    if cmp(a.cross(v).z, 0) == cmp(a.cross(b).z, 0) == cmp(v.cross(b).z, 0):
+        return True
+    return False
 
 def v3_to_heading(vector):
     '''
     Return the heading of a vector (CW degrees from North).
     '''
     return (90-degrees(atan2(vector.y, vector.x)))%360
+
+def is_behind(velocity, position, target):
+    '''
+    Return True if target is behind (relative to velocity) of position.
+    The function operates on a 2D projection
+    '''
+    tuple_ = (velocity, position, target)
+    velocity, position, target = [Vector3(*el.xy) for el in tuple_]
+    return velocity.angle(target-position) >= 1.57  #90° in radians
 
 def heading_to_v3(heading):
     '''

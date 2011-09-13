@@ -162,6 +162,10 @@ class Test(unittest.TestCase):
         '''
         # Normalised values
         self.assertTrue(heading_in_between((0, 90), 45))
+        self.assertTrue(heading_in_between((350, 10), 5))
+        self.assertTrue(heading_in_between((10, 350), 5))
+        self.assertTrue(heading_in_between((350, 10), -5))
+        self.assertTrue(heading_in_between((10, 350), -5))
         self.assertFalse(heading_in_between((270, 0), 45))
         # Non-normalised values
         self.assertTrue(heading_in_between((-60, 60), -1))
@@ -181,8 +185,21 @@ class Test(unittest.TestCase):
         # Tricky cases
         self.assertTrue(heading_in_between((-90, 90), 0))
         self.assertTrue(heading_in_between((-90, 90), 180))
+        # Cases discovered through bugs
+        self.assertTrue(heading_in_between((300, 60), 350))
 
-
+    def testIsBehind(self):
+        '''
+        is_behind - a plane has passed a given point
+        '''
+        TO_TEST = [((1,0,0), (0,0,0), (2, 0, 0), False),
+                   ((1,0,0), (2,0,0), (1, 0, 0), True),
+                   ((1,1,0), (2,0,0), (4, 6, 0), False),
+                   ((-1,-1,0), (0,0,0), (1, 1, 0), True),
+                   ]
+        for vel, pos, tar, res in TO_TEST:
+            vel, pos, tar = [Vector3(*el) for el in (vel, pos, tar)]
+            self.assertEqual(is_behind(vel, pos, tar), res)
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']

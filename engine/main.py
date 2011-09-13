@@ -21,18 +21,13 @@ __maintainer__ = "Mac Ryan"
 __email__ = "quasipedia@gmail.com"
 __status__ = "Development"
 
-#TODO: create another mechanism for the settings
 #TODO: verify .deb package with `lintian`
-#TODO: helicopters
-#TODO: elevation and minimum altitudes
-#TODO: clear for beacon
 
 class MainWindow(object):
 
     def __init__(self):
         # Initialisation of pygame environment
         pygame.init()
-        #TODO: Remove this in final, as it is specific to developer's machine
         if WINDOW_SIZE == (1920, 1200):
             self.screen = pygame.display.set_mode(WINDOW_SIZE,
                                                   pygame.FULLSCREEN)

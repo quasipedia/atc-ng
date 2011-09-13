@@ -161,8 +161,6 @@ class FlightStrip(pygame.sprite.Sprite):
         return img.subsurface(img.get_bounding_rect()).copy()
 
     def update(self, *args):
-        #TODO: sliding animation
-        #TODO: alarm signaller
         self.image = self.bkground.copy()
         fuel_msg = 'FUEL: %s' % str(rint(self.plane.fuel)).zfill(3)
         color = DARK_GREEN if self.plane.fuel > 100 else KO_COLOUR

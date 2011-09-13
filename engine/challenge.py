@@ -4,8 +4,6 @@
 Provide the logic for the playing mode of ATC-NG.
 '''
 
-#TODO: Convert to plugin-based challenges (time based, one against other, etc)
-
 import entities.yamlhandlers as ymlhand
 import random
 from engine.settings import *
@@ -29,13 +27,15 @@ class Challenge(object):
     Docstring.
     '''
 
+    INTERVAL = 120
+
     def __init__(self, gamelogic):
         self.gamelogic = gamelogic
         self.airline_handler = ymlhand.AirlinesHandler()
         self.model_handler = ymlhand.PlaneModelHandler()
         self.__init_scenario()
         self.__init_entry_data()
-        self.ref_time = time() - 115  #Lives 5 seconds before first plane
+        self.ref_time = time() - self.INTERVAL + 5  #Lives 5 seconds empty sky
         self.simultaneous_planes = 0
         self.fuel_per_metre = 1000/(RADAR_RANGE*11.3936)  #4 times diagonal
 
@@ -74,8 +74,8 @@ class Challenge(object):
         destination identifiers (aeroport or gate) for a plane. It also returns
         the initial amount of onboard fuel and the fuel_efficiency values.
         '''
-        random.shuffle(self.__entry_data['gates'])
         entry_data_gates = self.__entry_data['gates'][:]
+        random.shuffle(entry_data_gates)
         # Attempt to make planes enter the aerospace without making them
         # collide with each other
         while entry_data_gates:
@@ -124,7 +124,7 @@ class Challenge(object):
         '''
         # Every minute increase of one unit the amount of desired planes that
         # should be on radar at any time
-        if time() - self.ref_time > 120:
+        if time() - self.ref_time > self.INTERVAL:
             self.simultaneous_planes += 1
             self.ref_time = time()
         # Adjust the amount of actual planes to the desired one

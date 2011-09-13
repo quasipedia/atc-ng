@@ -571,7 +571,7 @@ class Vector3:
 
     def angle(self, other):
         """Return the angle to the vector other"""
-        return math.acos(self.dot(other) / (self.magnitude()*other.magnitude()))
+        return math.acos(round(self.dot(other) / (self.magnitude()*other.magnitude())))
 
     def project(self, other):
         """Return one vector projected on the vector other"""

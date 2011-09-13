@@ -275,7 +275,6 @@ class Parser(object):
         return (callable_, parsed_commands)
 
     def parse_game_command(self):
-        #TODO:BUG - double slash crashes the game
         try:
             issued = self.bits.pop()
         except IndexError:  # Empty bits --> No command issued
@@ -534,6 +533,5 @@ class CommandLine(object):
         '''
         Output a message on the console.
         '''
-        #TODO: Multiline for long messages (?)
         self.console_lines.append((colour,
                                    ' '.join([who, PROMPT_SEPARATOR, what])))

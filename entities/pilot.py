@@ -42,7 +42,22 @@ class Lander(object):
         self.ils = tmp['ils']
         self.phase = None
 
-    def set_ip(self):
+    def __get_point_ahead(self, distance):
+        '''
+        Return the coordinates of a point which is X metres ahead of current
+        flown point (assumes velocity vector won't change, of course).
+        '''
+        pl = self.plane
+        return pl.position + (pl.velocity.normalized() * distance)
+
+    def overshot(self, what):
+        '''
+        Return True if the plane has overshot (i.e. flown past) the ``what``
+        point.
+        '''
+        return is_behind(self.plane.velocity, self.plane.position, what)
+
+    def set_intersection_point(self):
         '''
         Set and return self.ip, the 2D intersection point between current
         plane heading and the ILS glide path.
@@ -62,12 +77,10 @@ class Lander(object):
             self.ip = Vector3(*self.ip)
         return self.ip
 
-    def set_md(self, radius):
+    def set_merge_point(self, radius):
         '''
-        Set self.md_from_ip, the distance of the veering point from self.ip.
-        Veering point: point in which the plane must initiate veering in order
-        to merge into the ILS vector.
-            Return self.md!!! [the distance between the plane and such point]
+        Set and return self.mp, the 2D point where the plane should begin
+        merging into the ILS vector.
         '''
         # From the geometrical construction it is possible to observe that the
         # correct distance from the intersection point with a course for
@@ -82,57 +95,58 @@ class Lander(object):
         a2 = abs((h2-h1)%360)
         angle = min(a1, a2)
         angle = radians((180 - angle) / 2.0)
-        self.md_from_ip = radius/tan(angle)
-        return self.md
+        dist_from_ip = radius/tan(angle)
+        dist_from_plane = abs(self.ip-self.plane.position)-dist_from_ip
+        self.mp = self.__get_point_ahead(dist_from_plane)
+        if self.overshot(self.mp):
+            self.mp = None
+        return self.mp
 
-    def set_bd(self):
+    def set_breaking_point(self):
         '''
-        Set self.bd_from_ft, the distance of the braking point from self.foot.
-        Braking point: distance at which the plane must activate airbrakes to
-        hit the foot of the runway at landing speed.
-            Return self.bd!!! [the distance between the plane and such point]
+        Set and return self.mp, the 2D point where the plane should begin
+        breaking in order to touch down at its landing_speed
         '''
-#        pl = self.plane
-#        delta_speeds = 1.0 * pl.speed - pl.landing_speed
-#        secs = abs(delta_speeds / pl.ground_accels[0])
-#        # The integral over time for a lineraly decreasing function is the
-#        # area of the triangle.
-#        self.bd_from_ft = secs * (delta_speeds /2  + pl.landing_speed)
-#        print "BD --> %s" % self.bd
-#        return self.bd
         pl = self.plane
         dist = 0
         speed = pl.speed
         # To calculate the amount of space, simulate the breaking procedure
-        # and measure it. Each loops is equivalent to one radar ping.
+        # and measure it. Each loop is equivalent to one radar ping.
         while True:
             dist += speed * PING_IN_SECONDS
             if speed <= pl.landing_speed:
-                self.bd_from_ft = dist
-                return self.bd
+                break
             speed += pl.ground_accels[0] * PING_IN_SECONDS
+        distance = abs(self.foot - self.plane.position) - dist
+        self.bp = self.__get_point_ahead(distance)
+
+    @property
+    def id(self):
+        '''
+        Distance from the intersection point with the ILS vector.
+        '''
+        return abs(self.ip-self.plane.position)
 
     @property
     def md(self):
         '''
         Distance from the veering point for merging into the ILS.
         '''
-        pl_from_ip = abs(self.ip-self.plane.position)
-        return pl_from_ip - self.md_from_ip
+        return abs(self.mp-self.plane.position)
 
     @property
     def fd(self):
         '''
         Distance from the foot of the runway.
         '''
-        return ground_distance(self.foot, self.plane.position)
+        return abs(self.foot-self.plane.position)
 
     @property
     def bd(self):
         '''
         Distance from the braking point.
         '''
-        return self.fd - self.bd_from_ft
+        return abs(self.bp-self.plane.position)
 
     @property
     def above_foot(self):
@@ -198,7 +212,7 @@ class Pilot(object):
         Abort landing, generating all events of the case and resetting relevant
         variables.
         '''
-        #TODO:BUG - landing abortions don't always "say" what they should
+        # TODO:Introducing abort codes would simplify testing!
         self.say('Aborting landing: %s' % msg, ALERT_COLOUR)
         self.plane.flags.cleared_down = False
         self.lander = None
@@ -250,7 +264,7 @@ class Pilot(object):
         self.say(random.choice(self.AFFIRMATIVE_QUEUE_ANSWERS), OK_COLOUR)
         return True
 
-    def execute_command(self, commands):
+    def execute_command(self, commands, from_queue=False):
         '''
         Execute commands.
         Input is a list of triplets each of them in the format:
@@ -258,11 +272,12 @@ class Pilot(object):
         Return True on message successfully executed, false otherwise.
         '''
         self.plane.time_last_cmd = time()
-        # Speedup hack
         pl_flags = self.plane.flags
-        # Points event
         if commands[0][0] != 'squawk':
             self.aerospace.gamelogic.score_event(COMMAND_IS_ISSUED)
+        if from_queue:
+            self.say('Performing queued %s command now' %
+                     commands[0][0].upper(), ALERT_COLOUR)
         # Reject orders if busy
         if pl_flags.busy == True and commands[0][0] not in ['abort', 'squawk']:
             msg = 'Still maneuvering, please specify abort/append command'
@@ -339,7 +354,8 @@ class Pilot(object):
             else:
                 raise BaseException('Unknown command: %s' % command)
         pl_flags.busy = True
-        self.say(random.choice(self.AFFIRMATIVE_EXEC_ANSWERS), OK_COLOUR)
+        if not from_queue:
+            self.say(random.choice(self.AFFIRMATIVE_EXEC_ANSWERS), OK_COLOUR)
         return True
 
     def verify_feasibility(self, speed=None, altitude=None):
@@ -452,7 +468,6 @@ class Pilot(object):
         return acc_module/speed
 
     def land(self, port_name=None, rnw_name=None):
-        #TODO:BUG - Fix bug that limit turning ration to 'normal'
         '''
         Guide a plane towards the ILS descent path and then makes it land.
         Return the phase of the landing sequence.
@@ -466,19 +481,21 @@ class Pilot(object):
             l = Lander(pl, port_name, rnw_name)
             # EARLY RETURN - Maximum incidence angle into the ILS is 60°
             ils_heading = v3_to_heading(l.ils)
-            if abs(pl.heading-ils_heading) > 60:
+            ils_heading = v3_to_heading(l.ils)
+            boundaries = [(ils_heading-60)%360, (ils_heading+60)%360]
+            if not heading_in_between(boundaries, pl.heading):
                 msg = 'ILS heading must be within 60 degrees ' \
                       'from current heading'
                 return self.__abort_landing(msg)
             # EARLY RETURN - No possible intersection (the RADAR_RANGE*3
             # ensures that the segments to test for intersection are long enough.
-            if not l.set_ip():
+            if not l.set_intersection_point():
                 msg = 'The ILS does not intersect the plane current heading'
                 return self.__abort_landing(msg)
             # EARLY RETURN - Although the intersection is ahead of the plane,
             # it's too late to merge into the ILS vector
             #TODO:BUG - doesn't work with 'expedite'! :(
-            if l.set_md(self.get_veering_radius('normal')) < 0:
+            if l.set_merge_point(self.get_veering_radius('normal')) < 0:
                 msg = 'We are too close to the ILS to merge into it'
                 return self.__abort_landing(msg)
             # LANDING IS NOT EXCLUDED A PRIORI...
@@ -489,7 +506,7 @@ class Pilot(object):
         else:
             l = self.lander
         if l.phase == self.INTERCEPTING:
-            if l.md <= 0:
+            if l.overshot(l.mp):
                 self.set_course_towards(l.foot.xy)
                 l.phase = self.MERGING
 #            print "--- INTERCEPTING ---"
@@ -516,8 +533,8 @@ class Pilot(object):
                alt_diff > 0 and alt_diff < pl.climb_rate_limits[1]:
                 pl.position.z = path_alt
                 l.phase = self.GLIDING
-                l.set_bd()
-                if l.bd_from_ft < 0:
+                l.set_breaking_point()
+                if l.overshot(l.bp):
                     msg = 'Plane too fast to slow down to landing speed'
                     self.__abort_landing(msg)
             # ...otherwise tell it to climb/descend!!
@@ -530,7 +547,7 @@ class Pilot(object):
 #            print "from ft    : %s" % l.fd
         elif l.phase == self.GLIDING:
             # Abort if the plane is too fast to slow to landing speed
-            if l.bd <= 0:
+            if l.overshot(l.bp):
                 self.target_conf['speed'] = pl.landing_speed
             if pl.position.z < l.foot.z:
                 if pl.destination == l.port_name:
@@ -583,20 +600,6 @@ class Pilot(object):
         b_pos = Vector2(*b.xy)
         return abs(a_pos - b_pos)
 
-    def check_closest_pass(self):
-        '''
-        Check if the plane has approached as much as possible to the target
-        point (en route point).
-          Return False if the plane hasn't, the minimum distance if it has.
-        '''
-        curr_dist = self.ground_distance(self.plane.position,
-                                         Vector3(self.course_towards))
-        if self.closest_pass_so_far < curr_dist:
-            return self.closest_pass_so_far
-        else:
-            self.closest_pass_so_far = curr_dist
-            return False
-
     def set_course_towards(self, coords=None):
         '''
         Set the target heading to a direct intercept towards the given
@@ -613,8 +616,6 @@ class Pilot(object):
             coords = self.course_towards
         else:
             self.course_towards = coords
-            self.closest_pass_so_far = self.ground_distance(
-                                       self.plane.position, Vector3(*coords))
         delta = Vector3(*coords) - self.plane.position
         new_head = v3_to_heading(delta)
         if new_head != self.plane.heading:
@@ -728,7 +729,4 @@ class Pilot(object):
             fl.busy = False  #execute commands will check this flag
             fl.expedite = False  #reset
             if self.queued_commands:
-                self.execute_command(self.queued_commands.pop(0))
-        # If the plane is en route towards a given point...
-#        if self.course_towards:
-#            self.test_closest_pass()
+                self.execute_command(self.queued_commands.pop(0), True)
