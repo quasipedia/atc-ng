@@ -1,17 +1,16 @@
 ATC-NG [Air Traffic Controller - Next Generation]
 =================================================
-__Copyright (C) 2011 Mac Ryan__
+**Copyright (C) 2011 Mac Ryan**
 
 
 Description
 -----------
 If you are old enough and liked playing videogames you probably remember the
 text-only ATC game now distributed in the "bsdgames" package of several
-*nix distributions.
+\*nix distributions.
 
-This project aims to occupy the same "market spot": easy gameplay for the
-person that has a few minutes to ehm... dedicate to non-strictly productive
-activities.
+This game is a modern (graphical) reimplementation of it that deliberately
+retains some of the clumsiness of the original one.
 
 What is similar to the original game:
  - Keyboard only interface
@@ -29,10 +28,35 @@ might consider increasing realism, bringing it conceptually closer to a
 simulation.
 
 
-See also
---------
-- [The LaunchPad project page][1]
-- [Official documentation][2]
+Project status
+--------------
+Af of 13 Sep 2011 The project is in **alpha**: the game interface is close to
+what it will look in the first stable release, and all in-game entities have
+been implemented. However **the overall "feel" of the game is still quite
+different** from the final one, as both the scenarios and the game modes are
+in their early phases.
+
+
+Packaging
+---------
+An ubuntu (debian) package of the game is maintained (you can download it from
+github__ itself, look for the ``Downloads`` button on the upper right of the
+screen)
+
+.. __: `Public repository`_
+
+
+Useful links
+------------
+- `Public repository`_
+- `Official documentation`_
+- `Issue tracking`_
+- `The LaunchPad project page`_
+
+.. _Public repository: https://github.com/quasipedia/atc-ng
+.. _Official documentation: http://quasipedia.github.com/atc-ng/
+.. _Issue tracking: https://github.com/quasipedia/atc-ng/issues
+.. _The LaunchPad project page: https://launchpad.net/atc-ng
 
 
 Licence
@@ -49,6 +73,3 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
- [1]:https://launchpad.net/atc-ng
- [2]:http://quasipedia.github.com/atc-ng/
