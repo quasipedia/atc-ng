@@ -1,0 +1,10 @@
+[Desktop Entry]
+Encoding=UTF-8
+Type=Application
+Name=Air Traffic Controller - NG
+Comment=Control the air traffic at your radar station!
+Exec=atc-ng
+Icon=atc-ng
+Terminal=false
+StartupNotify=true
+Categories=Game;StrategyGame;Simulation;LogicGame
