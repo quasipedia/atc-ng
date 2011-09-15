@@ -4,3 +4,4 @@
 .settings/*
 *_build*
 docs/*.inc
+count.sh
