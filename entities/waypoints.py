@@ -66,7 +66,7 @@ class Gate(object):
         # In order to facilitate blitting information on the orientation of the
         # gate, we create the image already rotated 90° clockwise by swapping
         # width and height...
-        gate_width_px = rint(self.width/METRES_PER_PIXELS)
+        gate_width_px = rint(self.width/METRES_PER_PIXEL)
         gate_length_px = RADAR_RECT.h/4
         aaf = 5  #anti-alias factor
         g_img = pygame.surface.Surface((gate_length_px*aaf,

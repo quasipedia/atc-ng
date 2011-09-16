@@ -1,0 +1,84 @@
+# This is the user configuration file for the "Air Traffic Controller - NG"
+# game available at https://github.com/quasipedia/atc-ng, licensed under
+# the GNU General Public Licence (GPL) v.3
+#
+# Edit this file to override the default ATC-NG configuration values.
+# - Removing an entry will force ATC-NG to use the default value
+# - Deleting the file altogether will force ATC-NG to regenerate it populated
+#   with the default values at the next run of the program.
+
+# TIMING ######################################################################
+PING_PERIOD      : 3000           # milliseconds between radar pings
+MAX_FRAMERATE    : 60             # FPS (frame per second)
+
+# MAIN INTERFACE ##############################################################
+USE_FULLSCREEN   : False          # False | True
+ASPECT_RATIO     : '16:9'         # Recommended: '16:9', works fine with
+                                  # '16:10' might have troubles at lower ratios
+MAX_WINDOW_SIZE  : [1280, 720]    # When playing in windowed mode, these is the
+                                  # max size of the bounding rectangle
+                                  # surrounding the rectangle, it can change
+                                  # independently from the ASPECT_RATIO
+
+# TEXT CONSOLE ################################################################
+CONSOLE_HEIGHT          : 0.14    # As a percentage of the main window height
+CONSOLE_LINES_NUM       : 5       # Number of lines in the console
+CONSOLE_FONT_SIZE_RATIO : 0.60    # ratio between the size of the "processed
+                                  # lines" (executed orders and responses) and
+                                  # the size of the "live line" (where player
+                                  # enters commands)
+OUTBOUND_ID         : 'TOWER'     # Radio callsign for the player
+PROMPT_SEPARATOR    : '>>>'       # How callsign and messages are separated
+USE_REAL_CALLSIGNS  : True        # True | False - Whether flights should be
+                                  # Using real callsign over radio, for example
+                                  # flight BAW1234 (Britsih Airways) would use
+                                  # "Speedbird 1234".
+
+# CONSOLE COLOURS #############################################################
+OK_COLOUR        : [0,255,0]      # for affermative responses / aknowledgements
+KO_COLOUR        : [255,0,0]      # for negative responses / error messages
+ALERT_COLOUR     : [255,255,0]    # for messages that should attract attention
+EMERGENCY_COLOUR : [255,0,0]      # for emergency messages
+NEUTRAL_COLOUR   : [255,255,255]  # for logged commands / unimportant events
+
+# SPRITES #####################################################################
+TRAIL_LENGTH        : 15          # number of dots in the trail of a plane
+MIN_PLANE_ICON_SIZE : 10          # minimum size of aeroplan icons in pixels
+HUD_INFO_FONT_SIZE  : 12          # Font size for textual info on radar screen
+
+# RADAR AID ###################################################################
+# The radar aid helps having an idea of the represented distances on the radar
+# screen, by superimposing a mask with markings at eavenly spaced intervals.
+RADAR_AID        : circles        # null | grid | circles | crosses | dots
+RADAR_AID_COLOUR : [80,80,20]     # RGB value
+RADAR_AID_STEPS  : 10             # desired amount of markings per radar screen 
+                                  # side. The actual amount could be different
+                                  # as the distance between marking is always
+                                  # set to a sensible amount (1, 5, 10, 20, 25,
+                                  # 50 or 100 kilometres)
+
+# SIMULATION PARAMETERS WORLD DESCRIPTION #####################################
+G_GRAVITY            : 9.807      # value of the ``g`` gravitational constant
+                                  # in metres / seconds^2
+SLOPE_ANGLE          : 3          # ILS gliding slope angle, in degrees
+VERTICAL_CLEARANCE   : 500        # minimum distance in metres between planes
+HORIZONTAL_CLEARANCE : 5000       # minimum distance in metres between planes
+
+# SIMULATION ENGINE ###########################################################
+# This section will be removed from the final distribution of the game,
+# possibility to alter these value is here for testing/tuning purposes only.
+# MODIFY **ONLY** THE SECOND VALUE, which is the score modification the event
+# generates. Leave the first value alone.
+PLANE_LANDS_CORRECT_PORT  : [100,  +500]
+PLANE_LANDS_WRONG_PORT    : [101,  -200]
+PLANE_LEAVES_CORRECT_GATE : [110,  +300]
+PLANE_LEAVES_WRONG_GATE   : [111,  -200]
+PLANE_LEAVES_RANDOM       : [112,  -500]
+PLANE_ENTERS              : [120,   +50]
+PLANE_BURNS_FUEL_UNIT     : [130,    -1]
+PLANE_WAITS_ONE_SECOND    : [140,    -1]
+PLANE_CRASHES             : [150, -1000]
+COMMAND_IS_ISSUED         : [200,   -10]
+EMERGENCY_FUEL            : [300,  -250]
+EMERGENCY_TCAS            : [301,  -250]
+FUEL_SCORE_WEIGHT         : 1

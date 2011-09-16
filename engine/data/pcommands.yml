@@ -148,7 +148,9 @@ squawk:
   validator: ''
   description: >
     The ``SQUAWK`` command instructs the target plane transponder to return
-    the destination and  current heading.
+    the destination and current heading. Note that the destination is the gate
+    or airport that the plane *should* reach, not the one that the player
+    *instructed* to head towards.
 
       The info provided by the ``SQWAWK`` command are also available elsewhere
       in the game interface. The main use of this command is that of updating a

@@ -3,14 +3,20 @@
 '''
 Globals variables and helper functions for the ATC game.
 
+This module also provide "settings initilisation", meaning that it will scan
+the user directory for a ``.atc-ng`` entry and either create it and populate it
+with standard files, either load the custom files into the program.
+
 Typical usage: "from globals import *"
 '''
 
-import os
 import pygame.display
 import pygame.rect
-from math import atan2, degrees
-from pkg_resources import resource_filename
+import yaml
+import os
+import sys
+import shutil
+from pkg_resources import resource_filename as fname
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -20,140 +26,121 @@ __maintainer__ = "Mac Ryan"
 __email__ = "quasipedia@gmail.com"
 __status__ = "Development"
 
-pygame.init()
+# +------------------+
+# | HELPER FUNCTIONS |
+# +------------------+
+
 def __get_ratioed_max_size(aspect_ratio):
     '''
     Return a list of screen modes that have the target ratio.
     '''
-    w, h = [float(n) for n in aspect_ratio.split(':')]
+    # Not using `the lib.utils import rint` to avoid circular reference
+    rint = lambda x : int(round(x))
+    w, h = map(float, aspect_ratio.split(':'))
+    # is it smaller the bounding window (MAX_WINDOW_SIZE) or the current
+    # screen resolution?
+    res_w = pygame.display.Info().current_w
+    res_h = pygame.display.Info().current_h
+    bound_w, bound_h = MAX_WINDOW_SIZE
+    max_w, max_h = (res_w, res_h) if res_w < bound_w or res_h < bound_h \
+                                  else (bound_w, bound_h)
+    max_w, max_h = map(rint, (max_w, max_h))
+    # Request available modes according to whether we are playing windowed
+    # or full screen.
     if USE_FULLSCREEN:
         modes = pygame.display.list_modes()
     else:
         modes = pygame.display.list_modes(0,0)
+    # -1 means "any values is ok" so...
     if modes == -1:
-        width = pygame.display.Info().current_w
-        return width, int(width/w*h)
+        # ...we return the size of the largest ratioed window within the box
+        return (max_w, rint(max_w*h/w)) if w/h > max_w/max_h \
+                                        else (rint(max_h*w/h), max_h)
     else:
+        # ...we return the first "small" enough supported mode
         for ww, hh in modes:
-            if ww/w == hh/h:
+            if ww/w == hh/h and ww <= max_w and hh <= max_h:
                 return ww, hh
 
-# State-machine constants
-MS_QUIT   = 0
-MS_RUN    = 1
-MS_PAUSED = 2
+def __build_file_list(basedir):
+    '''
+    Return a list of all files relative under ``basedir``, relative to the base
+    directory itself.
+    '''
+    files = []
+    for dname, dlist, flist in os.walk(basedir):
+        for fname in flist:
+            absolute = os.path.join(dname, fname)
+            files.append(os.path.relpath(absolute, basedir))
+    return files
 
-# Timing
-PING_PERIOD = 3000              # milliseconds between radar pings
-MAX_FRAMERATE = 60              # FPS
+def __initialise_user_directory():
+    '''
+    If not present on the system, initialise the user directory ``.atc-ng``
+    with a set of standard files.
+    '''
+    # if the target directory doesn't exist altogether
+    if not os.path.isdir(__target_base):
+        shutil.copytree(__template_base, __target_base)
+        return
+    # ...otherwise check file for file
+    template_files = __build_file_list(__template_base)
+    target_files = __build_file_list(__target_base)
+    for fname in template_files:
+        if fname not in target_files:
+            template = os.path.join(__template_base, fname)
+            target = os.path.join(__target_base, fname)
+            target_dir = os.path.dirname(target)
+            if not os.path.isdir(target_dir):
+                os.mkdir(target_dir)
+            shutil.copy2(template, target)
 
-# Dimensions
-USE_FULLSCREEN = False
-ASPECT_RATIO = '16:9'
+def __load_configuration_file(fname):
+    '''
+    Load a configuration file, placing the values in the ``settings``
+    namespace.
+    '''
+    dict_ = yaml.load(open(fname))
+    for k, v in dict_.items():
+        setattr(__current_module, k, v)
+
+# +-----------------+
+# | INITIALISATIONS |
+# +-----------------+
+
+pygame.init()
+__home = os.path.expanduser('~')
+__template_base = fname(__name__, os.path.join('data', 'template_user_dir'))
+__target_base = os.path.join(__home, '.atc-ng')
+__current_module = sys.modules[__name__]
+
+# +---------------------+
+# | LOAD DEFAULT VALUES |
+# +---------------------+
+
+__fname = fname(__name__, os.path.join('data', 'hardsettings.yml'))
+__load_configuration_file(__fname)
+__fname = os.path.join(__template_base, 'settings.yml')
+__load_configuration_file(__fname)
+
+# +------------------------------------+
+# | OVERRIDES WITH USER-DEFINED VALUES |
+# +------------------------------------+
+
+__initialise_user_directory()
+__fname = os.path.join(__home, '.atc-ng', 'settings.yml')
+__load_configuration_file(__fname)
+
+# +-----------------------------+
+# | CALCULATE DERIVATIVE VALUES |
+# +-----------------------------+
+
+MAIN_FONT = fname(__name__, os.path.join('data', 'ex_modenine.ttf'))
 WINDOW_SIZE = __get_ratioed_max_size(ASPECT_RATIO)
-# 4:3
-#WINDOW_SIZE = (1024, 768)       # in pixels
-# 16:10
-#WINDOW_SIZE = (800, 500)        # in pixels
-#WINDOW_SIZE = (1200, 750)       # in pixels
-#WINDOW_SIZE = (1800, 1125)      # in pixels
-#WINDOW_SIZE = (1920, 1200)      # in pixels
-# 16:9
-#WINDOW_SIZE = (1280, 720)      # in pixels
-RADAR_RANGE = 40000             # radius in kilometres --> 80x80km = space
-RADAR_RING_STEP = 10000         # space between radar rings
-
-#Physics
-G_GRAVITY = 9.807
-SLOPE_ANGLE = 3                 # ILS gliding slope angle, in degrees
-
-# Console
-CONSOLE_HEIGHT = 0.14           # as a percentage of windows height
-CONSOLE_LINES_NUM = 5
-CONSOLE_FONT_SIZE_RATIO = 0.60
-VALID_CHARS = \
-    'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890./ '
-OUTBOUND_ID = 'TOWER'
-PROMPT_SEPARATOR = '>>>'
-
-# Game logic
-OUTBOUND = 0
-INBOUND = 1
-VERTICAL_CLEARANCE = 500        # minimum distance in metres between planes
-HORIZONTAL_CLEARANCE = 5000     # minimum distance in metres between planes
-MIN_FLIGHT_LEVEL = 500
-MAX_FLIGHT_LEVEL = 9500
-
-# Game events (unique code event, base score)
-# NOTE: base score can be integrated at run-time (for example a landing plane
-# receives bonus points for the amount of fuel left in the tanks)
-PLANE_LANDS_CORRECT_PORT  = 100,  +500
-PLANE_LANDS_WRONG_PORT    = 101,  -200
-PLANE_LEAVES_CORRECT_GATE = 110,  +300
-PLANE_LEAVES_WRONG_GATE   = 111,  -200
-PLANE_LEAVES_RANDOM       = 112,  -500
-PLANE_ENTERS              = 120,   +50
-PLANE_BURNS_FUEL_UNIT     = 130,    -1
-PLANE_WAITS_ONE_SECOND    = 140,    -1
-PLANE_CRASHES             = 150, -1000
-COMMAND_IS_ISSUED         = 200,   -10
-EMERGENCY_FUEL            = 300,  -250
-EMERGENCY_TCAS            = 301,  -250
-FUEL_SCORE_WEIGHT         = 1
-
-# Colours
-WHITE = (255,255,255)
-GRAY = (128,128,128)
-DARK_GRAY = (20,20,20)
-MAGENTA = (255,0,255)
-YELLOW = (255,255,0)
-PALE_YELLOW = (255,255,224)
-RED = (255,0,0)
-DARK_RED = (150,0,0)
-PALE_RED = (255,224,224)
-GREEN = (0,255,0)
-PALE_GREEN = (224,255,224)
-DARK_GREEN = (0,150,0)
-BLUE = (0,0,255)
-DARK_BLUE = (0,0,150)
-BLACK = (0,0,0)
-
-# SEMANTIC COLOURS
-OK_COLOUR = GREEN
-KO_COLOUR = RED
-ALERT_COLOUR = YELLOW
-EMERGENCY_COLOUR = RED
-NEUTRAL_COLOUR = WHITE
-
-# Sprites
-TRAIL_LENGTH = 15                 # number of dots in the trail
-SPRITE_SCALING = 0.1              # scaling factor (used for antialiasing)
-MIN_PLANE_ICON_SIZE = 10          # minimum size of aeroplan icons in pixels
-AIRPORT_MASTER_IMG_SCALING = 10  # scaling of master images for airports
-
-# Aeroplane states and colors
-PLANE_STATES_NUM = 5            # number fo possible states for a plane
-CONTROLLED = 0
-INSTRUCTED = 1
-NON_CONTROLLED = 2
-PRIORITIZED = 3
-COLLISION = 4
-STATUS_COLORS = [WHITE, GRAY, MAGENTA, YELLOW, RED]
-
-# Fonts
-MAIN_FONT = resource_filename(__name__,
-                              os.path.join('data', 'ex_modenine.ttf'))
-# These are conventional chars that have been mapped in the font file to
-# match arrow up and arrow down
-CHAR_UP = '^'
-CHAR_DOWN = '\\'
-HUD_INFO_FONT_SIZE = 12    # Font size for textual info on radar screen
-
-# Derivative values
 RADAR_RECT = pygame.rect.Rect(
      (WINDOW_SIZE[0]-WINDOW_SIZE[1]*(1-CONSOLE_HEIGHT))/2, 0,
       WINDOW_SIZE[1]*(1-CONSOLE_HEIGHT), WINDOW_SIZE[1]*(1-CONSOLE_HEIGHT))
-METRES_PER_PIXELS = RADAR_RANGE*2.0/RADAR_RECT.width
+METRES_PER_PIXEL = RADAR_RANGE*2.0/RADAR_RECT.width
 CLI_RECT = pygame.rect.Rect(RADAR_RECT.x, RADAR_RECT.h+2,
                             RADAR_RECT.w, WINDOW_SIZE[1]-RADAR_RECT.h-2)
 SCORE_RECT = pygame.rect.Rect(0, WINDOW_SIZE[1] - CLI_RECT.h/2,
@@ -164,3 +151,5 @@ STRIPS_RECT = pygame.rect.Rect(0, 0,
 MAPS_RECT = pygame.rect.Rect(RADAR_RECT.x + RADAR_RECT.w + 1, 0,
         # -3 for the lines separating BUI elements
         (WINDOW_SIZE[0] - RADAR_RECT.w - STRIPS_RECT.w - 2), WINDOW_SIZE[1])
+
+

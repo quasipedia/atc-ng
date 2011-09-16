@@ -39,11 +39,7 @@ class Aerospace(object):
     def __init__(self, gamelogic, surface):
         self.gamelogic = gamelogic
         self.surface = surface
-        centre = sc((RADAR_RANGE, RADAR_RANGE))
-        for radius in range(RADAR_RING_STEP, rint(RADAR_RANGE*2**0.5),
-                            RADAR_RING_STEP):
-            radius /= METRES_PER_PIXELS
-            pygame.draw.circle(self.surface,DARK_GRAY,centre,rint(radius),1)
+        self.__draw_radar_aid()
         self.flying_sprites = pygame.sprite.LayeredUpdates()
         self.top_layer = pygame.sprite.Group()
         self.tags = pygame.sprite.Group()
@@ -53,6 +49,50 @@ class Aerospace(object):
         self.__gates = {}
         self.tcas_data = {}
         entities.pilot.Pilot.set_aerospace(self)
+
+    def __draw_radar_aid(self):
+        '''
+        Draw the radar aid.
+        '''
+        if not RADAR_AID:
+            return
+        centre = sc((RADAR_RANGE, RADAR_RANGE))
+        # Find how many metres a step consist of, making sure the final value
+        # is sensible (not 12735.5, for example...)
+        sensibles = [n*1000 for n in (1, 5, 10, 20, 25, 50, 100)]
+        attempts = [RADAR_RANGE*2/n for n in sensibles]
+        closest = min(attempts, key = lambda x : abs(x-RADAR_AID_STEPS))
+        metres_per_step = sensibles[attempts.index(closest)]
+        if RADAR_AID == 'circles':
+            step_range = range(metres_per_step, rint(RADAR_RANGE*2**0.5),
+                               metres_per_step)
+            for radius in step_range:
+                pygame.draw.circle(self.surface, RADAR_AID_COLOUR, centre,
+                                   rint(radius/METRES_PER_PIXEL), 1)
+        elif RADAR_AID in ('grid', 'crosses', 'dots'):
+            # In the following line: since division is integer division, this
+            # will ensure that on marking will pass from the radar position
+            first = RADAR_RANGE - RADAR_RANGE/metres_per_step*metres_per_step
+            step_range = range(first, RADAR_RANGE*2, metres_per_step)
+            draw = lambda fm, to : pygame.draw.aaline(self.surface,
+                                          RADAR_AID_COLOUR, sc(fm), sc(to))
+            for step in step_range:
+                if RADAR_AID == 'grid':
+                    draw((step, 0), (step, RADAR_RANGE*2))
+                    draw((0, step), (RADAR_RANGE*2, step))
+                elif RADAR_AID in ('dots', 'crosses'):
+                    for step2 in step_range:
+                        if RADAR_AID == 'dots':
+                            pygame.draw.circle(self.surface, RADAR_AID_COLOUR,
+                                               sc((step, step2)), 2)
+                        elif RADAR_AID == 'crosses':
+                            x, y = step, step2
+                            offset = metres_per_step / 10
+                            draw((x-offset, y), (x+offset, y))
+                            draw((x, y-offset), (x, y+offset))
+        else:
+                msg = 'Wrong value of `RADAR_AID` in config file!'
+                raise BaseException(msg)
 
     def __filter_self_collisions(self, sprite, collisions):
         '''
@@ -108,7 +148,7 @@ class Aerospace(object):
         Add an airport to the aerospace.
         '''
         self.__airports[a_port.iata] = a_port
-        a_image = a_port.get_image(scale=1.0/METRES_PER_PIXELS,
+        a_image = a_port.get_image(scale=1.0/METRES_PER_PIXEL,
                                    with_labels=False)
         # Place airport on radar
         offset = Vector3(-a_image.get_width()/2, -a_image.get_height()/2).xy

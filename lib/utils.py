@@ -4,9 +4,10 @@
 A small library with useful functions for ATC-NG.
 '''
 
+import yaml
 from engine.settings import *
 from euclid import Vector2, Vector3
-from math import cos, sin, radians
+from math import cos, sin, radians, degrees, atan2
 from random import randint
 
 __author__ = "Mac Ryan"
@@ -31,7 +32,7 @@ def sc(vector):
     - Translated (to below x axis)
     - With the y sign reversed (y are positive under x, on screen)
     '''
-    x, y = [int(round(c/METRES_PER_PIXELS)) for c in vector]
+    x, y = [int(round(c/METRES_PER_PIXEL)) for c in vector]
     return (x, -(y-RADAR_RECT.height))
 
 def in_between(boundaries, value):

@@ -41,19 +41,14 @@ class Generator(object):
                            os.path.join('..', package, 'data', fname+'.yml'))
         return yaml.load(data)
 
-    def generate_all(self):
-        '''
-        Generate all inclusion files.
-        '''
-        self.generate_plane_commands()
-
     def generate_plane_commands(self):
         '''
         Description list with plane commands.
         '''
         commands = self.__load_yaml('engine', 'pcommands')
         lines = []
-        for cname, data in commands.items():
+        for cname in sorted(commands):
+            data = commands[cname]
             lines.append(cname.upper())       #command title
             lines.append('-'*len(cname))      #make it subsection
             lines.append('**Example Usage:**')
@@ -78,6 +73,12 @@ class Generator(object):
         f = open('pcommands.inc', 'w')
         f.write(rst)
         f.close()
+
+    def generate_all(self):
+        '''
+        Generate all inclusion files.
+        '''
+        self.generate_plane_commands()
 
 if __name__ == '__main__':
     Generator().generate_all()

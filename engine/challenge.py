@@ -21,6 +21,7 @@ __email__ = "quasipedia@gmail.com"
 __status__ = "Development"
 
 class Challenge(object):
+#TODO:BUG - remove radarrange from conf e make it load here
 
     '''
     Docstring.

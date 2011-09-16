@@ -95,8 +95,6 @@ Glossary
       systems. More info on the format are available on the
       `reStructuredText website`_.
 
-.. _reStructuredText website: http://docutils.sourceforge.net/rst.html
-
    Runway
       According to ICAO a runway is a *"defined rectangular area on a land
       aerodrome prepared for the landing and take-off of aircraft."*
@@ -123,4 +121,5 @@ Glossary
       document markup. More info on the format are available on the
       `YAML website`_.
 
+.. _reStructuredText website: http://docutils.sourceforge.net/rst.html
 .. _YAML website: http://yaml.org/

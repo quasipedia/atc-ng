@@ -1,0 +1,56 @@
+# Hard settings (: not user overridable) for the ATC-NG game.
+#
+# ©2011 Mac Ryan - Licensed under GPL v.3
+#
+# This file is intended to work with the ATC-NG game available at
+# https://github.com/quasipedia/atc-ng
+
+RADAR_RANGE      : 40000          # radius in kilometres --> 80x80km = space
+
+# STATE-MACHINE CONSTANTS #####################################################
+MS_QUIT          : 0
+MS_RUN           : 1
+MS_PAUSED        : 2
+
+# TEXT CONSOLE ################################################################
+VALID_CHARS      : >
+  abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ 1234567890./
+CHAR_UP          : '^'            # Modified in the font file to an up arrow
+CHAR_DOWN        : '\\'           # Modified in the font file to a down arrow
+
+# SIMULATION PARAMETERS WORLD DESCRIPTION #####################################
+MIN_FLIGHT_LEVEL : 500            # Min flying altitude in metres
+MAX_FLIGHT_LEVEL : 9500           # Max flying altitude in metres
+
+# COLOURS MNEMONICS ###########################################################
+WHITE            : &white    [255, 255, 255]
+GRAY             : &gray     [128, 128, 128]
+DARK_GRAY        :           [20,   20,  20]
+MAGENTA          : &magenta  [255,   0, 255]
+YELLOW           : &yellow   [255, 255,   0]
+PALE_YELLOW      :           [255, 255, 224]
+RED              : &red      [255,   0,   0]
+DARK_RED         :           [150,   0,   0]
+PALE_RED         :           [255, 224, 224]
+GREEN            :           [0,   255,   0]
+PALE_GREEN       :           [224, 255, 224]
+DARK_GREEN       :           [0,   150,   0]
+BLUE             :           [0,     0, 255]
+DARK_BLUE        :           [0,     0, 150]
+BLACK            :           [0,     0,   0]
+
+
+SPRITE_SCALING   : 0.1
+AIRPORT_MASTER_IMG_SCALING : 10  # scaling of master images for airports
+
+OUTBOUND         : 0
+INBOUND          : 1
+
+# AEROPLANE
+PLANE_STATES_NUM : 5            # number fo possible states for a plane
+CONTROLLED       : 0
+INSTRUCTED       : 1
+NON_CONTROLLED   : 2
+PRIORITIZED      : 3
+COLLISION        : 4
+STATUS_COLORS    : [*white, *gray, *magenta, *yellow, *red]

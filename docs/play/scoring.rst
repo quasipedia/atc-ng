@@ -11,7 +11,7 @@ The scoring system is based on the following chart:
 |                   | REWARDED                    | PENALISED                  |
 +===================+=============================+============================+
 | **Aeroplane       | - landing at designated     | - landing at wrong         |
-| fate**            |   airport                  |   airport                 |
+| fate**            |   airport                   |   airport                  |
 |                   | - leaving map from          | - leaving map at any other |
 |                   |   designated gate           |   point than the           |
 |                   |                             |   one                      |
