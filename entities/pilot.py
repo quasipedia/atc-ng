@@ -6,6 +6,7 @@ The piloting system for the ATC-NG aeroplanes.
 
 import random
 from engine.settings import *
+from engine.logger import log
 from lib.utils import *
 from math import sqrt, radians, cos, sin, tan
 from lib.euclid import Vector3
@@ -212,6 +213,7 @@ class Pilot(object):
         variables.
         '''
         # TODO:Introducing abort codes would simplify testing!
+        log.info('%s aborts: %s' % (self.plane.icao, msg))
         self.say('Aborting landing: %s' % msg, ALERT_COLOUR)
         self.plane.flags.cleared_down = False
         self.lander = None
@@ -289,6 +291,7 @@ class Pilot(object):
             return False
         # Otherwise execute what requested
         for line in commands:
+            log.info('%s executes: %s' %(self.plane.icao, line))
             command, args, cmd_flags = line
             # EXPEDITE FLAG
             if 'expedite' in cmd_flags:
@@ -346,7 +349,7 @@ class Pilot(object):
                 return True  #need to skip setting flag.busy to True!
             # SQUAWK COMMAND
             elif command == 'squawk':
-                self.say('Currently heading %s, directed to %s' %
+                self.say('Currently heading %s, our destination is %s' %
                           (rint(self.plane.heading),
                            self.plane.destination), OK_COLOUR)
                 return True  #need to skip setting flag.busy to True!

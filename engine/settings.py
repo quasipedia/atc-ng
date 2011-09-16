@@ -95,14 +95,25 @@ def __initialise_user_directory():
                 os.mkdir(target_dir)
             shutil.copy2(template, target)
 
-def __load_configuration_file(fname):
+def __load_configuration_file(fname, filter=None):
     '''
     Load a configuration file, placing the values in the ``settings``
     namespace.
+        If ``filter`` is passed (as a list), the function will import only
+    those settings whose name is in the filter. This is primarily a way to
+    impede a user to modify "protected" settings (like the scoring variables)
+    from its own private settings.yml file.
+        The function return a dictionary of imported property names.
     '''
     dict_ = yaml.load(open(fname))
+    imported = []
     for k, v in dict_.items():
+        if filter and k not in filter:
+            #TODO: should be logged here, but it's circular reference...
+            continue
         setattr(__current_module, k, v)
+        imported.append(k)
+    return imported
 
 # +-----------------+
 # | INITIALISATIONS |
@@ -121,7 +132,7 @@ __current_module = sys.modules[__name__]
 __fname = fname(__name__, os.path.join('data', 'hardsettings.yml'))
 __load_configuration_file(__fname)
 __fname = os.path.join(__template_base, 'settings.yml')
-__load_configuration_file(__fname)
+__overridable_settings = __load_configuration_file(__fname)
 
 # +------------------------------------+
 # | OVERRIDES WITH USER-DEFINED VALUES |
@@ -129,7 +140,7 @@ __load_configuration_file(__fname)
 
 __initialise_user_directory()
 __fname = os.path.join(__home, '.atc-ng', 'settings.yml')
-__load_configuration_file(__fname)
+__load_configuration_file(__fname, __overridable_settings)
 
 # +-----------------------------+
 # | CALCULATE DERIVATIVE VALUES |

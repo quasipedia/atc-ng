@@ -5,6 +5,7 @@ Provide functionality for entering commands and processing them.
 '''
 
 from engine.settings import *
+from engine.logger import log
 from lib.utils import *
 from pygame.locals import *
 from collections import deque
@@ -371,6 +372,14 @@ class CommandLine(object):
         '''
         return ''.join(self.chars)
 
+    def msg_append(self, colour, text):
+        '''
+        Append a message to the console. This is a separated method in order
+        to make easier to log events.
+        '''
+        log.debug(text)
+        self.console_lines.append((colour, text))
+
     def autocomplete(self):
         '''
         Autocomplete the word-stub under the cursor.
@@ -438,15 +447,14 @@ class CommandLine(object):
         # Parsing outcome: an iterable if successful OR a string if failure
         if type(parsed) in (unicode, str):
             answer_prefix = 'ERROR: '
-            self.console_lines.append([RED, answer_prefix+parsed])
+            self.msg_append(RED, answer_prefix+parsed)
         else:
             callable_, args = parsed
             fname = callable_.__name__
             # Successfully parsed commands get logged on console and inserted
             # into command history
             if fname in ('execute_command', 'queue_command'):
-                self.console_lines.append([WHITE,
-                                    ' '.join((self.cmd_prefix,self.text))])
+                self.msg_append(WHITE, ' '.join((self.cmd_prefix,self.text)))
                 self.command_history.insert(0, self.text)
             # ...and executed
             callable_(args)
@@ -533,5 +541,4 @@ class CommandLine(object):
         '''
         Output a message on the console.
         '''
-        self.console_lines.append((colour,
-                                   ' '.join([who, PROMPT_SEPARATOR, what])))
+        self.msg_append(colour, ' '.join([who, PROMPT_SEPARATOR, what]))

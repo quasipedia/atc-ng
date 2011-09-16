@@ -51,7 +51,7 @@ HUD_INFO_FONT_SIZE  : 12          # Font size for textual info on radar screen
 # screen, by superimposing a mask with markings at eavenly spaced intervals.
 RADAR_AID        : circles        # null | grid | circles | crosses | dots
 RADAR_AID_COLOUR : [80,80,20]     # RGB value
-RADAR_AID_STEPS  : 10             # desired amount of markings per radar screen 
+RADAR_AID_STEPS  : 10             # desired amount of markings per radar screen
                                   # side. The actual amount could be different
                                   # as the distance between marking is always
                                   # set to a sensible amount (1, 5, 10, 20, 25,
@@ -82,3 +82,10 @@ COMMAND_IS_ISSUED         : [200,   -10]
 EMERGENCY_FUEL            : [300,  -250]
 EMERGENCY_TCAS            : [301,  -250]
 FUEL_SCORE_WEIGHT         : 1
+
+# LOGGING #####################################################################
+LOG_NUMBER        : 5             # how many logs to keep in the log directory
+                                  # before deleting the oldest one -
+                                  # 0 will disable logging altogether
+LOG_THRESHOLD     : debug         # minimum severity level to be logged. Can be
+                                  # debug | info | warning | error | critical

@@ -7,6 +7,7 @@ Provide the logic for the playing mode of ATC-NG.
 import entities.yamlhandlers as ymlhand
 import random
 from engine.settings import *
+from engine.logger import log
 from entities.aeroplane import Aeroplane
 from lib.euclid import Vector3
 from time import time
@@ -22,6 +23,7 @@ __status__ = "Development"
 
 class Challenge(object):
 #TODO:BUG - remove radarrange from conf e make it load here
+#TODO:Space out imports according to PEP8
 
     '''
     Docstring.
@@ -115,6 +117,7 @@ class Challenge(object):
         kwargs.update(result)
         # Set the module of the velocity (until here a normalized vector)
         kwargs['velocity'] *= kwargs['max_speed']
+        log.debug('About to add plane: %s' % kwargs)
         self.gamelogic.add_plane(Aeroplane(self.gamelogic.aerospace, **kwargs))
 
     def update(self):

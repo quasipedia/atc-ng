@@ -10,10 +10,13 @@ This module sole purpose is to initialise and manage the pygame environment.
 '''
 
 from engine.settings import *
-import engine.settings
+from engine.logger import log
 from pygame.locals import *
+from logger import log
+import engine.settings
 import pygame.display
 import pygame.image
+import traceback
 from pkg_resources import resource_filename
 
 __author__ = "Mac Ryan"
@@ -76,7 +79,12 @@ class MainWindow(object):
             self.clock.tick(MAX_FRAMERATE)
 
 def main():
-    MainWindow().main_loop()
+    try:
+        log.info('# A NEW MATCH HAS STARTED ################################')
+        MainWindow().main_loop()
+    except:
+        log.critical(traceback.format_exc())
+        sys.exit(1)
 
 if __name__ == '__main__':
     main()

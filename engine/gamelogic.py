@@ -10,6 +10,7 @@ Amongst others:
 '''
 
 from engine.settings import *
+from engine.logger import log
 from pygame.locals import *
 import pygame.draw
 import pygame.surface
@@ -132,6 +133,7 @@ class GameLogic(object):
         '''
         Remove a plane from the game.
         '''
+        log.info('%s removed, event is %s' % (plane.icao, event))
         self.score_event(event, plane=plane)
         self.aerospace.remove_plane(plane, event)
         self.strips.remove_strip(plane)
