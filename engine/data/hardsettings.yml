@@ -5,7 +5,7 @@
 # This file is intended to work with the ATC-NG game available at
 # https://github.com/quasipedia/atc-ng
 
-RADAR_RANGE      : 40000          # radius in kilometres --> 80x80km = space
+RADAR_RANGE      : 25000          # radius in kilometres --> 80x80km = space
 
 # STATE-MACHINE CONSTANTS #####################################################
 MS_QUIT          : 0
@@ -21,6 +21,8 @@ CHAR_DOWN        : '\\'           # Modified in the font file to a down arrow
 # SIMULATION PARAMETERS WORLD DESCRIPTION #####################################
 MIN_FLIGHT_LEVEL : 500            # Min flying altitude in metres
 MAX_FLIGHT_LEVEL : 9500           # Max flying altitude in metres
+RUNWAY_BUSY_TIME : 9              # Time for which the runway is busy after
+                                  # a touchdown or during a takeoff (seconds)
 
 # COLOURS MNEMONICS ###########################################################
 WHITE            : &white    [255, 255, 255]

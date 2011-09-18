@@ -73,7 +73,8 @@ class Aerospace(object):
             # In the following line: since division is integer division, this
             # will ensure that on marking will pass from the radar position
             first = RADAR_RANGE - RADAR_RANGE/metres_per_step*metres_per_step
-            step_range = range(first, RADAR_RANGE*2, metres_per_step)
+            step_range = range(first, RADAR_RANGE*2+metres_per_step,
+                               metres_per_step)
             draw = lambda fm, to : pygame.draw.aaline(self.surface,
                                           RADAR_AID_COLOUR, sc(fm), sc(to))
             for step in step_range:
@@ -273,7 +274,9 @@ class Aerospace(object):
         queried by individual TCAS onboard each plane.
         '''
         data = {}
-        for p1, p2 in combinations(self.aeroplanes, 2):
+        # Filter out aeroplanes that are on ground
+        planes = [p for p in self.aeroplanes if p.position.z > 0]
+        for p1, p2 in combinations(planes, 2):
             distance = p1.position - p2.position
             if abs(distance.z) < VERTICAL_CLEARANCE and \
                distance.x**2 + distance.y**2 < HORIZONTAL_CLEARANCE**2:

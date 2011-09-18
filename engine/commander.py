@@ -26,12 +26,12 @@ __email__ = "quasipedia@gmail.com"
 __status__ = "Development"
 
 
-GAME_COMMANDS = {'quit' : {'spellings': ['quit', 'q'],
+GAME_COMMANDS = {'QUIT' : {'spellings': ['QUIT', 'Q'],
                            'arguments': 0,
                            'validator': None,
                            'flags'    : []
                            },
-                 'help' : {'spellings': ['help', 'h', 'man'],
+                 'HELP' : {'spellings': ['HELP', 'H', 'MAN'],
                            'arguments': 0,
                            'validator': None,
                            'flags'    : []
@@ -80,16 +80,15 @@ class Parser(object):
         Valid plane designations are in the format `XXX0000` with `X` being
         letters and `0` being digits.
         '''
-        if None == re.match(r'^[a-zA-Z]{3}\d{4}$', icao):
+        if None == re.match(r'^[A-Z]{3}\d{4}$', icao):
             return False
-        return [icao.upper()]
+        return [icao]
 
     def _validate_heading(self, arg):
         '''
         Valid headings can be either a 3 digit angle between 000° and 360° or a
         beacon/gate.
         '''
-        arg = arg.upper()
         try:  #argument is a numerical heading
             num_h = int(arg)
             if not (0 <= num_h <= 360 and len(arg) == 3):
@@ -132,19 +131,27 @@ class Parser(object):
         Valid landings indicate the three-letters airport code and the runaway
         in the format 00X, where 0 represent a digit and X a letter (R,L or C)
         '''
-        if (not (None == re.match(r'^[A-Z]{3}$', iata.upper())) and
-                not (None == re.match(r'^\d{2}(L|C|R)?$', runway.upper()))):
-            return (iata.upper(), runway.upper())
+        if (not (None == re.match(r'^[A-Z]{3}$', iata)) and
+                not (None == re.match(r'^\d{2}(L|C|R)?$', runway))):
+            return (iata, runway)
         return False
 
 
     def _validate_circle(self, direction):
         '''
-        Parameter can only be right (r) or left (l).
+        Parameter can only be right (R) or left (L).
         '''
-        if direction.lower() not in ('r', 'right', 'cw', 'l', 'left', 'ccw'):
+        if direction not in ('R', 'RIGHT', 'CW', 'L', 'LEFT', 'CCW'):
             return False
         return [direction]
+
+    def _validate_takeoff(self, runway):
+        '''
+        Parameter must be formatted as runway.
+        '''
+        if not re.match(r'[0-3][0-9][LCR]?$', runway):
+            return False
+        return [runway]
 
     def parse(self):
         '''
@@ -156,7 +163,7 @@ class Parser(object):
         '''
         if len(self.sentence) == 0:
             return []
-        self.bits = self.sentence.lower().split()
+        self.bits = self.sentence.split()
         self.bits.reverse()
         first = self.bits.pop()
         # We're issuing commands to a plane
@@ -168,13 +175,13 @@ class Parser(object):
             if self._validate_icao(icao):
                 return self.parse_plane_commands(icao, to_queue=True)
             else:
-                msg = '"%s" is not a valid flight number.' % icao.upper()
+                msg = '"%s" is not a valid flight number.' % icao
                 return msg
         # We're issuing a game command
         elif first == '/':
             return self.parse_game_command()
         else:
-            msg = '"%s" is not a valid ICAO reference.' % first.upper()
+            msg = '"%s" is not a valid ICAO reference.' % first
             return msg
 
     def parse_plane_commands(self, icao, to_queue=False):
@@ -186,7 +193,7 @@ class Parser(object):
         try:
             pilot = self.aerospace.get_plane_by_icao(icao).pilot
         except KeyError:
-            return 'Flight %s is not on the radar.' % icao.upper()
+            return 'Flight %s is not on the radar.' % icao
         callable_ = pilot.queue_command if to_queue else pilot.execute_command
         while len(self.bits) != 0:
             # The first bit of a command sequence is either the command or
@@ -212,7 +219,7 @@ class Parser(object):
                     command = v
                     break
             if not command_name or not command:
-                msg = '"%s" is neither a command nor a flag.' % issued.upper()
+                msg = '"%s" is neither a command nor a flag.' % issued
                 return msg
             # Parse arguments
             args = []
@@ -221,7 +228,7 @@ class Parser(object):
                     args.append(self.bits.pop())
                 except IndexError:
                     msg = 'Not enough arguments for command "%s".' % \
-                            command_name.upper()
+                            command_name
                     return msg
             # Verify that arguments pass validation
             if command['validator']:
@@ -229,7 +236,7 @@ class Parser(object):
                 args = validator(*args)
                 if not args:
                     msg = 'Parameters for "%s" command failed validation.' % \
-                            command_name.upper()
+                            command_name
                     return msg
             # Check for flags and parse them if present
             flags = []
@@ -291,7 +298,7 @@ class Parser(object):
         if command:
             args = self.bits
         else:
-            msg = 'Invalid game command! (%s)' % issued.upper()
+            msg = 'Invalid game command! (%s)' % issued
             return msg
         return (self.game_commands_processor, [command_name, args])
 
@@ -384,7 +391,7 @@ class CommandLine(object):
         '''
         Autocomplete the word-stub under the cursor.
         '''
-        splitted = self.text.lower().split()
+        splitted = self.text.split()
         if not splitted:
             return  #early exit for empty line
         spl_len = len(splitted)
@@ -401,9 +408,7 @@ class CommandLine(object):
         # identify what is the context of autocompletion
         if self.chars[0] == '/':
             what = 'game_commands'
-        elif spl_len == 2 and self.chars[0] == '.' or \
-             root == self.text.lower():
-            root = root.upper()
+        elif spl_len == 2 and self.chars[0] == '.' or root == self.text:
             what = 'planes'
         elif pre:
             if self.parser._validate_icao(pre):
@@ -418,15 +423,15 @@ class CommandLine(object):
             elif prepre:
                 if prepre in PLANE_COMMANDS['land']['spellings']:
                     what = 'runaways'
-                    context = pre.upper()
+                    context = pre
                 elif (self.parser._validate_icao(splitted[0]) or \
                      self.parser._validate_icao(splitted[1])) and \
                      pre not in PLANE_COMMANDS.keys():
                     what = 'plane_commands'
         if not what:
             return
-        pool = self._get_list_of_existing(what, context)
-        matches = [i.upper() for i in pool if i.upper().find(root.upper())==0]
+        pool = [el.upper() for el in self._get_list_of_existing(what, context)]
+        matches = [i for i in pool if i.find(root)==0]
         if len(matches) == 1:
             match = matches[0]+' '
         elif len(matches) > 1:
@@ -492,15 +497,16 @@ class CommandLine(object):
                 self.chars = []
                 self.history_ptr = 0
         elif event.unicode in VALID_CHARS:
+            character = event.unicode.upper()
             # No unintentional spaces (issued by appending empty chars due
             # to modifiers keys)
-            if event.unicode == '':
+            if character == '':
                 return
             # No leading spaces, no double spaces
-            if event.unicode == ' ' and \
+            if character == ' ' and \
                (len(self.chars) == 0 or self.chars[-1] == ' '):
                 return
-            self.chars.append(event.unicode.upper())
+            self.chars.append(character)
             # command modifiers from commands
             if event.unicode in './':
                 self.chars.append(' ')

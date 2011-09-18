@@ -5,11 +5,11 @@
 # This file is intended to work with the ATC-NG game available at
 # https://github.com/quasipedia/atc-ng
 
-abort:
-  spellings: [abort, purge]
+ABORT:
+  spellings: [ABORT, PURGE]
   arguments: 0
   flags:
-    lastonly: [lastonly, last, l]
+    LASTONLY: [LASTONLY, LAST, L]
   validator: null
   description: >
     An aeroplane that is maneuvering can't execute a new command until the
@@ -25,11 +25,11 @@ abort:
     >>> QFA1234 ABORT
     >>> DLH5678 PURGE LAST
 
-altitude:
-  spellings: [altitude, a, alt]
+ALTITUDE:
+  spellings: [ALTITUDE, A, ALT]
   arguments: 1
   flags:
-    expedite: [expedite, x]
+    EXPEDITE: [EXPEDITE, X]
   validator: _validate_altitude
   description: >
     The ``ALTITUDE`` command alters the flying target altitude of an aeroplane.
@@ -44,8 +44,8 @@ altitude:
     >>> QFA1234 ALTITUDE 55
     >>> DLH5678 ALTITUDE 80 X
 
-circle:
-  spellings: [circle, c, hold]
+CIRCLE:
+  spellings: [CIRCLE, C, HOLD]
   arguments: 1
   flags: []
   validator: _validate_circle
@@ -61,12 +61,12 @@ circle:
     >>> QFA1234 CIRCLE CCW
     >>> DLH5678 HOLD R
 
-heading:
-  spellings: [heading, h, head]
+HEADING:
+  spellings: [HEADING, H, HEAD]
   arguments: 1
   flags:
-    expedite: [expedite, x]
-    long: [l, long]
+    EXPEDITE: [EXPEDITE, X]
+    LONG: [L, LONG]
   validator: _validate_heading
   description: >
     The ``HEADING`` command alter the target heading of an aeroplane. The
@@ -88,8 +88,8 @@ heading:
     >>> QFA1234 HEAD 270 L X
     >>> DLH5678 HEADING NDB1 LONG EXPEDITE
 
-land:
-  spellings: [land, l, down]
+LAND:
+  spellings: [LAND, L, DOWN]
   arguments: 2
   flags: []
   validator: _validate_land
@@ -105,11 +105,11 @@ land:
     >>> QFA1234 LAND FRA 07R
     >>> DLH5678 DOWN ARN 26
 
-speed:
-  spellings: [speed, s, sp]
+SPEED:
+  spellings: [SPEED, S, SP]
   arguments: 1
   flags:
-    expedite: [expedite, x]
+    EXPEDITE: [EXPEDITE, X]
   validator: _validate_speed
   description: >
     The ``SPEED`` command alter the target ground speed of an aeroplane. The
@@ -123,26 +123,8 @@ speed:
     >>> QFA1234 SPEED 800
     >>> DLH5678 SP 450 EXPEDITE
 
-takeoff:
-  spellings: [takeoff, to, up, fly]
-  arguments: 1
-  flags:
-    expedite: [expedite, x]
-  validator: _validate_altitude
-  description: >
-    The ``TAKEOFF`` command instructs the plane to take off a given runaway.
-    Once airborne, the plane will keep on climbing until its maximum flight
-    altitude.
-
-      The ``EXPEDITE`` flag increses the climbing rate, making the maneuver to
-      execute faster.
-  examples: |
-
-    >>> QFA1234 TAKEOFF 04L
-    >>> DLH5678 UP 01 X
-
-squawk:
-  spellings: [squawk, touch, sq]
+SQUAWK:
+  spellings: [SQUAWK, TOUCH, SQ]
   arguments: 0
   flags: []
   validator: ''
@@ -162,3 +144,22 @@ squawk:
 
     >>> QFA1234 SQUAWK
     >>> DLH5678 TOUCH
+
+TAKEOFF:
+  spellings: [TAKEOFF, TO, UP, FLY]
+  arguments: 1
+  flags:
+    EXPEDITE: [EXPEDITE, X]
+  validator: _validate_takeoff
+  description: >
+    The ``TAKEOFF`` command instructs the plane to take off a given runaway.
+    Once airborne, the plane will keep on climbing until its maximum flight
+    altitude.
+
+      The ``EXPEDITE`` flag increses the climbing rate, making the maneuver to
+      execute faster.
+  examples: |
+
+    >>> QFA1234 TAKEOFF 04L
+    >>> DLH5678 UP 01 X
+

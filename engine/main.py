@@ -28,6 +28,7 @@ __email__ = "quasipedia@gmail.com"
 __status__ = "Development"
 
 #TODO: verify .deb package with `lintian`
+#TODO: REFACTOR using pygame events? Check if makes sense with PyGLets
 
 class MainWindow(object):
 
@@ -80,10 +81,16 @@ class MainWindow(object):
 
 def main():
     try:
-        log.info('# A NEW MATCH HAS STARTED ################################')
+        version = __version__  #this is normallly set when package is buit
+    except NameError:
+        version = '<unknown>'
+    try:
+        log.info('### NEW MATCH - Game version: %s ################' % version)
         MainWindow().main_loop()
     except:
-        log.critical(traceback.format_exc())
+        trace = traceback.format_exc()
+        log.critical(trace)
+        print trace
         sys.exit(1)
 
 if __name__ == '__main__':

@@ -22,7 +22,7 @@ __email__ = "quasipedia@gmail.com"
 __status__ = "Development"
 
 class Challenge(object):
-#TODO:BUG - remove radarrange from conf e make it load here
+#TODO:BUG - remove RADAR_RANGE from conf e make it load here
 #TODO:Space out imports according to PEP8
 
     '''
@@ -76,27 +76,45 @@ class Challenge(object):
         destination identifiers (airport or gate) for a plane. It also returns
         the initial amount of onboard fuel and the fuel_efficiency values.
         '''
-        entry_data_gates = self.__entry_data['gates'][:]
-        random.shuffle(entry_data_gates)
-        # Attempt to make planes enter the aerospace without making them
-        # collide with each other
-        while entry_data_gates:
-            orig, pos, vel, levels = entry_data_gates.pop()
-            levels = levels[:]
-            while levels:
-                # Prevent in-place modification on __entry_data
-                pos = pos.copy()
-                pos.z = levels.pop()
-                if not self.gamelogic.aerospace.check_proximity(pos):
-                    vel = vel.copy()
-                    found_ok = True
-                    tmp = random.choice(self.scenario.airports)
-                    dest = tmp.iata
-                    fuel = rint(ground_distance(pos, tmp.location)*
+        #TODO: foresee port to port and gate to gate
+        #TODO: foresee a configurable ratio between ports and air
+        #TODO: BUG:pass gate and airport objects directly in orig and dest
+        options = ['gates', 'airports']
+        random.shuffle(options)
+        type_ = options.pop()
+        if type_ == 'gates':
+            entry_data_gates = self.__entry_data['gates'][:]
+            random.shuffle(entry_data_gates)
+            # Attempt to make planes enter the aerospace without making them
+            # collide with each other
+            while entry_data_gates:
+                orig, pos, vel, levels = entry_data_gates.pop()
+                levels = levels[:]
+                while levels:
+                    # Prevent in-place modification on __entry_data
+                    pos = pos.copy()
+                    pos.z = levels.pop()
+                    if not self.gamelogic.aerospace.check_proximity(pos):
+                        vel = vel.copy()
+                        tmp = random.choice(self.scenario.airports)
+                        dest = tmp.iata
+                        fuel = rint(ground_distance(pos, tmp.location)*
+                                    4*self.fuel_per_metre)
+                        return dict(origin=orig, position=pos, velocity=vel,
+                                    destination=dest, fuel=fuel,
+                                    fuel_efficiency=self.fuel_per_metre)
+        elif type_ == 'airports':
+            random.shuffle(self.__entry_data['airports'])
+            orig, pos, vel = self.__entry_data['airports'][0]
+            pos = pos.copy()
+            vel = vel.copy()
+            tmp = random.choice(self.scenario.gates)
+            dest = tmp.name
+            fuel = rint(ground_distance(pos, Vector3(*tmp.location))*
                                 4*self.fuel_per_metre)
-                    return dict(origin=orig, position=pos, velocity=vel,
-                                destination=dest, fuel=fuel,
-                                fuel_efficiency=self.fuel_per_metre)
+            return dict(origin=orig, position=pos, velocity=vel,
+                        destination=dest, fuel=fuel,
+                        fuel_efficiency=self.fuel_per_metre)
         return False
 
     def __add_plane(self):
@@ -135,5 +153,5 @@ class Challenge(object):
             self.__add_plane()
         # If there have been 3 (or more) destroyed planes, terminate the match
         if self.gamelogic.fatalities > 2:
-            print ("Match is over!")
+            log.info('THREE_STRIKES_OUT: Match si over!')
             self.gamelogic.machine_state = MS_QUIT

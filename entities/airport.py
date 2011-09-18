@@ -88,6 +88,25 @@ class airport(object):
                                    centre_vector(centre(x),centre(y))), 0)
         keys.sort(cmp=compare, reverse=True)
 
+
+    def __add_twin_runways(self):
+        '''
+        Add the field "twin" to the runways. "Twin Runways" are the runways
+        that share the same strip of asphalt, but in opposite direction.
+        '''
+        for k, v in self.runways.items():
+            if len(k) > 2:
+                numeric = k[:2]
+                letter = k[-1]
+            else:
+                numeric = k
+                letter = ''
+            numeric = (int(numeric) + 18)%36
+            numeric = str(numeric).zfill(2) if numeric != 0 else '36'
+            if letter:
+                letter = 'L' if letter == 'R' else 'L'
+            v['twin'] = numeric+letter
+
     def __define_runways(self):
         '''
         An asphalt strip automatically defines two runways (one for each end
@@ -95,10 +114,14 @@ class airport(object):
         vector to intercept for landing) and a takeoffpoint (the point from
         where an aeroplane is to be considered airborne.
             Programmatically is a dictionary structured as follow:
-        { runway_name : { location  : (x,y,z)    # location on map
+        { runway_name : { name      : string     # their name
+                          location  : (x,y,z)    # location on map
                           ils       : Vector3()  # vector to intercept for land
                           to_point  : (z,y,z)    # take off point
+                          twin      : string     # runway at other end of strip
+                        }
         '''
+        #TODO: remove to_point? I use other end of the runway
         runways = {}
         # First create all runaways with temp names in the form `XX_n`...
         for n, strip in enumerate(self.strips):
@@ -136,6 +159,7 @@ class airport(object):
             # Set the property of the airport object
             for n, old_key in enumerate(old_keys):
                 new_key = new_keys[n]
+                runways[old_key]['name'] = new_key
                 self.runways[new_key] = runways[old_key]
         # ...finally, we need to kconsider the arbitrary reference point for the
         # asphalt strips, so that we can locate this arbitrary point within
@@ -159,6 +183,8 @@ class airport(object):
         # generating the image]
         for strip in self.strips:
             strip.centre_pos -= geo_centre
+        # Finally it add the "twin" runway name
+        self.__add_twin_runways()
 
     def get_image(self, square_side=None, scale=None, with_labels=False):
         '''

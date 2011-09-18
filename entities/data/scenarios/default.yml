@@ -9,61 +9,56 @@ name         : Development scenario
 description  : A test scenario that will eventually evolve to be the default
                one, it aims to showcase all the features (elements) that can
                be possibly included on radar.
-radar_range  : 40000
+radar_range  : 25000
 
 airports:
 
 - real_iata  : FRA
   new_iata   : MAC
   new_name   : Mac's home airoport
-  location   : [55000, 70000]
+  location   : [20000, 20000]
 
 - real_iata  : ARN
   new_iata   : NAD
   new_name   : Nadia's home airoport
-  location   : [30000, 70000]
+  location   : [30000, 25000]
 
 gates:
 
 - name       : EX0
-  radial     : 90
-  heading    : 90
-  width      : 10000
-  bottom     : 5000
-  top        : 8000
+  radial     : 45
+  heading    : 45
+  width      : 5000
+  bottom     : 2000
+  top        : 4000
 
 - name       : EX1
-  radial     : 135
-  heading    : 135
-  width      : 10000
-  bottom     : 5000
-  top        : 8000
+  radial     : 180
+  heading    : 180
+  width      : 5000
+  bottom     : 2000
+  top        : 4000
 
 - name       : EX2
-  radial     : 160
-  heading    : 180
-  width      : 10000
-  bottom     : 5000
-  top        : 8000
-
-- name       : EX3
-  radial     : 200
-  heading    : 180
-  width      : 10000
-  bottom     : 5000
-  top        : 8000
-
-- name       : EX4
-  radial     : 250
-  heading    : 225
-  width      : 10000
-  bottom     : 5000
+  radial     : 300
+  heading    : 290
+  width      : 5000
+  bottom     : 6000
   top        : 8000
 
 beacons:
 
 - id         : NDB1
-  location   : [55000, 55000]
+  location   : [25000, 25000]
 
 - id         : NDB2
-  location   : [30000, 55000]
+  location   : [10000, 40000]
+
+- id         : NDB3
+  location   : [40000, 10000]
+
+- id         : NDB4
+  location   : [10000, 10000]
+
+- id         : NDB5
+  location   : [40000, 40000]

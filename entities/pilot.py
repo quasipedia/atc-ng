@@ -274,7 +274,7 @@ class Pilot(object):
         '''
         self.plane.time_last_cmd = time()
         pl_flags = self.plane.flags
-        if commands[0][0] != 'squawk':
+        if commands[0][0] != 'SQUAWK':
             self.aerospace.gamelogic.score_event(COMMAND_IS_ISSUED)
         if from_queue:
             self.say('Performing queued %s command now' %
@@ -294,10 +294,10 @@ class Pilot(object):
             log.info('%s executes: %s' %(self.plane.icao, line))
             command, args, cmd_flags = line
             # EXPEDITE FLAG
-            if 'expedite' in cmd_flags:
+            if 'EXPEDITE' in cmd_flags:
                 pl_flags.expedite = True
             # HEADING COMMAND
-            if command == 'heading':
+            if command == 'HEADING':
                 if type(args[0]) == int:  #the argument is a heading
                     self.target_conf['heading'] = args[0]
                     pass
@@ -305,26 +305,42 @@ class Pilot(object):
                     self.set_course_towards(args[0])
                 # Veering direction
                 self.veering_direction = self.shortest_veering_direction()
-                if 'long' in cmd_flags:
+                if 'LONG' in cmd_flags:
                     self.veering_direction *= -1  #invert direction
             # ALTITUDE COMMAND
-            elif command == 'altitude':
+            elif command == 'ALTITUDE':
                 feasible = self.verify_feasibility(altitude=args[0])
                 if feasible != True:
                     self.say(feasible, KO_COLOUR)
                     return False
                 self.target_conf['altitude'] = args[0]
-            elif command == 'speed':
+            elif command == 'SPEED':
                 feasible = self.verify_feasibility(speed=args[0])
                 if feasible != True:
                     self.say(feasible, KO_COLOUR)
                     return False
                 self.target_conf['speed'] = args[0]
             # TAKE OFF COMMAND
-            elif command == 'takeoff':
-                pass
+            elif command == 'TAKEOFF':
+                if self.plane.position.z >=0:
+                #TODO:add also rule that excludes z<0 from tcas
+                    msg = "We can't take off if we are already airborne!"
+                    self.say(msg, KO_COLOUR)
+                    return False
+                port = self.aerospace.airports[self.plane.origin]
+                if args[0].upper() not in port.runways.keys():
+                    msg = "Uh? What runway did you say we should taxi to?"
+                    self.say(msg, KO_COLOUR)
+                    return False
+                runway = port.runways[args[0]]
+                twin = port.runways[runway['twin']]
+                self.lift_data = dict(name = twin['name'],
+                                      point = twin['location'] + port.location,
+                                      velocity = -twin['ils'].normalized())
+                self.plane.flags.cleared_up = RUNWAY_BUSY_TIME
+                self.takeoff()
             # LAND COMMAND
-            elif command == 'land':
+            elif command == 'LAND':
                 feasible = self.verify_existing_runway(*args)
                 if feasible != True:
                     self.say(feasible, KO_COLOUR)
@@ -333,22 +349,22 @@ class Pilot(object):
                 if type(ret) != int:
                     return ret
             # CIRCLE COMMAND
-            elif command == 'circle':
+            elif command == 'CIRCLE':
                 param = args[0].lower()
-                if param in ('l', 'left', 'ccw'):
+                if param in ('L', 'LEFT', 'CCW'):
                     self.veering_direction = self.LEFT
-                elif param in ('r', 'right', 'cw'):
+                elif param in ('R', 'RIGHT', 'CW'):
                     self.veering_direction = self.RIGHT
                 else:
                     msg = 'Unknown parameter for circle command.'
                     raise BaseException(msg)
                 pl_flags.circling = True
             # ABORT COMMAND
-            elif command == 'abort':
-                self._abort_command('lastonly' in cmd_flags)
+            elif command == 'ABORT':
+                self._abort_command('LASTONLY' in cmd_flags)
                 return True  #need to skip setting flag.busy to True!
             # SQUAWK COMMAND
-            elif command == 'squawk':
+            elif command == 'SQUAWK':
                 self.say('Currently heading %s, our destination is %s' %
                           (rint(self.plane.heading),
                            self.plane.destination), OK_COLOUR)
@@ -469,6 +485,25 @@ class Pilot(object):
         acc_module = sqrt(g_to_mks(max_manouvering_g)**2-g_to_mks(1)**2)
         return acc_module/speed
 
+    def takeoff(self, runway=None):
+        '''
+        Manage the take off procedure
+        '''
+        if self.plane.flags.cleared_up <= 0:
+            log.info('%s is taking off from %s %s' % (self.plane.icao,
+                                  self.plane.origin, self.lift_data['name']))
+            self.plane.position = self.lift_data['point']
+            self.plane.velocity = self.lift_data['velocity'] * \
+                                  self.plane.landing_speed
+            self.target_conf['altitude'] = self.plane.max_altitude
+            self.target_conf['speed'] = self.plane.max_speed
+            self.target_conf['heading'] = self.plane.heading
+            del self.lift_data
+            self.plane.flags.cleared_up = False
+        else:
+            self.plane.flags.cleared_up -= PING_IN_SECONDS
+
+
     def land(self, port_name=None, rnw_name=None):
         '''
         Guide a plane towards the ILS descent path and then makes it land.
@@ -511,16 +546,12 @@ class Pilot(object):
             if l.overshot(l.mp):
                 self.set_course_towards(l.foot.xy)
                 l.phase = self.MERGING
-#            print "--- INTERCEPTING ---"
-#            print "from veering point : %s" % (l.md)
-#            print "from ft            : %s" % l.fd
+            log.debug('%s INTERCEPTING: md=%s fd=%s' % (pl.icao, l.md, l.fd))
         elif l.phase == self.MERGING:
             if self.course_towards == None:
                 l.phase = self.MATCHING
-#            print "--- MERGING ---"
-#            print "heading  : %s" % pl.heading
-#            print "t head   : %s" % self.target_conf['heading']
-#            print "from ft  : %s" % l.fd
+            log.debug('%s MERGING: head=%s t_head= %s fd=%s' % (pl.icao,
+                      pl.heading, self.target_conf['heading'], l.fd))
         elif l.phase == self.MATCHING:
             secs_to_foot = l.fd / pl.speed
             # Abort if the plane is too fast to descend
@@ -542,16 +573,13 @@ class Pilot(object):
             # ...otherwise tell it to climb/descend!!
             else:
                 self.target_conf['altitude'] = path_alt
-#            print "--- MATCHING ---"
-#            print "alt        : %s" % pl.altitude
-#            print "path alt   : %s" % path_alt
-#            print "alt diff   : %s" % alt_diff
-#            print "from ft    : %s" % l.fd
+            log.debug('%s MATCHING: alt=%s path_alt=%s delta=%s fd=%s' %
+                      (pl.icao, pl.altitude, path_alt, alt_diff, l.fd))
         elif l.phase == self.GLIDING:
             # Abort if the plane is too fast to slow to landing speed
             if l.overshot(l.bp):
                 self.target_conf['speed'] = pl.landing_speed
-            if pl.position.z < l.foot.z:
+            if pl.position.z <= l.foot.z:
                 if pl.destination == l.port_name:
                     msg = 'Thank you tower, we\'ve hit home. Over and out!'
                     self.say(msg, OK_COLOUR)
@@ -564,13 +592,9 @@ class Pilot(object):
             ticks = 1.0 * l.fd / self.target_conf['speed'] / PING_IN_SECONDS
             z_step = 1.0 * l.above_foot / ticks
             self.target_conf['altitude'] -= z_step
-#            print "--- GLIDING ---"
-#            print "alt on foot  : %s" % l.above_foot
-#            print "speed        : %s" % pl.speed
-#            print "target speed : %s" % self.target_conf['speed']
-#            print "bd_from_ft   : %s" % l.bd_from_ft
-#            print "from braking : %s" % l.bd
-#            print "from ft      : %s" % l.fd
+            log.debug('%s GLIDING: footalt=%s speed=%s t_speed=%s bd=%s fd=%s'
+                      % (pl.icao, l.above_foot, pl.speed,
+                         self.target_conf['speed'], l.bd, l.fd))
         return l.phase
 
     def veer(self):
@@ -652,6 +676,9 @@ class Pilot(object):
         # Landing loop (affects all parameters at various landing phases)
         if pl.flags.cleared_down:
             self.land()
+        # Take off (affects all parameters at various landing phases)
+        if type(pl.flags.cleared_up) != bool:  #can be 0 seconds!!!
+            self.takeoff()
         # Course towards action affects heading only, can be set by landing
         if self.course_towards:
             self.set_course_towards()
@@ -687,11 +714,16 @@ class Pilot(object):
                 min_, max_ = pl.landing_speed, pl.max_speed
             else:
                 min_, max_ = pl.min_speed, pl.max_speed
-            if min_ <= pl.speed + gr_acc <= max_:
-                pl.velocity += acc_vector
-            # if out of boundaries, uses min and max
+            maybe = pl.speed + gr_acc
+            # Testing for the sign of gr_acc allows to have a taking off plane
+            # at takeoff speed that is below its minimum flight speed, but
+            # prevent a slowing plane to go pass it's minimum speed.
+            if (maybe <= min_ and gr_acc < 0):
+                pl.velocity = norm_velocity * min_
+            elif (maybe >= max_ and gr_acc > 0):
+                pl.velocity = norm_velocity * max_
             else:
-                pl.velocity = norm_velocity * (max_ if index else min_)
+                pl.velocity += acc_vector
         pl.position += pl.velocity*PING_IN_SECONDS
         ###################
         # POST-UPDATE OPS #
