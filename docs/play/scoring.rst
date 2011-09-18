@@ -19,7 +19,7 @@ The scoring system is based on the following chart:
 +-------------------+-----------------------------+----------------------------+
 | **Flight          |                             | - triggering the TCAS      |
 | safety**          |                             |   (Traffic Collision       |
-|                   |                             |   Avoidance Sytem)         |
+|                   |                             |   Avoidance System)        |
 |                   |                             | - getting aeroplanes into  |
 |                   |                             |   fuel emergency           |
 +-------------------+-----------------------------+----------------------------+
@@ -67,7 +67,7 @@ Fuel
 ----
 Beside the "burning one unit of fuel" and "triggering fuel emergency" events
 above, fuel influences score when an aeroplane terminate its existence. In
-particular an **amount o points equal to the amount of fuel still onboard**
+particular an **amount of points equal to the amount of fuel still onboard**
 at the moment in which the plane terminates is added or subtracted to the score
 according to whether the end-of-life event was rewarded or penalised.
 
@@ -75,7 +75,7 @@ For example a plane crashing with 250 units of fuel will affect the overall
 score by -1250 points, while a plane landing with 123 units of fuel will change
 the score of +623 points.
 
-Also note that during maneouvers performed with the ``expedite`` flag, fuel
+Also note that during manoeuvres performed with the ``expedite`` flag, fuel
 consumption happens twice as fast.
 
 For an accurate description of the fuel modelling in ATC-NG see the :doc:`fuel

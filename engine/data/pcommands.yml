@@ -154,10 +154,14 @@ TAKEOFF:
   description: >
     The ``TAKEOFF`` command instructs the plane to take off a given runaway.
     Once airborne, the plane will keep on climbing until its maximum flight
-    altitude.
+    altitude and its maximum flight speed, maintaining the heading of the
+    runway it departed from. This behaviour can be overridden by issuing the
+    command in combination with ``HEADING``, ``ALTITUDE`` or ``SPEED``. Read
+    more on the :doc:`specific section<takingoff>` of the manual.
 
-      The ``EXPEDITE`` flag increses the climbing rate, making the maneuver to
+      The ``EXPEDITE`` flag increases the climbing rate, making the maneuver to
       execute faster.
+
   examples: |
 
     >>> QFA1234 TAKEOFF 04L

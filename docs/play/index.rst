@@ -13,7 +13,9 @@ help!) please consult :doc:`this other section
    game-commands
    plane-commands
    fuel
+   takingoff
    landing
    leaving-aerospace
    scoring
+   settings
    tips

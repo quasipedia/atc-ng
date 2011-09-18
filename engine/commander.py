@@ -41,8 +41,9 @@ GAME_COMMANDS = {'QUIT' : {'spellings': ['QUIT', 'Q'],
 data = resource_stream(__name__, path.join('data', 'pcommands.yml'))
 PLANE_COMMANDS = yaml.load(data)
 
-VALID_PLANE_COMMANDS_COMBOS = [('heading', 'altitude', 'speed'),
-                               ('circle', 'altitude', 'speed')]
+VALID_PLANE_COMMANDS_COMBOS = [('HEADING', 'ALTITUDE', 'SPEED'),
+                               ('TAKEOFF', 'ALTITUDE', 'SPEED', 'HEADING'),
+                               ('CIRCLE', 'ALTITUDE', 'SPEED'),]
 
 
 class Parser(object):
@@ -415,13 +416,13 @@ class CommandLine(object):
                 what = 'plane_commands'
             # the argument of circling can be 'L' (left) which could be
             # understood as the shorthand for 'LAND'
-            elif pre in PLANE_COMMANDS['land']['spellings'] and \
-                 prepre not in PLANE_COMMANDS['circle']['spellings']:
+            elif pre in PLANE_COMMANDS['LAND']['spellings'] and \
+                 prepre not in PLANE_COMMANDS['CIRCLE']['spellings']:
                 what = 'airports'
-            elif pre in PLANE_COMMANDS['heading']['spellings']:
+            elif pre in PLANE_COMMANDS['HEADING']['spellings']:
                 what = 'beacons'
             elif prepre:
-                if prepre in PLANE_COMMANDS['land']['spellings']:
+                if prepre in PLANE_COMMANDS['LAND']['spellings']:
                     what = 'runaways'
                     context = pre
                 elif (self.parser._validate_icao(splitted[0]) or \

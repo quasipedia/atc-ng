@@ -5,7 +5,7 @@ Plugins
 
 With the term *plugins* we refer to all those in-game elements whose difference
 of behaviour is due to a difference way of processing the same data. We use
-this term to mark a clear distintion with the :doc:`entities`.
+this term to mark a clear distinction with the :doc:`entities`.
 
 This means that in order to contribute a new plugin to the game you need basic
 programming skills in *python*, the programming language ATC-NG is developed

@@ -5,7 +5,7 @@ Entities
 
 With the term *entities* we refer to all those in-game elements whose difference
 of behaviour is purely due to a difference between the parameters they are
-intialised with. We use this term to mark a clear distintion with the
+initialised with. We use this term to mark a clear distinction with the
 :doc:`plugins`.
 
 This means that to contribute a new entity to the game (for example a new
@@ -14,9 +14,9 @@ airport map) **you do not need to be able to program**. In fact ATC-NG uses
 *human friendly data serialization standard*, and this means that is
 very straightforward to create new entities or modify the existing ones.
 
-You can have a preview of how the yaml files look like for each of the
+You can have a preview of how the YAML files look like for each of the
 implemented entities by browsing through the `appropriate folder`_ of the main
-repo.
+repository.
 
 .. _`appropriate folder`: https://github.com/quasipedia/atc-ng/tree/master/entities/data
 

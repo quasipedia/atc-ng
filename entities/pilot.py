@@ -272,6 +272,8 @@ class Pilot(object):
         [command, [arg1, arg2, ...], [flag1, flag2, ...]].
         Return True on message successfully executed, false otherwise.
         '''
+        #FIXME: This should really be simplified and devided up, and given
+        #       a proper test suite...
         self.plane.time_last_cmd = time()
         pl_flags = self.plane.flags
         if commands[0][0] != 'SQUAWK':
@@ -280,7 +282,7 @@ class Pilot(object):
             self.say('Performing queued %s command now' %
                      commands[0][0].upper(), ALERT_COLOUR)
         # Reject orders if busy
-        if pl_flags.busy == True and commands[0][0] not in ['abort', 'squawk']:
+        if pl_flags.busy == True and commands[0][0] not in ['ABORT', 'SQUAWK']:
             msg = 'Still maneuvering, please specify abort/append command'
             self.say(msg, KO_COLOUR)
             return False
@@ -289,17 +291,26 @@ class Pilot(object):
             msg = '...'
             self.say(msg, KO_COLOUR)
             return False
+        # Reject order other than TAKEOFF or SQUAWK if plane is on ground
+        if self.plane.position.z < 0 and commands[0][0] not \
+                                in ('TAKEOFF', 'SQUAWK'):
+            msg = 'We can\'t do that: we are still on the ground!'
+            self.say(mas, KO_COLOUR)
+            return False
         # Otherwise execute what requested
         for line in commands:
             log.info('%s executes: %s' %(self.plane.icao, line))
             command, args, cmd_flags = line
+            # H, S, A data might need to be stored for takeoff...
+            target = self.target_conf if not self.plane.flags.cleared_up \
+                                      else self.lift_data['target_conf']
             # EXPEDITE FLAG
             if 'EXPEDITE' in cmd_flags:
                 pl_flags.expedite = True
             # HEADING COMMAND
             if command == 'HEADING':
                 if type(args[0]) == int:  #the argument is a heading
-                    self.target_conf['heading'] = args[0]
+                    target['heading'] = args[0]
                     pass
                 else:  #the argument is a location (a beacon's one)
                     self.set_course_towards(args[0])
@@ -313,13 +324,13 @@ class Pilot(object):
                 if feasible != True:
                     self.say(feasible, KO_COLOUR)
                     return False
-                self.target_conf['altitude'] = args[0]
+                target['altitude'] = args[0]
             elif command == 'SPEED':
                 feasible = self.verify_feasibility(speed=args[0])
                 if feasible != True:
                     self.say(feasible, KO_COLOUR)
                     return False
-                self.target_conf['speed'] = args[0]
+                target['speed'] = args[0]
             # TAKE OFF COMMAND
             elif command == 'TAKEOFF':
                 if self.plane.position.z >=0:
@@ -336,7 +347,10 @@ class Pilot(object):
                 twin = port.runways[runway['twin']]
                 self.lift_data = dict(name = twin['name'],
                                       point = twin['location'] + port.location,
-                                      velocity = -twin['ils'].normalized())
+                                      velocity = -twin['ils'].normalized(),
+                                      target_conf = dict(altitude = None,
+                                                         speed = None,
+                                                         heading = None))
                 self.plane.flags.cleared_up = RUNWAY_BUSY_TIME
                 self.takeoff()
             # LAND COMMAND
@@ -495,14 +509,19 @@ class Pilot(object):
             self.plane.position = self.lift_data['point']
             self.plane.velocity = self.lift_data['velocity'] * \
                                   self.plane.landing_speed
-            self.target_conf['altitude'] = self.plane.max_altitude
-            self.target_conf['speed'] = self.plane.max_speed
-            self.target_conf['heading'] = self.plane.heading
+            target = self.target_conf
+            data = self.lift_data['target_conf']
+            target['altitude'] = data['altitude'] if data['altitude'] \
+                                                  else self.plane.max_altitude
+            target['speed'] = data['speed'] if data['speed'] \
+                                               else self.plane.max_speed
+            target['heading'] = data['heading'] if data['heading'] \
+                                               else self.plane.heading
             del self.lift_data
             self.plane.flags.cleared_up = False
+            self.plane.flags.busy = True
         else:
             self.plane.flags.cleared_up -= PING_IN_SECONDS
-
 
     def land(self, port_name=None, rnw_name=None):
         '''

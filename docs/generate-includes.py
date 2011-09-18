@@ -49,22 +49,22 @@ class Generator(object):
         lines = []
         for cname in sorted(commands):
             data = commands[cname]
-            lines.append(cname.upper())       #command title
+            lines.append(cname)       #command title
             lines.append('-'*len(cname))      #make it subsection
             lines.append('**Example Usage:**')
             lines.append(data['examples'])
             lines.append('**Description:**')
             lines.append('  ' + data['description'])
             lines.append('**Possible spellings:**')
-            lines.append('  ' + ', '.join(data['spellings']).upper())
+            lines.append('  ' + ', '.join(data['spellings']))
 #            lines.append('**Number of arguments:**')
 #            lines.append('  ' + self.eng_numbers[data['arguments']])
             lines.append('**Accepted flags:**')
             flags = data['flags']
             if flags:
                 for flag, spellings in flags.items():
-                    lines.append('  * ' + flag.upper() + '  (*spellings:* ' +
-                                 ', '.join(spellings).upper() + ')')
+                    lines.append('  * ' + flag + '  (*spellings:* ' +
+                                 ', '.join(spellings) + ')')
             else:
                 lines.append('  ---')
             lines.append('\n')
@@ -74,11 +74,19 @@ class Generator(object):
         f.write(rst)
         f.close()
 
+    def generate_settings_file(self):
+        yaml_file = open('../engine/data/template_user_dir/settings.yml')
+        inc_file = open('settings-file.inc', 'w')
+        inc_file.write('::\n\n')
+        for line in yaml_file.readlines():
+            inc_file.write('  ' + line)
+
     def generate_all(self):
         '''
         Generate all inclusion files.
         '''
         self.generate_plane_commands()
+        self.generate_settings_file()
 
 if __name__ == '__main__':
     Generator().generate_all()
