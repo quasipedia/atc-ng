@@ -100,7 +100,7 @@ Scandinavian Airlines or <tt class="docutils literal"><span class="pre">DLH</spa
 precision guidance to an aircraft approaching and landing on a runway,
 using a combination of radio signals and, in many cases, high-intensity
 lighting arrays to enable a safe landing.</p>
-<p class="last">ATC-NG simulates the presence of ILS at each runways of each aeroport on
+<p class="last">ATC-NG simulates the presence of ILS at each runways of each airport on
 in the scenario. The AI pilots use the simulated ILS to touch down
 autonomously when instructed to land.</p>
 </dd>
@@ -110,7 +110,7 @@ is syntactically distinguishable from that text. The idea and terminology
 evolved from the &#8220;marking up&#8221; of manuscripts. Markup is typically omitted
 from the version of the text which is displayed for end-user consumption.</p>
 <p class="last">ATC-NG uses two markup languages internally: <a class="reference internal" href="#term-restructuredtext"><em class="xref std std-term">reStructuredText</em></a> for
-its documentation and <em class="xref std std-term">YAML</em> for its entities, although it should be
+its documentation and <a class="reference internal" href="#term-yaml"><em class="xref std std-term">YAML</em></a> for its entities, although it should be
 mentioned that the latter is not a markup in the strict sense of the word.</p>
 </dd>
 <dt id="term-restructuredtext">reStructuredText</dt>
@@ -119,6 +119,21 @@ plaintext markup syntax and parser system. reStructuredText is a revision
 and reinterpretation of the StructuredText and Setext lightweight markup
 systems. More info on the format are available on the
 <a class="reference external" href="http://docutils.sourceforge.net/rst.html">reStructuredText website</a>.</dd>
+<dt id="term-runway">Runway</dt>
+<dd><p class="first">According to ICAO a runway is a <em>&#8220;defined rectangular area on a land
+aerodrome prepared for the landing and take-off of aircraft.&#8221;</em></p>
+<p>Runways are named by a number between 01 and 36, which is generally one
+tenth of the magnetic azimuth of the runway&#8217;s heading: a runway numbered
+09 points east (90°), runway 18 is south (180°), runway 27 points west
+(270°) and runway 36 points to the north (360° rather than 0°). If there
+is more than one runway pointing in the same direction (parallel runways),
+each runway is identified by appending Left (L), Center (C) and Right (R)
+to the number.</p>
+<p class="last">ATC-NG models its airport on real ones, and therefore the size and naming
+of the runways is the real one. ATC-NG - though - doesn&#8217;t simulate Earth&#8217;s
+magnetic field, and thus the orientation of runways is relative to the
+geographical north.</p>
+</dd>
 <dt id="term-tcas">TCAS</dt>
 <dd><p class="first">TCAS stands for <em>Traffic Collision Avoidance System</em>. TCAS is an aircraft
 collision avoidance system designed to reduce the incidence of mid-air
@@ -132,25 +147,7 @@ in the scenario. Whenever the player fails to maintain separation between
 two or more aeroplanes, the TCAS will instruct the AI pilots to steer away
 from each other.</p>
 </dd>
-</dl>
-<blockquote>
-<div><dl class="docutils">
-<dt>Runway</dt>
-<dd><p class="first">According to ICAO a runway is a <em>&#8220;defined rectangular area on a land
-aerodrome prepared for the landing and take-off of aircraft.&#8221;</em></p>
-<p>Runways are named by a number between 01 and 36, which is generally one
-tenth of the magnetic azimuth of the runway&#8217;s heading: a runway numbered
-09 points east (90°), runway 18 is south (180°), runway 27 points west
-(270°) and runway 36 points to the north (360° rather than 0°). If there
-is more than one runway pointing in the same direction (parallel runways),
-each runway is identified by appending Left (L), Center (C) and Right (R)
-to the number.</p>
-<p class="last">ATC-NG models its aeroport on real ones, and therefore the size and naming
-of the runways is the real one. ATC-NG - though - doesn&#8217;t simulate Earth&#8217;s
-magnetic field, and thus the orientation of runways is relative to the
-geographical north.</p>
-</dd>
-<dt>YAML</dt>
+<dt id="term-yaml">YAML</dt>
 <dd>YAML is a human-readable data serialization format (that is: a format for
 displaying computer-readable data which is nice to the eye of humans).
 YAML is a recursive acronym for &#8220;YAML Ain&#8217;t Markup Language&#8221;. Early in its
@@ -159,7 +156,6 @@ retronymed to distinguish its purpose as data-oriented, rather than
 document markup. More info on the format are available on the
 <a class="reference external" href="http://yaml.org/">YAML website</a>.</dd>
 </dl>
-</div></blockquote>
 </div>
 
 

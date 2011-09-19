@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Leaving the aerospace &mdash; documentation .dev version</title>
+    <title>Taking off &mdash; documentation .dev version</title>
     <link rel="stylesheet" href="../_static/agogo.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -25,8 +25,8 @@
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
     <link rel="top" title="documentation .dev version" href="../index.html" />
     <link rel="up" title="How to play ATC-NG" href="index.html" />
-    <link rel="next" title="Scoring System" href="scoring.html" />
-    <link rel="prev" title="Landing" href="landing.html" /> 
+    <link rel="next" title="Landing" href="landing.html" />
+    <link rel="prev" title="Fuel" href="fuel.html" /> 
   </head>
   <body>
     <div class="header-wrapper">
@@ -36,9 +36,9 @@
           </a></p>
         <h1><a href="../index.html">Air Traffic Controller - NG</a></h1>
         <div class="rel">
-          <a href="landing.html" title="Landing"
+          <a href="fuel.html" title="Fuel"
              accesskey="P">previous</a> |
-          <a href="scoring.html" title="Scoring System"
+          <a href="landing.html" title="Landing"
              accesskey="N">next</a> |
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a>
@@ -54,38 +54,55 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="leaving-the-aerospace">
-<span id="index-0"></span><h1>Leaving the aerospace<a class="headerlink" href="#leaving-the-aerospace" title="Permalink to this headline">¶</a></h1>
-<p>Aeroplanes can legally leave the aerospace only through <a class="reference internal" href="../glossary.html#term-gate"><em class="xref std std-term">gates</em></a>.</p>
-<p>Failing to leave the aerospace from a gate will trigger a penalty as described
-in the <a class="reference internal" href="scoring.html"><em>scoring section</em></a> of the manual. Leaving the aerospace
-from a different gate than the designated, will also trigger a penalty, although
-not as severe.</p>
-<p><strong>Gates are bi-directional</strong> which means planes can both <em>enter</em> and <em>exit</em> the
-aerospace. To avoid collisions, in ATC-NG, <strong>even flight levels (like 10, 20,
-30) are reserved for leaving the aerospace</strong>, while odd ones (like 05, 15, 25)
-are reserved for entering it.</p>
-<p>Three parameters are considered in evaluating if an aeroplane left the aerospace
-correctly:</p>
+  <div class="section" id="taking-off">
+<span id="index-0"></span><h1>Taking off<a class="headerlink" href="#taking-off" title="Permalink to this headline">¶</a></h1>
+<p>Aeroplanes that are due to leave an airport are shown on the radar screen as
+stationing at the geographical centre of the airport itself.</p>
+<p>Planes can be instructed to take off by issuing the command <tt class="docutils literal"><span class="pre">TAKEOFF</span></tt> followed
+by the number of the runway to use. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ABC1234</span> <span class="n">TAKEOFF</span> <span class="mi">36</span><span class="n">C</span>
+</pre></div>
+</div>
+<div class="section" id="setting-a-post-take-off-course">
+<h2>Setting a post-take off course<a class="headerlink" href="#setting-a-post-take-off-course" title="Permalink to this headline">¶</a></h2>
+<p>By default, the plane will keep on climbing until its maximum flight altitude
+and its maximum flight speed, maintaining the heading of the runway it departed
+from. This behaviour can be overridden by issuing the command in combination
+with <tt class="docutils literal"><span class="pre">HEADING</span></tt>, <tt class="docutils literal"><span class="pre">ALTITUDE</span></tt> or <tt class="docutils literal"><span class="pre">SPEED</span></tt>. Some examples:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ABC1234</span> <span class="n">TAKEOFF</span> <span class="mo">01</span><span class="n">L</span>
+</pre></div>
+</div>
+<p>The aeroplane will take off, maintain heading 010, climb to its maximum flying
+altitude, and accelerate to its maximum speed.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ABC1234</span> <span class="n">TAKEOFF</span> <span class="mo">01</span><span class="n">L</span> <span class="n">H300</span> <span class="n">S500</span> <span class="n">A15</span>
+</pre></div>
+</div>
+<p>The aeroplane will take off, and immediately begin to manoeuvre to reach 1500
+metres a.s.l., course 300 and speed 500kpm.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ABC1234</span> <span class="n">TAKEOFF</span> <span class="mo">01</span><span class="n">L</span> <span class="n">A15</span>
+</pre></div>
+</div>
+<p>The aeroplane will take off maintaining the heading of the runway and
+accelerating till its maximum flying speed, but it will only climb to 1500
+metres a.s.l..</p>
+</div>
+<div class="section" id="take-off-phases">
+<h2>Take off phases<a class="headerlink" href="#take-off-phases" title="Permalink to this headline">¶</a></h2>
+<p>A take off is split in three separate phases:</p>
 <ol class="arabic simple">
-<li><strong>Exit point</strong>: the exit point must be within the boundaries of the gate,
-clearly identified on the map. In other words: the plane trajectory must
-intersect the edge of the radar map between the two lateral lines marking
-the gate. Crossing the edge of the map outside the boundaries will be
-considered as leaving the map not from a gate.</li>
-<li><strong>Flight level</strong>: the <a class="reference internal" href="../glossary.html#term-flight-level"><em class="xref std std-term">flight level</em></a> of the plane at the moment it
-exits the aerospace must be within the minimum and maximum altitudes (both
-included) of the gate (also marked on the map) and must be even. Crossing
-below the minimum FL or above the maximum one will count as leaving the map
-not from a gate, while crossing it at any other altitude than even FL, will
-count as leaving the aerospace from the wrong gate.</li>
-<li><strong>Heading</strong>: the plane heading at the moment it exits the aerospace must be
-within ±30 from the <a class="reference internal" href="../glossary.html#term-airway"><em class="xref std std-term">airway</em></a> orientation the gate gives access to
-(this information is displayed on the map too). That is: if the gate&#8217;s
-orientation is marked as &#8220;260&#8221;, the aeroplane heading needs to be between
-230 and 290 degrees. Don&#8217;t forget you can check the current heading at no
-point penalty with the <tt class="docutils literal"><span class="pre">SQUAWK</span></tt> command.</li>
+<li><strong>Acceleration</strong>: the aeroplane accelerates until its lift off speed.</li>
+<li><strong>Climbing</strong>: the aeroplane keeps on climbing (not beyond the desired
+altitude, anyhow) while overflying the runway.</li>
+<li><strong>Veering</strong>: once the end of the runway have been overflown, if a different
+heading than the one of the runway has been inserted, the plane will veer
+to match it.</li>
 </ol>
+</div>
+<div class="section" id="use-of-runways">
+<h2>Use of runways<a class="headerlink" href="#use-of-runways" title="Permalink to this headline">¶</a></h2>
+<p>The runway used for taking off will be unavailable to other aircraft until the
+end of the climbing phase and however for <strong>not less than 30 seconds</strong>.</p>
+</div>
 </div>
 
 
@@ -102,9 +119,9 @@ point penalty with the <tt class="docutils literal"><span class="pre">SQUAWK</sp
 <li class="toctree-l2"><a class="reference internal" href="game-commands.html">Game commands</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plane-commands.html">Aeroplane commands</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fuel.html">Fuel</a></li>
-<li class="toctree-l2"><a class="reference internal" href="takingoff.html">Taking off</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="">Taking off</a></li>
 <li class="toctree-l2"><a class="reference internal" href="landing.html">Landing</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="">Leaving the aerospace</a></li>
+<li class="toctree-l2"><a class="reference internal" href="leaving-aerospace.html">Leaving the aerospace</a></li>
 <li class="toctree-l2"><a class="reference internal" href="scoring.html">Scoring System</a></li>
 <li class="toctree-l2"><a class="reference internal" href="settings.html">Configuration &amp; Settings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tips.html">Tips &amp; Tricks</a></li>
@@ -132,9 +149,9 @@ point penalty with the <tt class="docutils literal"><span class="pre">SQUAWK</sp
     <div class="footer-wrapper">
       <div class="footer">
         <div class="left">
-          <a href="landing.html" title="Landing"
+          <a href="fuel.html" title="Fuel"
              >previous</a> |
-          <a href="scoring.html" title="Scoring System"
+          <a href="landing.html" title="Landing"
              >next</a> |
           <a href="../genindex.html" title="General Index"
              >index</a>

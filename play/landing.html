@@ -26,7 +26,7 @@
     <link rel="top" title="documentation .dev version" href="../index.html" />
     <link rel="up" title="How to play ATC-NG" href="index.html" />
     <link rel="next" title="Leaving the aerospace" href="leaving-aerospace.html" />
-    <link rel="prev" title="Fuel" href="fuel.html" /> 
+    <link rel="prev" title="Taking off" href="takingoff.html" /> 
   </head>
   <body>
     <div class="header-wrapper">
@@ -36,7 +36,7 @@
           </a></p>
         <h1><a href="../index.html">Air Traffic Controller - NG</a></h1>
         <div class="rel">
-          <a href="fuel.html" title="Fuel"
+          <a href="takingoff.html" title="Taking off"
              accesskey="P">previous</a> |
           <a href="leaving-aerospace.html" title="Leaving the aerospace"
              accesskey="N">next</a> |
@@ -58,13 +58,41 @@
 <span id="index-0"></span><h1>Landing<a class="headerlink" href="#landing" title="Permalink to this headline">¶</a></h1>
 <p>Landing at airports is done with the help of <a class="reference internal" href="../glossary.html#term-ils"><em class="xref std std-term">ILS</em></a> <strong>(Instrument Landing
 System)</strong>. This means that once the aeroplane is cleared for landing, it will
-try to intercept the gliding path for the foot of the runway.</p>
+autonomously try to intercept the gliding path that leads to the foot of the
+indicated runway.</p>
+<p>A typical landing command looks similar to:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ABC1234</span> <span class="n">LAND</span> <span class="n">ARN</span> <span class="mo">01</span><span class="n">L</span>
+</pre></div>
+</div>
+<div class="section" id="landing-phases">
+<h2>Landing phases<a class="headerlink" href="#landing-phases" title="Permalink to this headline">¶</a></h2>
+<p>A take off is split in four different phases:</p>
+<ol class="arabic simple">
+<li><strong>Intercepting</strong>: The plane keeps current heading, altitude and speed and
+waits for the right moment to turn into the ILS projection on the ground. In
+other words, at the end of this phase the aeroplane will be aligned with the
+runway. The plane <em>aborts</em> if the ILS vector doesn&#8217;t pass in front of its
+nose, or if the plane current position is too close for the plane to veer
+into the ILS vector (as the turning radius would be too big).</li>
+<li><strong>Merging</strong>: The plane maintains speed and altitude and veer into the ILS
+projection.</li>
+<li><strong>Matching</strong>: The plane maintains heading and speed, and adjusts its altitude
+to precisely fly along the ILS vector (the line starting from the foot of the
+runway and going up at 3° angle). The plane <em>aborts</em> if the plane is flying
+above the ILS and its speed is too high to lose altitude quick enough to
+intercept the ILS vector before the runway.</li>
+<li><strong>Gliding</strong>: The plane follows the ILS vector maintaining speed until the
+moment comes to slow down to landing speed. The plane <em>aborts</em> if at the
+beginning of the glide its speed is already too high for it to slow down to
+landing speed by the foot of the runway.</li>
+</ol>
+</div>
+<div class="section" id="other-landing-gotchas">
+<h2>Other landing &#8220;gotchas&#8221;<a class="headerlink" href="#other-landing-gotchas" title="Permalink to this headline">¶</a></h2>
 <p>There are a few things to consider when clearing an aeroplane for landing:</p>
 <ul class="simple">
 <li>The angle between the current heading of the aeroplane and the runway
 orientation must be less or equal than 60 degrees.</li>
-<li>The aeroplane will <strong>first</strong> try to align itself with the runway, and
-<strong>then</strong> it will adjust its altitude and speed.</li>
 <li>The gliding angle for an <a class="reference internal" href="../glossary.html#term-ils"><em class="xref std std-term">ILS</em></a> is always the standard 3°.</li>
 <li>The speed of the aeroplane will be kept constant as long as possible, then it
 will be progressively reduced in order for the plane to touch down at its
@@ -73,6 +101,7 @@ between planes approaching the same runway.</li>
 <li>The runway will be busy (i.e. unavailable for other planes to land / take off
 for 30 seconds after touchdown.</li>
 </ul>
+</div>
 </div>
 
 
@@ -89,9 +118,11 @@ for 30 seconds after touchdown.</li>
 <li class="toctree-l2"><a class="reference internal" href="game-commands.html">Game commands</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plane-commands.html">Aeroplane commands</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fuel.html">Fuel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="takingoff.html">Taking off</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="">Landing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="leaving-aerospace.html">Leaving the aerospace</a></li>
 <li class="toctree-l2"><a class="reference internal" href="scoring.html">Scoring System</a></li>
+<li class="toctree-l2"><a class="reference internal" href="settings.html">Configuration &amp; Settings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tips.html">Tips &amp; Tricks</a></li>
 </ul>
 </li>
@@ -117,7 +148,7 @@ for 30 seconds after touchdown.</li>
     <div class="footer-wrapper">
       <div class="footer">
         <div class="left">
-          <a href="fuel.html" title="Fuel"
+          <a href="takingoff.html" title="Taking off"
              >previous</a> |
           <a href="leaving-aerospace.html" title="Leaving the aerospace"
              >next</a> |

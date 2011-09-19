@@ -3,7 +3,7 @@
 Translations
 ============
 
-At the mement ATC-NG only supports English (oh, well, at least the English the
+At the moment ATC-NG only supports English (oh, well, at least the English the
 developers speak!).
 
 There are no immediate plans to make it a multi-language

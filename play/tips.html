@@ -26,7 +26,7 @@
     <link rel="top" title="documentation .dev version" href="../index.html" />
     <link rel="up" title="How to play ATC-NG" href="index.html" />
     <link rel="next" title="Get involved!" href="../contribute/index.html" />
-    <link rel="prev" title="Scoring System" href="scoring.html" /> 
+    <link rel="prev" title="Configuration &amp; Settings" href="settings.html" /> 
   </head>
   <body>
     <div class="header-wrapper">
@@ -36,7 +36,7 @@
           </a></p>
         <h1><a href="../index.html">Air Traffic Controller - NG</a></h1>
         <div class="rel">
-          <a href="scoring.html" title="Scoring System"
+          <a href="settings.html" title="Configuration &amp; Settings"
              accesskey="P">previous</a> |
           <a href="../contribute/index.html" title="Get involved!"
              accesskey="N">next</a> |
@@ -73,7 +73,7 @@ initial <strong>joint</strong> with their argument. Example:</p>
 <p>The command line provides a <em>contex-aware</em> autocompletion (that you can activate
 by pressing the <tt class="kbd docutils literal"><span class="pre">TAB</span></tt> key). <em>Context-aware</em> means that ATC-NG will only try
 to complete a word with makes sense according to the command grammar.</p>
-<p>Example: in a scenario with a fligh numbered <cite>ABC1234</cite> and an airport <cite>AZZ</cite>, the
+<p>Example: in a scenario with a flight numbered <cite>ABC1234</cite> and an airport <cite>AZZ</cite>, the
 autocompletion will react differently:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">A</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ABC1234</span>
@@ -100,20 +100,29 @@ command history.</p>
 </ul>
 </div>
 <div class="section" id="approaching">
-<h2>Approaching<a class="headerlink" href="#approaching" title="Permalink to this headline">¶</a></h2>
+<span id="index-4"></span><h2>Approaching<a class="headerlink" href="#approaching" title="Permalink to this headline">¶</a></h2>
 <p>Make sure to approach the airport for landing at a reasonable speed: <strong>the
 slowest the speed, the easier</strong> it will be for the aeroplane to <em>adjust their
 altitude</em> to that required for <a class="reference internal" href="../glossary.html#term-ils"><em class="xref std std-term">ILS</em></a> approach.</p>
-<p>A slower speed also means that it will be easier for palnes to <em>keep separation</em>
+<p>A slower speed also means that it will be easier for planes to <em>keep separation</em>
 (just before landing, planes drop their speed to the minimum, so there is a
 risk for oncoming planes in the landing queue to come too close).</p>
 </div>
+<div class="section" id="taking-off">
+<span id="index-5"></span><h2>Taking off<a class="headerlink" href="#taking-off" title="Permalink to this headline">¶</a></h2>
+<p>Always issue the command in combination with <tt class="docutils literal"><span class="pre">SPEED</span></tt> and <tt class="docutils literal"><span class="pre">ALTITUDE</span></tt>: a
+take-off performed without these parameters will keep the aeroplane busy
+until maximum flight altitude and speed are reached. In many scenarios, by the
+time the aeroplane will have reached that configuration, it will be flying
+extremely fast, and near the edge of the radar screen, and it might be too late
+for you to direct it towards its final destination.</p>
+</div>
 <div class="section" id="running-out-of-fuel">
-<h2>Running out of fuel<a class="headerlink" href="#running-out-of-fuel" title="Permalink to this headline">¶</a></h2>
+<span id="index-6"></span><h2>Running out of fuel<a class="headerlink" href="#running-out-of-fuel" title="Permalink to this headline">¶</a></h2>
 <p>Since aircraft running out of fuel still have the possibility to glide for quite
 some time, if you ever find yourself away from your target and low on fuel,
 climbing up will extend your gliding range of various kilometres. Also consider
-that given the simplified phisics implemented in ATC-NG, the descent ratio is
+that given the simplified physics implemented in ATC-NG, the descent ratio is
 fixed regardless of the ground speed, so: keep going as fast as you can!</p>
 </div>
 </div>
@@ -132,9 +141,11 @@ fixed regardless of the ground speed, so: keep going as fast as you can!</p>
 <li class="toctree-l2"><a class="reference internal" href="game-commands.html">Game commands</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plane-commands.html">Aeroplane commands</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fuel.html">Fuel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="takingoff.html">Taking off</a></li>
 <li class="toctree-l2"><a class="reference internal" href="landing.html">Landing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="leaving-aerospace.html">Leaving the aerospace</a></li>
 <li class="toctree-l2"><a class="reference internal" href="scoring.html">Scoring System</a></li>
+<li class="toctree-l2"><a class="reference internal" href="settings.html">Configuration &amp; Settings</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="">Tips &amp; Tricks</a></li>
 </ul>
 </li>
@@ -160,7 +171,7 @@ fixed regardless of the ground speed, so: keep going as fast as you can!</p>
     <div class="footer-wrapper">
       <div class="footer">
         <div class="left">
-          <a href="scoring.html" title="Scoring System"
+          <a href="settings.html" title="Configuration &amp; Settings"
              >previous</a> |
           <a href="../contribute/index.html" title="Get involved!"
              >next</a> |

@@ -25,7 +25,7 @@
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
     <link rel="top" title="documentation .dev version" href="../index.html" />
     <link rel="up" title="How to play ATC-NG" href="index.html" />
-    <link rel="next" title="Tips &amp; Tricks" href="tips.html" />
+    <link rel="next" title="Configuration &amp; Settings" href="settings.html" />
     <link rel="prev" title="Leaving the aerospace" href="leaving-aerospace.html" /> 
   </head>
   <body>
@@ -38,7 +38,7 @@
         <div class="rel">
           <a href="leaving-aerospace.html" title="Leaving the aerospace"
              accesskey="P">previous</a> |
-          <a href="tips.html" title="Tips &amp; Tricks"
+          <a href="settings.html" title="Configuration &amp; Settings"
              accesskey="N">next</a> |
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a>
@@ -76,14 +76,14 @@
 fate</strong></td>
 <td><ul class="first last simple">
 <li>landing at designated
-aeroport</li>
+airport</li>
 <li>leaving map from
 designated gate</li>
 </ul>
 </td>
 <td><ul class="first last simple">
 <li>landing at wrong
-aeroport</li>
+airport</li>
 <li>leaving map at any other
 point than the
 one</li>
@@ -97,7 +97,7 @@ safety</strong></td>
 <td><ul class="first last simple">
 <li>triggering the TCAS
 (Traffic Collision
-Avoidance Sytem)</li>
+Avoidance System)</li>
 <li>getting aeroplanes into
 fuel emergency</li>
 </ul>
@@ -135,8 +135,8 @@ complex scenario</li>
 <p>The following events imply a variation of the score:</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="59%" />
-<col width="30%" />
+<col width="68%" />
+<col width="22%" />
 <col width="10%" />
 </colgroup>
 <thead valign="bottom">
@@ -146,7 +146,7 @@ complex scenario</li>
 </tr>
 </thead>
 <tbody valign="top">
-<tr><td>Plane lands at correct aeroport</td>
+<tr><td>Plane lands at correct airport</td>
 <td>+500</td>
 <td><a class="footnote-reference" href="#id8" id="id1">[1]</a></td>
 </tr>
@@ -154,7 +154,7 @@ complex scenario</li>
 <td>+300</td>
 <td><a class="footnote-reference" href="#id8" id="id2">[1]</a></td>
 </tr>
-<tr><td>The (X+1) <sup>th</sup> pane enters the game</td>
+<tr><td>The (X+1) <sup>th</sup> airborn plane enters the game</td>
 <td>+50*X</td>
 <td><a class="footnote-reference" href="#id9" id="id3">[2]</a></td>
 </tr>
@@ -170,7 +170,7 @@ complex scenario</li>
 <td>-10</td>
 <td>&nbsp;</td>
 </tr>
-<tr><td>Plane lands at wrong aeroport</td>
+<tr><td>Plane lands at wrong airport</td>
 <td>-200</td>
 <td><a class="footnote-reference" href="#id8" id="id4">[1]</a></td>
 </tr>
@@ -213,20 +213,31 @@ complex scenario</li>
 <span id="id10"></span><h2>Fuel<a class="headerlink" href="#index-1" title="Permalink to this headline">¶</a></h2>
 <p>Beside the &#8220;burning one unit of fuel&#8221; and &#8220;triggering fuel emergency&#8221; events
 above, fuel influences score when an aeroplane terminate its existence. In
-particular an <strong>amount o points equal to the amount of fuel still onboard</strong>
+particular an <strong>amount of points equal to the amount of fuel still onboard</strong>
 at the moment in which the plane terminates is added or subtracted to the score
 according to whether the end-of-life event was rewarded or penalised.</p>
 <p>For example a plane crashing with 250 units of fuel will affect the overall
 score by -1250 points, while a plane landing with 123 units of fuel will change
 the score of +623 points.</p>
-<p>Also note that during maneouvers performed with the <tt class="docutils literal"><span class="pre">expedite</span></tt> flag, fuel
+<p>Also note that during manoeuvres performed with the <tt class="docutils literal"><span class="pre">expedite</span></tt> flag, fuel
 consumption happens twice as fast.</p>
 <p>For an accurate description of the fuel modelling in ATC-NG see the <a class="reference internal" href="fuel.html"><em>fuel
 explanation</em></a> page.</p>
 </div>
 <div class="section" id="controller-s-proficiency">
 <span id="id11"></span><h2>Controller&#8217;s proficiency<a class="headerlink" href="#controller-s-proficiency" title="Permalink to this headline">¶</a></h2>
-<p>Each plane entering the aerospace gets</p>
+<p>Controller&#8217;s proficiency is taken into account in two ways.</p>
+<p>The <strong>number of airborne planes</strong> in the aerospace affects the score assigned
+every time a new plane enters the aerospace. For example: if a player has five
+aeroplanes on radar, of which three airborne, and a sixth aeroplane appears
+<em>from a gate</em>, the player will receive:</p>
+<blockquote>
+<div>50 (bonus unit) x 3 (airborne planes) = 150 points</div></blockquote>
+<p>On the other hand, the player won&#8217;t receive any points if the plane appears at
+an airport.</p>
+<p>Secondly <strong>the complexity of the scenario</strong> influences the amount any score
+event is multiplied by. That means that any point gained with any of the events
+described above is still multiplied by a factor (between 1 and 2).</p>
 </div>
 </div>
 
@@ -244,9 +255,11 @@ explanation</em></a> page.</p>
 <li class="toctree-l2"><a class="reference internal" href="game-commands.html">Game commands</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plane-commands.html">Aeroplane commands</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fuel.html">Fuel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="takingoff.html">Taking off</a></li>
 <li class="toctree-l2"><a class="reference internal" href="landing.html">Landing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="leaving-aerospace.html">Leaving the aerospace</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="">Scoring System</a></li>
+<li class="toctree-l2"><a class="reference internal" href="settings.html">Configuration &amp; Settings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tips.html">Tips &amp; Tricks</a></li>
 </ul>
 </li>
@@ -274,7 +287,7 @@ explanation</em></a> page.</p>
         <div class="left">
           <a href="leaving-aerospace.html" title="Leaving the aerospace"
              >previous</a> |
-          <a href="tips.html" title="Tips &amp; Tricks"
+          <a href="settings.html" title="Configuration &amp; Settings"
              >next</a> |
           <a href="../genindex.html" title="General Index"
              >index</a>

@@ -60,7 +60,7 @@ Glossary
       using a combination of radio signals and, in many cases, high-intensity
       lighting arrays to enable a safe landing.
 
-      ATC-NG simulates the presence of ILS at each runways of each aeroport on
+      ATC-NG simulates the presence of ILS at each runways of each airport on
       in the scenario. The AI pilots use the simulated ILS to touch down
       autonomously when instructed to land.
 
@@ -95,8 +95,6 @@ Glossary
       systems. More info on the format are available on the
       `reStructuredText website`_.
 
-.. _reStructuredText website: http://docutils.sourceforge.net/rst.html
-
    Runway
       According to ICAO a runway is a *"defined rectangular area on a land
       aerodrome prepared for the landing and take-off of aircraft."*
@@ -109,7 +107,7 @@ Glossary
       each runway is identified by appending Left (L), Center (C) and Right (R)
       to the number.
 
-      ATC-NG models its aeroport on real ones, and therefore the size and naming
+      ATC-NG models its airport on real ones, and therefore the size and naming
       of the runways is the real one. ATC-NG - though - doesn't simulate Earth's
       magnetic field, and thus the orientation of runways is relative to the
       geographical north.
@@ -123,4 +121,5 @@ Glossary
       document markup. More info on the format are available on the
       `YAML website`_.
 
+.. _reStructuredText website: http://docutils.sourceforge.net/rst.html
 .. _YAML website: http://yaml.org/

@@ -8,7 +8,7 @@ screen is organised in four main areas:
 .. image:: /_static/game-interface.png
 
 **radar screen** (1)
-  You can see here the aeroplanes, aeroports, beacons and gates which are used
+  You can see here the aeroplanes, airports, beacons and gates which are used
   during the game
 
 **command console** (2)
@@ -20,8 +20,8 @@ screen is organised in four main areas:
   Here you have a list of planes currently under your control, with some data
   which is not available on the main radar screen
 
-**aeroport maps** (4)
-  Here you have a detailed map of the map's aeroports: aeroports are also
+**airport maps** (4)
+  Here you have a detailed map of the map's airports: airports are also
   visible on radar screen, but in this game area they are big enough for you
   to identify individual runways.
 
@@ -35,7 +35,7 @@ controlling. The typical elements you will find in it are:
 
 #. **Radar targets** (aeroplanes), with their flight number, altitude and speed
    indicated in the label next to them.
-#. **Aeroports**, identified by their IATA code.
+#. **airports**, identified by their IATA code.
 #. **Gates**, which are the entry and exit points for the aeroplanes in the
    aerospace.
 #. **Beacons**, which are points whose location is known to aeroplane pilots,
@@ -65,11 +65,11 @@ The flight strips show some data that is not available on the main radar screen,
 such the departure and destination, or the amount of fuel still available
 onboard the aeroplane).
 
-The aeroport maps
+The airport maps
 -----------------
 
-.. image:: /_static/aeroport-maps.png
+.. image:: /_static/airport-maps.png
 
-The main function of the aeroport maps is to give you a detailed view of the
+The main function of the airport maps is to give you a detailed view of the
 available runways, so that you can decide which ones to use for takeoffs and
 landings.

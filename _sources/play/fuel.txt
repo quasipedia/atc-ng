@@ -9,7 +9,7 @@ In ATC-NG fuel consumption is **constant per unit of space travelled**. This
 means that a plane will consume the **same amount of fuel regardless of its
 travelling speed**. The only notable exception to this rule is the use of the
 flag ``expedite`` in commands: if a command is issued with such flag, the plane
-will consume **twice as much** during the time the manouver will take to
+will consume **twice as much** during the time the manoeuvre will take to
 complete.
 
 To make possible to compare scores obtained on different maps/scenarios, fuel
@@ -40,7 +40,7 @@ get instead modified to simulate an *unpowered glide*:
   ratio will be limited to ``max/2 <= descent ratio <= max``.
 
 Example: an aeroplane whose normal flight speed range is between 200 and 900
-kph, will be limited to 200 to 400 kph. Similarily, if its nominal climbing rate
+kph, will be limited to 200 to 400 kph. Similarly, if its nominal climbing rate
 limits are -30 and +15 m/s, its new ones will be -30 and -15.
 
 .. [1] These distances are calculated "as the crow flies". The actual distance
