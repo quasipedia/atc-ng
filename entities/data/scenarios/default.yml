@@ -48,17 +48,11 @@ gates:
 
 beacons:
 
-- id         : NDB1
-  location   : [25000, 25000]
-
 - id         : NDB2
-  location   : [10000, 40000]
-
-- id         : NDB3
-  location   : [40000, 10000]
+  location   : [8000, 37000]
 
 - id         : NDB4
-  location   : [10000, 10000]
+  location   : [25000, 8000]
 
 - id         : NDB5
-  location   : [40000, 40000]
+  location   : [42000, 42000]

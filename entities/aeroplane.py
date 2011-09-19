@@ -263,12 +263,20 @@ class Aeroplane(object):
         for i in range(pings):
             # Pilot's updates
             self.pilot.update()
-        # Decrease fuel consumption
-        dist = ground_distance(initial, self.position)
-        burnt = burning_speed * dist * self.fuel_efficiency
-        self.fuel -= burnt
-        self.aerospace.gamelogic.score_event(PLANE_BURNS_FUEL_UNIT,
-                                             multiplier=burnt)
+        # Decrease fuel amount if airborne
+        if self.position.z > 0:
+            dist = ground_distance(initial, self.position)
+            burnt = burning_speed * dist * self.fuel_efficiency
+            self.fuel -= burnt
+            self.aerospace.gamelogic.score_event(PLANE_BURNS_FUEL_UNIT,
+                                                 multiplier=burnt)
+        # Compute waiting time score if not airborne
+        # FIXME: distinguish between just landed and waiting to takeoff
+        else:
+            mult = pings * PING_IN_SECONDS
+            self.aerospace.gamelogic.score_event(PLANE_WAITS_ONE_SECOND,
+                                                 multiplier=mult)
+
         # Update sprite
         self.rect = sc(self.position.xy)
         self.trail.appendleft(sc(self.position.xy))

@@ -8,6 +8,7 @@ World modelling and representation for the ATC game.
 '''
 
 from engine.settings import *
+from engine.logger import log
 from lib.utils import *
 from itertools import combinations
 from lib.euclid import Vector3
@@ -88,7 +89,7 @@ class Aerospace(object):
                                                sc((step, step2)), 2)
                         elif RADAR_AID == 'crosses':
                             x, y = step, step2
-                            offset = metres_per_step / 10
+                            offset = rint(metres_per_step / 16.0)
                             draw((x-offset, y), (x+offset, y))
                             draw((x, y-offset), (x, y+offset))
         else:
@@ -105,6 +106,26 @@ class Aerospace(object):
         except ValueError:
             pass
         return collisions
+
+    def __get_crossed_gates(self, plane):
+        '''
+        Return the list of gates (if any) that a given point of the edge on
+        the aerospace corresponds to.
+        '''
+        crossed = []
+        # Early return if the flight level (FL) is not even
+        if rint(plane.position.z % 1000) != 0:
+            return crossed
+        origin = Vector3(RADAR_RANGE, RADAR_RANGE)
+        point = plane.position
+        for gate in self.gates.values():
+            vector = heading_to_v3(gate.radial)
+            dist = distance_point_line(point, origin, vector)
+            boundaries = ((plane.heading-60)%360, (plane.heading+60)%360)
+            if dist <= gate.width / 2 and \
+               heading_in_between(boundaries, gate.radial):
+                crossed.append(gate)
+        return crossed
 
     def add_plane(self, plane):
         '''
@@ -220,9 +241,20 @@ class Aerospace(object):
             x, y = plane['sprites'][0].position
             if x < 0 or x > s.width or y < 0 or y > s.height:
                 msg = 'Tower? ... Tower? ... Aaaaahhhh!'
-                plane['plane'].pilot.say(msg, KO_COLOUR)
-                self.gamelogic.remove_plane(plane['plane'],
-                                            PLANE_LEAVES_RANDOM)
+                event = PLANE_LEAVES_RANDOM  #bakup result
+                colour = KO_COLOUR
+                crossed = self.__get_crossed_gates(plane['plane'])
+                for gate in crossed:
+                    msg = 'Tower? It doesn\'t seem we are where we should...'
+                    event = PLANE_LEAVES_WRONG_GATE  #little better!
+                    if gate.name == plane['plane'].destination:
+                        msg = 'Thank you tower, and good bye!'
+                        colour = OK_COLOUR
+                        event = PLANE_LEAVES_CORRECT_GATE  #yay! :)
+                plane['plane'].pilot.say(msg, colour)
+                self.gamelogic.remove_plane(plane['plane'], event)
+                log.info('%s left aerospace under event %s' %
+                         (plane['plane'].icao, event))
 
     def get_plane_by_icao(self, icao):
         icao = icao.upper()

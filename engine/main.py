@@ -28,6 +28,8 @@ __email__ = "quasipedia@gmail.com"
 __status__ = "Development"
 
 #TODO: verify .deb package with `lintian`
+#FIXME: the game will break with airports below seal level (e.g. Schiphol)
+#       due to the use of plane.position.z < -1 throughout the code.
 #TODO: REFACTOR using pygame events? Check if makes sense with PyGLets
 
 class MainWindow(object):

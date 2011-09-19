@@ -120,14 +120,18 @@ class GameLogic(object):
         '''
         Add a plane from the game.
         '''
-        already_there = len(self.aerospace.aeroplanes)
-        self.score_event(PLANE_ENTERS, multiplier=already_there)
+        planes = self.aerospace.aeroplanes
+        ports = self.aerospace.airports
         self.aerospace.add_plane(plane)
-        status = INBOUND if plane.destination in \
-                            self.aerospace.airports.keys() else OUTBOUND
+        status = INBOUND if plane.destination in ports.keys() else OUTBOUND
         self.strips.add(sprites.guisprites.FlightStrip(plane, status))
         plane.pilot.say('Hello tower, we are ready to copy instructions!',
                         ALERT_COLOUR)
+        # Only airborne planes impact on proficiency score
+        if plane.position.z > 0:
+            already_there = len([p for p in planes if p.position.z > 0]) - 1
+            if already_there > 0:
+                self.score_event(PLANE_ENTERS, multiplier=already_there)
 
     def remove_plane(self, plane, event):
         '''

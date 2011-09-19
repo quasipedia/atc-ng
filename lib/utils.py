@@ -189,3 +189,14 @@ def ground_distance(v1, v2):
     v1 = Vector2(*v1.xy)
     v2 = Vector2(*v2.xy)
     return abs(v1-v2)
+
+def distance_point_line(point, origin, vector):
+    '''
+    Return the distance between ``point`` and the line passing from ``origin``
+    and being parallel to ``vector``.
+    See: http://members.tripod.com/vector_applications/distance_point_line
+    and: http://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
+    '''
+    ap = point - origin
+    unit = vector.normalized()
+    return abs(ap - (ap.dot(unit) * unit))

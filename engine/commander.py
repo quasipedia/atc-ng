@@ -202,7 +202,7 @@ class Parser(object):
             issued = self.bits.pop()
             # Special condensed syntax is allowed for H, A, S in the form
             # letter+digits without spaces
-            decomposed = re.match(r'^(h|s|a)(\d{2,})$', issued)
+            decomposed = re.match(r'^(H|S|A)(\d{2,})$', issued)
             if decomposed:
                 c = decomposed.group(1)
                 a = decomposed.group(2)

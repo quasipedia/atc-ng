@@ -200,6 +200,22 @@ class Test(unittest.TestCase):
             vel, pos, tar = [Vector3(*el) for el in (vel, pos, tar)]
             self.assertEqual(is_behind(vel, pos, tar), res)
 
+    def testDistancePointLine(self):
+        '''
+        distance_point_line - distance of a point from a line
+        '''
+        TO_TEST = [
+                   ((4, 4, 0),   (1, 1, 0),  (1, 0, 0),  3.0),
+                   ((-2, -1, 0), (4, 2, 0),  (-4, 8, 0), 6.708203932499369),
+                   ((2,-1, 2),   (-1, 0, 7), (4, 1, -2), 3.7416573867739413),
+                  ]
+        for point, origin, vector, expected in TO_TEST:
+            point, origin, vector = map(lambda x : Vector3(*x),
+                                        [point, origin, vector])
+            result = distance_point_line(point, origin, vector)
+            self.assertAlmostEqual(result, expected)
+
+
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()

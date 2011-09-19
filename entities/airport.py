@@ -104,7 +104,7 @@ class airport(object):
             numeric = (int(numeric) + 18)%36
             numeric = str(numeric).zfill(2) if numeric != 0 else '36'
             if letter:
-                letter = 'L' if letter == 'R' else 'L'
+                letter = 'L' if letter == 'R' else 'R'
             v['twin'] = numeric+letter
 
     def __define_runways(self):

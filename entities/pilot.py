@@ -230,6 +230,19 @@ class Pilot(object):
         self.veering_direction = None
         self.plane.flags.reset()
 
+    def _place_on_line(self, entry_point, exit_point, moment, total_time):
+        '''
+        Place the aeroplane along the line between ``entry_point`` and
+        ``exit_point`` in the point X = v*moment, such that v*total_time equals
+        the lengt between ``entry_point`` and ``exit_point``.
+            This is typically used during takeoffs and landings.
+        '''
+        delta = exit_point - entry_point
+        v = float(abs(delta)) / total_time
+        self.plane.position = entry_point
+        self.plane.position += (delta.normalized() * v * moment)
+        self.plane.position.z = -1
+
     def say(self, what, colour):
         '''
         Output a message on the console.
@@ -295,7 +308,7 @@ class Pilot(object):
         if self.plane.position.z < 0 and commands[0][0] not \
                                 in ('TAKEOFF', 'SQUAWK'):
             msg = 'We can\'t do that: we are still on the ground!'
-            self.say(mas, KO_COLOUR)
+            self.say(msg, KO_COLOUR)
             return False
         # Otherwise execute what requested
         for line in commands:
@@ -345,12 +358,15 @@ class Pilot(object):
                     return False
                 runway = port.runways[args[0]]
                 twin = port.runways[runway['twin']]
-                self.lift_data = dict(name = twin['name'],
-                                      point = twin['location'] + port.location,
-                                      velocity = -twin['ils'].normalized(),
-                                      target_conf = dict(altitude = None,
-                                                         speed = None,
-                                                         heading = None))
+                up_vector = -twin['ils'].normalized()
+                self.lift_data = dict(
+                          name = twin['name'],
+                          start_point = runway['location'] + port.location,
+                          end_point = twin['location'] + port.location,
+                          velocity = up_vector,
+                          target_conf = dict(altitude = None,
+                                             speed = None,
+                                             heading = None))
                 self.plane.flags.cleared_up = RUNWAY_BUSY_TIME
                 self.takeoff()
             # LAND COMMAND
@@ -503,10 +519,11 @@ class Pilot(object):
         '''
         Manage the take off procedure
         '''
+        #BUG: Crashes if combined heading is a beacon
         if self.plane.flags.cleared_up <= 0:
             log.info('%s is taking off from %s %s' % (self.plane.icao,
                                   self.plane.origin, self.lift_data['name']))
-            self.plane.position = self.lift_data['point']
+            self.plane.position = self.lift_data['end_point']
             self.plane.velocity = self.lift_data['velocity'] * \
                                   self.plane.landing_speed
             target = self.target_conf
@@ -521,6 +538,10 @@ class Pilot(object):
             self.plane.flags.cleared_up = False
             self.plane.flags.busy = True
         else:
+            ld = self.lift_data
+            self._place_on_line(ld['start_point'], ld['end_point'],
+                                RUNWAY_BUSY_TIME - self.plane.flags.cleared_up,
+                                RUNWAY_BUSY_TIME)
             self.plane.flags.cleared_up -= PING_IN_SECONDS
 
     def land(self, port_name=None, rnw_name=None):

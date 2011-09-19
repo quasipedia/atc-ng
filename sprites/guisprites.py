@@ -58,15 +58,19 @@ class Score(pygame.sprite.Sprite):
         self.fontobj = pygame.font.Font(MAIN_FONT, rint(self.rect.h * 0.8))
 
     def update(self):
+        STEP = rint(PING_PERIOD / 1000.0 + 1)  #arbitrary: ping in sec + 1
         self.image.fill(BLACK)
-        if rint(self.gamelogic.score) == self.score:
+        delta = rint(self.gamelogic.score) - self.score
+        if abs(delta) < STEP:
             colour = WHITE
-        elif self.gamelogic.score < self.score:
-            colour = KO_COLOUR
-            self.score -= 1
-        else:
+            variation = delta
+        elif delta > 0:
             colour = OK_COLOUR
-            self.score += 1
+            variation = STEP
+        else:
+            colour = KO_COLOUR
+            variation = -STEP
+        self.score += variation
         score = str(self.score).zfill(6)
         score_img = self.fontobj.render(score, True, colour)
         score_img.subsurface(score_img.get_bounding_rect()).copy()

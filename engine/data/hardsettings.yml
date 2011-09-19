@@ -21,7 +21,7 @@ CHAR_DOWN        : '\\'           # Modified in the font file to a down arrow
 # SIMULATION PARAMETERS WORLD DESCRIPTION #####################################
 MIN_FLIGHT_LEVEL : 500            # Min flying altitude in metres
 MAX_FLIGHT_LEVEL : 9500           # Max flying altitude in metres
-RUNWAY_BUSY_TIME : 9              # Time for which the runway is busy after
+RUNWAY_BUSY_TIME : 30             # Time for which the runway is busy after
                                   # a touchdown or during a takeoff (seconds)
 
 # COLOURS MNEMONICS ###########################################################
