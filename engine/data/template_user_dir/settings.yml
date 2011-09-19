@@ -84,8 +84,6 @@ EMERGENCY_TCAS            : [301,  -250]
 FUEL_SCORE_WEIGHT         : 1
 
 # LOGGING #####################################################################
-LOG_NUMBER        : 5             # how many logs to keep in the log directory
+LOG_NUMBER        : 10            # how many logs to keep in the log directory
                                   # before deleting the oldest one -
                                   # 0 will disable logging altogether
-LOG_THRESHOLD     : debug         # minimum severity level to be logged. Can be
-                                  # debug | info | warning | error | critical

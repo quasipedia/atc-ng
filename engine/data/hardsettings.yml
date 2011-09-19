@@ -6,6 +6,8 @@
 # https://github.com/quasipedia/atc-ng
 
 RADAR_RANGE      : 25000          # radius in kilometres --> 80x80km = space
+LOG_THRESHOLD     : debug         # minimum severity level to be logged. Can be
+                                  # debug | info | warning | error | critical
 
 # STATE-MACHINE CONSTANTS #####################################################
 MS_QUIT          : 0

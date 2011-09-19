@@ -26,6 +26,17 @@ __email__ = "quasipedia@gmail.com"
 __status__ = "Development"
 
 
+def __command_files_sanity_check():
+    '''
+    Verify the command files make sense.
+    '''
+    for file in (GAME_COMMANDS, PLANE_COMMANDS):
+        # No two spellings are the same
+        spells = []
+        for comm in file.values():
+            spells.extend(comm['spellings'])
+        assert len(spells) == len(set(spells))
+
 GAME_COMMANDS = {'QUIT' : {'spellings': ['QUIT', 'Q'],
                            'arguments': 0,
                            'validator': None,
@@ -45,6 +56,7 @@ VALID_PLANE_COMMANDS_COMBOS = [('HEADING', 'ALTITUDE', 'SPEED'),
                                ('TAKEOFF', 'ALTITUDE', 'SPEED', 'HEADING'),
                                ('CIRCLE', 'ALTITUDE', 'SPEED'),]
 
+__command_files_sanity_check()
 
 class Parser(object):
 
@@ -134,7 +146,7 @@ class Parser(object):
         '''
         if (not (None == re.match(r'^[A-Z]{3}$', iata)) and
                 not (None == re.match(r'^\d{2}(L|C|R)?$', runway))):
-            return (iata, runway)
+            return [iata, runway]
         return False
 
 
@@ -206,9 +218,9 @@ class Parser(object):
             if decomposed:
                 c = decomposed.group(1)
                 a = decomposed.group(2)
-                if c == 'h' and self._validate_heading(a) or \
-                   c == 'a' and self._validate_altitude(a) or \
-                   c == 's' and self._validate_speed(a):
+                if c == 'H' and self._validate_heading(a) or \
+                   c == 'A' and self._validate_altitude(a) or \
+                   c == 'S' and self._validate_speed(a):
                     issued = c
                     self.bits.append(a)
             # Identify the issued command
