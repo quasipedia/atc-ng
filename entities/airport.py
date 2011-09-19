@@ -83,7 +83,7 @@ class airport(object):
         determinant = lambda v1, v2 : v1.x*v2.y - v1.y*v2.x
         centre_vector = lambda p1, p2 : Vector3(p2.x-p1.x, p2.y-p1.y)
         ils = lambda x : -runways[x]['ils']
-        centre = lambda x : runways[x]['to_point']
+        centre = lambda x : runways[x]['centre']
         compare = lambda x,y : cmp(determinant(ils(x),
                                    centre_vector(centre(x),centre(y))), 0)
         keys.sort(cmp=compare, reverse=True)
@@ -117,11 +117,10 @@ class airport(object):
         { runway_name : { name      : string     # their name
                           location  : (x,y,z)    # location on map
                           ils       : Vector3()  # vector to intercept for land
-                          to_point  : (z,y,z)    # take off point
+                          centre    : Vector3()  # centre of strip
                           twin      : string     # runway at other end of strip
                         }
         '''
-        #TODO: remove to_point? I use other end of the runway
         runways = {}
         # First create all runaways with temp names in the form `XX_n`...
         for n, strip in enumerate(self.strips):
@@ -133,7 +132,7 @@ class airport(object):
                 ils = offset.copy()
                 offset *= strip.length / 2
                 tmp['location'] = strip.centre_pos + offset
-                tmp['to_point'] = strip.centre_pos
+                tmp['centre'] = strip.centre_pos
                 ils.z = abs(ils)*sin(radians(SLOPE_ANGLE))  #gliding slope = 3°
                 tmp['ils'] = -ils.normalized()
                 if rot == 0:
@@ -177,7 +176,7 @@ class airport(object):
         geo_centre += Vector3(min(xx), min(yy))
         for rnwy in self.runways.values():
             rnwy['location'] -= geo_centre
-            rnwy['to_point'] -= geo_centre
+            rnwy['centre'] -= geo_centre
         # We can then use the same geographical centre to convert the strips
         # positions [this is needed to properly place the labels when
         # generating the image]

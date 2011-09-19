@@ -25,6 +25,65 @@ __email__ = "quasipedia@gmail.com"
 __status__ = "Development"
 
 
+class RunwayManager(object):
+
+    '''
+    Manage the use of runways in an aerospace, marking them busy, releasing
+    them, updating the position of planes occupying runways, etc...
+    '''
+
+    def __init__(self, aerospace):
+        self.aerospace = aerospace
+        self.__busy_runways = {}
+
+    def use_runway(self, port, runway, plane):
+        '''
+        Mark a runway as being used by a given plane.
+        '''
+        try:
+            self.__busy_runways[port.iata]
+        except KeyError:
+            self.__busy_runways[port.iata] = {}
+        self.__busy_runways[port.iata][runway['name']] = plane
+
+    def check_runway_free(self, port, runway):
+        '''
+        Return True is the strip of asphalt of the runway in question is not
+        being used by a plane.
+        '''
+        try:
+            self.__busy_runways[port.iata]
+        except KeyError:
+            return True
+        try:
+            if self.__busy_runways[port.iata][runway['name']]:
+                return False
+        except KeyError:
+            try:
+                if self.__busy_runways[port.iata][runway['twin']]:
+                    return False
+            except KeyError:
+                return True
+        # This last line is here just in case for some reason the dictionary
+        # key for a given runway is still there, but the plane (value) has been
+        # removed. It shouldn't normally happen, but is better safe than sorry
+        return True
+
+    def release_runway(self, plane=None):
+        '''
+        Release an occupied runway.
+        '''
+        # Find port and runway
+        keys = []
+        for port_name, runways in self.__busy_runways.items():
+            for runway_name, squatter in runways.items():
+                if plane == squatter:
+                    keys = [port_name, runway_name]
+        assert keys
+        port_iata, runway_name = keys
+        del self.__busy_runways[port_iata][runway_name]
+
+
 class Aerospace(object):
 
     '''
@@ -50,6 +109,7 @@ class Aerospace(object):
         self.__gates = {}
         self.tcas_data = {}
         entities.pilot.Pilot.set_aerospace(self)
+        self.runways_manager = RunwayManager(self)
 
     def __draw_radar_aid(self):
         '''
@@ -113,17 +173,16 @@ class Aerospace(object):
         the aerospace corresponds to.
         '''
         crossed = []
-        # Early return if the flight level (FL) is not even
-        if rint(plane.position.z % 1000) != 0:
-            return crossed
         origin = Vector3(RADAR_RANGE, RADAR_RANGE)
         point = plane.position
         for gate in self.gates.values():
             vector = heading_to_v3(gate.radial)
             dist = distance_point_line(point, origin, vector)
-            boundaries = ((plane.heading-60)%360, (plane.heading+60)%360)
+            boundaries = ((plane.heading - GATE_TOLERANCE) % 360,
+                          (plane.heading + GATE_TOLERANCE) % 360)
             if dist <= gate.width / 2 and \
-               heading_in_between(boundaries, gate.radial):
+               heading_in_between(boundaries, gate.radial) and \
+               gate.bottom <= plane.altitude <= gate.top:
                 crossed.append(gate)
         return crossed
 
@@ -185,7 +244,7 @@ class Aerospace(object):
         # Draw RNWY feet and PORT centre (debugging purposes)
 #        for rnwy in a_port.runways.values():
 #            pos1 = a_port.location + rnwy['location']
-#            pos2 = a_port.location + rnwy['to_point']
+#            pos2 = a_port.location + rnwy['centre']
 #            pygame.draw.circle(self.surface, WHITE, sc(pos1.xy), 1)
 #            pygame.draw.circle(self.surface, YELLOW, sc(pos2.xy), 1)
 #        pygame.draw.circle(self.surface, RED, sc(a_port.location.xy), 1)
@@ -247,7 +306,8 @@ class Aerospace(object):
                 for gate in crossed:
                     msg = 'Tower? It doesn\'t seem we are where we should...'
                     event = PLANE_LEAVES_WRONG_GATE  #little better!
-                    if gate.name == plane['plane'].destination:
+                    if gate.name == plane['plane'].destination and \
+                       plane.altitude % 1000 == 0:
                         msg = 'Thank you tower, and good bye!'
                         colour = OK_COLOUR
                         event = PLANE_LEAVES_CORRECT_GATE  #yay! :)
@@ -307,7 +367,7 @@ class Aerospace(object):
         '''
         data = {}
         # Filter out aeroplanes that are on ground
-        planes = [p for p in self.aeroplanes if p.position.z > 0]
+        planes = [p for p in self.aeroplanes if p.flags.on_ground == False]
         for p1, p2 in combinations(planes, 2):
             distance = p1.position - p2.position
             if abs(distance.z) < VERTICAL_CLEARANCE and \

@@ -4,15 +4,41 @@ Landing
 =======
 Landing at airports is done with the help of :term:`ILS` **(Instrument Landing
 System)**. This means that once the aeroplane is cleared for landing, it will
-try to intercept the gliding path for the foot of the runway.
+autonomously try to intercept the gliding path that leads to the foot of the
+indicated runway.
 
+A typical landing command looks similar to:
+
+>>> ABC1234 LAND ARN 01L
+
+Landing phases
+--------------
+A take off is split in four different phases:
+
+#. **Intercepting**: The plane keeps current heading, altitude and speed and
+   waits for the right moment to turn into the ILS projection on the ground. In
+   other words, at the end of this phase the aeroplane will be aligned with the
+   runway. The plane *aborts* if the ILS vector doesn't pass in front of its
+   nose, or if the plane current position is too close for the plane to veer
+   into the ILS vector (as the turning radius would be too big).
+#. **Merging**: The plane maintains speed and altitude and veer into the ILS
+   projection.
+#. **Matching**: The plane maintains heading and speed, and adjusts its altitude
+   to precisely fly along the ILS vector (the line starting from the foot of the
+   runway and going up at 3° angle). The plane *aborts* if the plane is flying
+   above the ILS and its speed is too high to lose altitude quick enough to
+   intercept the ILS vector before the runway.
+#. **Gliding**: The plane follows the ILS vector maintaining speed until the
+   moment comes to slow down to landing speed. The plane *aborts* if at the
+   beginning of the glide its speed is already too high for it to slow down to
+   landing speed by the foot of the runway.
+
+Other landing "gotchas"
+-----------------------
 There are a few things to consider when clearing an aeroplane for landing:
 
 * The angle between the current heading of the aeroplane and the runway
   orientation must be less or equal than 60 degrees.
-
-* The aeroplane will **first** try to align itself with the runway, and
-  **then** it will adjust its altitude and speed.
 
 * The gliding angle for an :term:`ILS` is always the standard 3°.
 

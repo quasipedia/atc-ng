@@ -212,11 +212,18 @@ class Pilot(object):
         Abort landing, generating all events of the case and resetting relevant
         variables.
         '''
-        # TODO:Introducing abort codes would simplify testing!
+        # TODO: Introducing abort codes would simplify testing!
         log.info('%s aborts: %s' % (self.plane.icao, msg))
         self.say('Aborting landing: %s' % msg, ALERT_COLOUR)
         self.plane.flags.cleared_down = False
         self.lander = None
+        # Adjust altitude to match a valid flight level
+        if self.plane.position.z < 500:
+            self.target_conf['altitude'] = 500
+        else:
+            extra = self.plane.position.z % 500
+            extra = -extra if extra < 250 else 500-extra
+            self.target_conf['altitude'] = self.plane.position.z + extra
 
     def _abort_command(self, last_only=False):
         '''
@@ -229,19 +236,6 @@ class Pilot(object):
         self.queued_commands = []
         self.veering_direction = None
         self.plane.flags.reset()
-
-    def _place_on_line(self, entry_point, exit_point, moment, total_time):
-        '''
-        Place the aeroplane along the line between ``entry_point`` and
-        ``exit_point`` in the point X = v*moment, such that v*total_time equals
-        the lengt between ``entry_point`` and ``exit_point``.
-            This is typically used during takeoffs and landings.
-        '''
-        delta = exit_point - entry_point
-        v = float(abs(delta)) / total_time
-        self.plane.position = entry_point
-        self.plane.position += (delta.normalized() * v * moment)
-        self.plane.position.z = -1
 
     def say(self, what, colour):
         '''
@@ -287,8 +281,9 @@ class Pilot(object):
         '''
         #FIXME: This should really be simplified and devided up, and given
         #       a proper test suite...
-        self.plane.time_last_cmd = time()
-        pl_flags = self.plane.flags
+        pl = self.plane
+        pl.time_last_cmd = time()
+        pl_flags = pl.flags
         if commands[0][0] != 'SQUAWK':
             self.aerospace.gamelogic.score_event(COMMAND_IS_ISSUED)
         if from_queue:
@@ -300,22 +295,22 @@ class Pilot(object):
             self.say(msg, KO_COLOUR)
             return False
         # Reject order if imminent collision
-        if self.plane.tcas.state == True:
+        if pl.tcas.state == True:
             msg = '...'
             self.say(msg, KO_COLOUR)
             return False
         # Reject order other than TAKEOFF or SQUAWK if plane is on ground
-        if self.plane.position.z < 0 and commands[0][0] not \
+        if pl.flags.on_ground and commands[0][0] not \
                                 in ('TAKEOFF', 'SQUAWK'):
             msg = 'We can\'t do that: we are still on the ground!'
             self.say(msg, KO_COLOUR)
             return False
         # Otherwise execute what requested
         for line in commands:
-            log.info('%s executes: %s' %(self.plane.icao, line))
+            log.info('%s executes: %s' %(pl.icao, line))
             command, args, cmd_flags = line
             # H, S, A data might need to be stored for takeoff...
-            target = self.target_conf if not self.plane.flags.cleared_up \
+            target = self.target_conf if not pl.flags.cleared_up \
                                       else self.lift_data['target_conf']
             # EXPEDITE FLAG
             if 'EXPEDITE' in cmd_flags:
@@ -346,29 +341,35 @@ class Pilot(object):
                 target['speed'] = args[0]
             # TAKE OFF COMMAND
             elif command == 'TAKEOFF':
-                if self.plane.position.z >=0:
-                #TODO:add also rule that excludes z<0 from tcas
+                if not pl.flags.on_ground:
                     msg = "We can't take off if we are already airborne!"
                     self.say(msg, KO_COLOUR)
                     return False
-                port = self.aerospace.airports[self.plane.origin]
+                port = self.aerospace.airports[pl.origin]
                 if args[0].upper() not in port.runways.keys():
                     msg = "Uh? What runway did you say we should taxi to?"
                     self.say(msg, KO_COLOUR)
                     return False
                 runway = port.runways[args[0]]
                 twin = port.runways[runway['twin']]
-                up_vector = -twin['ils'].normalized()
-                self.lift_data = dict(
-                          name = twin['name'],
-                          start_point = runway['location'] + port.location,
-                          end_point = twin['location'] + port.location,
-                          velocity = up_vector,
-                          target_conf = dict(altitude = None,
+                if not self.aerospace.runways_manager.check_runway_free(
+                                                                port, twin):
+                    msg = "Negative, that runway is currently in use."
+                    self.say(msg, KO_COLOUR)
+                    return False
+                else:
+                    self.aerospace.runways_manager.use_runway(port, twin, pl)
+                d = dict(start_point = runway['location'] + port.location,
+                         end_point = twin['location'] + port.location,
+                         vector = Vector3(*(-twin['ils']).normalized().xy),
+                         target_conf =  dict(altitude = None,
                                              speed = None,
-                                             heading = None))
-                self.plane.flags.cleared_up = RUNWAY_BUSY_TIME
-                self.takeoff()
+                                             heading = None)
+                         )
+                self.lift_data = d
+                pl.flags.cleared_up = RUNWAY_BUSY_TIME
+                log.info('%s is taking off from %s %s' % (pl.icao,
+                          pl.origin, runway['name']))
             # LAND COMMAND
             elif command == 'LAND':
                 feasible = self.verify_existing_runway(*args)
@@ -380,7 +381,7 @@ class Pilot(object):
                     return ret
             # CIRCLE COMMAND
             elif command == 'CIRCLE':
-                param = args[0].lower()
+                param = args[0]
                 if param in ('L', 'LEFT', 'CCW'):
                     self.veering_direction = self.LEFT
                 elif param in ('R', 'RIGHT', 'CW'):
@@ -396,8 +397,8 @@ class Pilot(object):
             # SQUAWK COMMAND
             elif command == 'SQUAWK':
                 self.say('Currently heading %s, our destination is %s' %
-                          (rint(self.plane.heading),
-                           self.plane.destination), OK_COLOUR)
+                          (rint(pl.heading),
+                           pl.destination), OK_COLOUR)
                 return True  #need to skip setting flag.busy to True!
             else:
                 raise BaseException('Unknown command: %s' % command)
@@ -520,29 +521,51 @@ class Pilot(object):
         Manage the take off procedure
         '''
         #BUG: Crashes if combined heading is a beacon
-        if self.plane.flags.cleared_up <= 0:
-            log.info('%s is taking off from %s %s' % (self.plane.icao,
-                                  self.plane.origin, self.lift_data['name']))
-            self.plane.position = self.lift_data['end_point']
-            self.plane.velocity = self.lift_data['velocity'] * \
-                                  self.plane.landing_speed
-            target = self.target_conf
-            data = self.lift_data['target_conf']
-            target['altitude'] = data['altitude'] if data['altitude'] \
-                                                  else self.plane.max_altitude
-            target['speed'] = data['speed'] if data['speed'] \
-                                               else self.plane.max_speed
-            target['heading'] = data['heading'] if data['heading'] \
-                                               else self.plane.heading
+        ld = self.lift_data
+        pl = self.plane
+        # BEGINNING OF TAKE OFF
+        if pl.flags.cleared_up == RUNWAY_BUSY_TIME:  #initial condition
+            # initiate takeoff flags
+            ld['has_lifted'] = False
+            ld['has_cleared_runway'] = False
+            log.debug('%s is on runway' % pl.icao)
+            # place at beginning of runway
+            pl.position = ld['start_point'].copy()
+            # Give 1 m/s speed and update target to set the heading/sprite icon
+            pl.velocity = ld['vector']
+            self.set_target_conf_to_current()
+            # calculate the target configuration
+            t = ld['target_conf']
+            t['speed'] = t['speed'] if t['speed'] else pl.max_speed
+            t['heading'] = t['heading'] if t['heading'] else pl.heading
+            t['altitude'] = t['altitude'] if t['altitude'] else pl.max_altitude
+            # Give target speed for takeoff
+            self.target_conf['speed'] = ld['target_conf']['speed']
+        # CLOSING OF TAKE OFF
+        elif pl.flags.cleared_up <= 0 and ld['has_cleared_runway']:
+            log.debug('%s has terminated takeoff' % pl.icao)
+            self.target_conf = ld['target_conf']  #just to be sure...
             del self.lift_data
-            self.plane.flags.cleared_up = False
-            self.plane.flags.busy = True
-        else:
-            ld = self.lift_data
-            self._place_on_line(ld['start_point'], ld['end_point'],
-                                RUNWAY_BUSY_TIME - self.plane.flags.cleared_up,
-                                RUNWAY_BUSY_TIME)
-            self.plane.flags.cleared_up -= PING_IN_SECONDS
+            pl.flags.cleared_up = False
+            pl.flags.on_ground = False
+            pl.flags.busy = True
+            self.aerospace.runways_manager.release_runway(pl)
+            return  #prevents setting again the cleared_up flag.
+        # THE FOLLOWING ALWAYS RUN
+        pl.flags.cleared_up -= PING_IN_SECONDS
+        if not ld['has_lifted'] and pl.speed > pl.landing_speed:
+            ld['has_lifted'] = True
+            log.debug('%s is lifting off' % pl.icao)
+            self.target_conf['altitude'] = ld['target_conf']['altitude']
+        if not ld['has_cleared_runway'] and \
+           is_behind(pl.velocity, pl.position, ld['end_point']):
+            if ld['has_lifted']:
+                ld['has_cleared_runway'] = True
+                log.debug('%s is setting post-lift-off course' % pl.icao)
+                self.target_conf['heading'] = ld['target_conf']['heading']
+            else:
+                log.info('%s crashed due to too short runway' % pl.icao)
+                pl.terminate(PLANE_CRASHES)
 
     def land(self, port_name=None, rnw_name=None):
         '''
@@ -559,10 +582,11 @@ class Pilot(object):
             # EARLY RETURN - Maximum incidence angle into the ILS is 60°
             ils_heading = v3_to_heading(l.ils)
             ils_heading = v3_to_heading(l.ils)
-            boundaries = [(ils_heading-60)%360, (ils_heading+60)%360]
+            boundaries = [(ils_heading-ILS_TOLERANCE)%360,
+                          (ils_heading+ILS_TOLERANCE)%360]
             if not heading_in_between(boundaries, pl.heading):
-                msg = 'ILS heading must be within 60 degrees ' \
-                      'from current heading'
+                msg = 'ILS heading must be within %s degrees ' \
+                      'from current heading' % ILS_TOLERANCE
                 return self.__abort_landing(msg)
             # EARLY RETURN - No possible intersection (the RADAR_RANGE*3
             # ensures that the segments to test for intersection are long enough.
@@ -571,7 +595,7 @@ class Pilot(object):
                 return self.__abort_landing(msg)
             # EARLY RETURN - Although the intersection is ahead of the plane,
             # it's too late to merge into the ILS vector
-            #TODO:BUG - doesn't work with 'expedite'! :(
+            # BUG: doesn't work with 'expedite'! :(
             if l.set_merge_point(self.get_veering_radius('normal')) < 0:
                 msg = 'We are too close to the ILS to merge into it'
                 return self.__abort_landing(msg)
@@ -620,6 +644,7 @@ class Pilot(object):
             if l.overshot(l.bp):
                 self.target_conf['speed'] = pl.landing_speed
             if pl.position.z <= l.foot.z:
+                pl.flags.on_ground = True
                 if pl.destination == l.port_name:
                     msg = 'Thank you tower, we\'ve hit home. Over and out!'
                     self.say(msg, OK_COLOUR)

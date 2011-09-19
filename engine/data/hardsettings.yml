@@ -25,6 +25,12 @@ MIN_FLIGHT_LEVEL : 500            # Min flying altitude in metres
 MAX_FLIGHT_LEVEL : 9500           # Max flying altitude in metres
 RUNWAY_BUSY_TIME : 30             # Time for which the runway is busy after
                                   # a touchdown or during a takeoff (seconds)
+ILS_TOLERANCE    : 60             # The amount of degrees within which a plane
+                                  # heading must be in order to intercept the
+                                  # ILS vector.
+GATE_TOLERANCE   : 30             # The amount of degrees within which a plane
+                                  # heading must be in order to intercept the
+                                  # gate airway.
 
 # COLOURS MNEMONICS ###########################################################
 WHITE            : &white    [255, 255, 255]

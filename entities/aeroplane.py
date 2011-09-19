@@ -47,7 +47,7 @@ class Flags(object):
         self.circling = False
         self.locked = False            # The plane is under computer control
         self.busy = False              # The plane is executing a command
-
+        self.on_ground = False
 
 class Tcas(object):
 
@@ -163,6 +163,8 @@ class Aeroplane(object):
         self.entry_time = time()
         self.min_speed = self.landing_speed*1.5
         self.flags = Flags()
+        if self.origin in aerospace.airports:
+            self.flags.on_ground = True
         self.time_last_cmd = time()
         self.trail = deque([sc(self.position.xy)] * TRAIL_LENGTH, TRAIL_LENGTH)
         self.colliding_planes = []
@@ -263,20 +265,19 @@ class Aeroplane(object):
         for i in range(pings):
             # Pilot's updates
             self.pilot.update()
+        # Compute waiting time score if not airborne
+        # FIXME: distinguish between just landed and waiting to takeoff
+        if self.flags.on_ground:
+            mult = pings * PING_IN_SECONDS
+            self.aerospace.gamelogic.score_event(PLANE_WAITS_ONE_SECOND,
+                                                 multiplier=mult)
         # Decrease fuel amount if airborne
-        if self.position.z > 0:
+        else:
             dist = ground_distance(initial, self.position)
             burnt = burning_speed * dist * self.fuel_efficiency
             self.fuel -= burnt
             self.aerospace.gamelogic.score_event(PLANE_BURNS_FUEL_UNIT,
                                                  multiplier=burnt)
-        # Compute waiting time score if not airborne
-        # FIXME: distinguish between just landed and waiting to takeoff
-        else:
-            mult = pings * PING_IN_SECONDS
-            self.aerospace.gamelogic.score_event(PLANE_WAITS_ONE_SECOND,
-                                                 multiplier=mult)
-
         # Update sprite
         self.rect = sc(self.position.xy)
         self.trail.appendleft(sc(self.position.xy))

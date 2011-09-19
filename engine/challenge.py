@@ -22,8 +22,8 @@ __email__ = "quasipedia@gmail.com"
 __status__ = "Development"
 
 class Challenge(object):
-#TODO:BUG - remove RADAR_RANGE from conf e make it load here
-#TODO:Space out imports according to PEP8
+#BUG: remove RADAR_RANGE from conf e make it load here
+#TODO: Space out imports according to PEP8
 
     '''
     Docstring.
@@ -78,7 +78,7 @@ class Challenge(object):
         '''
         #TODO: foresee port to port and gate to gate
         #TODO: foresee a configurable ratio between ports and air
-        #TODO: BUG:pass gate and airport objects directly in orig and dest
+        #BUG: pass gate and airport objects directly in orig and dest
         options = ['gates', 'airports']
         random.shuffle(options)
         type_ = options.pop()
