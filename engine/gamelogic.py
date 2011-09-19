@@ -158,7 +158,7 @@ class GameLogic(object):
         Execute a game command.
         '''
         cname, args = command
-        if cname == 'quit':
+        if cname == 'QUIT':
             self.machine_state = MS_QUIT
 
     def say(self, who, what, color):

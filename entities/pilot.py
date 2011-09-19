@@ -319,7 +319,6 @@ class Pilot(object):
             if command == 'HEADING':
                 if type(args[0]) == int:  #the argument is a heading
                     target['heading'] = args[0]
-                    pass
                 else:  #the argument is a location (a beacon's one)
                     self.set_course_towards(args[0])
                 # Veering direction

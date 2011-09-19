@@ -307,7 +307,7 @@ class Aerospace(object):
                     msg = 'Tower? It doesn\'t seem we are where we should...'
                     event = PLANE_LEAVES_WRONG_GATE  #little better!
                     if gate.name == plane['plane'].destination and \
-                       plane.altitude % 1000 == 0:
+                       plane['plane'].altitude % 1000 == 0:
                         msg = 'Thank you tower, and good bye!'
                         colour = OK_COLOUR
                         event = PLANE_LEAVES_CORRECT_GATE  #yay! :)
@@ -315,6 +315,8 @@ class Aerospace(object):
                 self.gamelogic.remove_plane(plane['plane'], event)
                 log.info('%s left aerospace under event %s' %
                          (plane['plane'].icao, event))
+                log.debug('Data at exit was: %s' %
+                          plane['plane'].get_current_configuration())
 
     def get_plane_by_icao(self, icao):
         icao = icao.upper()

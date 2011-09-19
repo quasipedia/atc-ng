@@ -71,14 +71,18 @@ class Gate(object):
         aaf = 5  #anti-alias factor
         g_img = pygame.surface.Surface((gate_length_px*aaf,
                                         gate_width_px*aaf), SRCALPHA)
-        # boundaries of the gate
+        # BOUNDARIES OF THE GATE
         pygame.draw.line(g_img, GRAY, (0, aaf),
                               (gate_length_px*aaf, aaf), aaf)
         pygame.draw.line(g_img, GRAY, (0, gate_width_px*aaf-aaf),
                               (gate_length_px*aaf, gate_width_px*aaf-aaf), aaf)
-        # info on orientation
+        # INFO ON ORIENTATION and FLIGHT LEVELS
+        fl = lambda x : str(x/100).zfill(2)
+        lines = ['H:' + str(self.heading).zfill(3),
+                 'B:' + fl(self.bottom),
+                 'T:' + fl(self.top)]
         fontobj = pygame.font.Font(MAIN_FONT, HUD_INFO_FONT_SIZE*aaf)
-        label = fontobj.render(str(self.heading).zfill(3), True, GRAY)
+        label = render_lines(fontobj, lines, GRAY)
         label = label.subsurface(label.get_bounding_rect())
         w, h = label.get_size()
         ypsilon = rint(gate_width_px*aaf/2.0-h/2)

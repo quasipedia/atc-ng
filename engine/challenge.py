@@ -29,7 +29,13 @@ class Challenge(object):
     Docstring.
     '''
 
-    INTERVAL = 120
+    PLANE_NUMBER_START = 2        # begin game with X planes
+    MOD_PERIOD = 60               # modify frequency every X seconds
+    FREQ_START = 120              # new plane every X seconds
+    FREQ_STEP = -3                # step of frequency modification
+    FREQ_LIMIT = 20               # maximum rate of new planes on screen
+    MAX_PORT_PLANES = 6           # maximum number of created planes that can
+                                  # be on ground simultaneously
 
     def __init__(self, gamelogic):
         self.gamelogic = gamelogic
@@ -37,9 +43,12 @@ class Challenge(object):
         self.model_handler = ymlhand.PlaneModelHandler()
         self.__init_scenario()
         self.__init_entry_data()
-        self.ref_time = time() - self.INTERVAL + 5  #Lives 5 seconds empty sky
-        self.simultaneous_planes = 0
         self.fuel_per_metre = 1000/(RADAR_RANGE*11.3936)  #4 times diagonal
+        # PLANE ENTRY VARIABLES
+        self.plane_counter = 0
+        self.frequency = self.FREQ_START
+        self.last_entry = time() - self.FREQ_START + 5  #Lives 5 seconds empty
+        self.last_freq_increase = time()
 
     def __init_scenario(self):
         '''
@@ -70,6 +79,14 @@ class Challenge(object):
             ports_data.append((port.iata, position, velocity))
         self.__entry_data = dict(gates=gates_data, airports=ports_data)
 
+    def __check_grounded_is_ok(self):
+        '''
+        Return False if there are already too many planes in airports.
+        '''
+        short = self.gamelogic.aerospace.aeroplanes
+        on_ground = len([p for p in short if p.flags.on_ground == True])
+        return True if on_ground < self.MAX_PORT_PLANES else False
+
     def __generate_flight_plan(self):
         '''
         Return intial position and velocity 3D vectors plus the origin and
@@ -78,10 +95,14 @@ class Challenge(object):
         '''
         #TODO: foresee port to port and gate to gate
         #TODO: foresee a configurable ratio between ports and air
-        #BUG: pass gate and airport objects directly in orig and dest
-        options = ['gates', 'airports']
-        random.shuffle(options)
-        type_ = options.pop()
+        #FIXME: consider passing gate and airport objects directly as orig/dest
+        # Establish type of origin
+        if self.__check_grounded_is_ok():
+            options = ['gates', 'airports']
+            random.shuffle(options)
+            type_ = options.pop()
+        else:
+            type_ = 'gates'
         if type_ == 'gates':
             entry_data_gates = self.__entry_data['gates'][:]
             random.shuffle(entry_data_gates)
@@ -137,21 +158,27 @@ class Challenge(object):
         kwargs['velocity'] *= kwargs['max_speed']
         log.debug('About to add plane: %s' % kwargs)
         self.gamelogic.add_plane(Aeroplane(self.gamelogic.aerospace, **kwargs))
+        self.plane_counter += 1
 
     def update(self):
         '''
         Perform actions (typically making a new aeroplane to appear) based
         on the kind of challenge.
         '''
-        # Every minute increase of one unit the amount of desired planes that
-        # should be on radar at any time
-        if time() - self.ref_time > self.INTERVAL:
-            self.simultaneous_planes += 1
-            self.ref_time = time()
-        # Adjust the amount of actual planes to the desired one
-        if len(self.gamelogic.aerospace.aeroplanes) < self.simultaneous_planes:
-            self.__add_plane()
+        now = time()
+        if now - self.last_entry > self.frequency:
+            self.last_entry = now
+            if self.plane_counter == 0:
+                for i in range(self.PLANE_NUMBER_START):
+                    self.__add_plane()
+            else:
+                self.__add_plane()
+        if self.frequency != self.FREQ_LIMIT and \
+           now - self.last_freq_increase > self.MOD_PERIOD:
+            self.last_freq_increase = now
+            self.frequency += self.FREQ_STEP
         # If there have been 3 (or more) destroyed planes, terminate the match
         if self.gamelogic.fatalities > 2:
-            log.info('THREE_STRIKES_OUT: Match si over!')
+            log.info('THREE_STRIKES_OUT: Match si over after %s planes entered'
+                     % self.plane_counter)
             self.gamelogic.machine_state = MS_QUIT

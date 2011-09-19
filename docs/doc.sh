@@ -46,10 +46,10 @@ touch .nojekyll
 # track changes and pushes them to the server
 git add . .nojekyll
 git commit -a -m "Automatic Documentation Build"
-git push
+git push -f
 
 # revert to normal editing mode
 git checkout master
-cp -r /tmp/atc-project-files/ .
+cp -r /tmp/atc-project-files/.[a-z]* .
 rm -rf /tmp/atc-project-files
 git stash pop

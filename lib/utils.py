@@ -9,6 +9,7 @@ from engine.settings import *
 from euclid import Vector2, Vector3
 from math import cos, sin, radians, degrees, atan2
 from random import randint
+from pygame.locals import *
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -34,6 +35,19 @@ def sc(vector):
     '''
     x, y = [int(round(c/METRES_PER_PIXEL)) for c in vector]
     return (x, -(y-RADAR_RECT.height))
+
+def render_lines(fontobj, lines, colour):
+    '''
+    Return the image of the rendered multiline text.
+    '''
+    font_height = fontobj.get_height()
+    surfaces = [fontobj.render(ln, True, colour) for ln in lines]
+    maxwidth = max([s.get_width() for s in surfaces])
+    result = pygame.surface.Surface((maxwidth, len(lines)*font_height),
+                                    SRCALPHA)
+    for i in range(len(lines)):
+        result.blit(surfaces[i], (0,i*font_height))
+    return result
 
 def in_between(boundaries, value):
     '''
