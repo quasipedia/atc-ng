@@ -32,15 +32,14 @@ class Lander(object):
     phase.
     '''
 
-    def __init__(self, plane, port_name, rnw_name):
+    def __init__(self, plane, port_name, rnwy_name):
         self.plane = plane
-        self.port_name = port_name
-        self.rnw_name = rnw_name
-        port = plane.aerospace.airports[port_name]
-        tmp = port.runways[rnw_name]
-        self.foot = tmp['location'] + port.location
-        self.ils = tmp['ils']
+        self.port = plane.aerospace.airports[port_name]
+        self.rnwy = self.port.runways[rnwy_name]
+        self.foot = self.rnwy['location'] + self.port.location
+        self.ils = self.rnwy['ils']
         self.phase = None
+        self.taxiing_data = None
 
     def __get_point_ahead(self, distance):
         '''
@@ -120,6 +119,29 @@ class Lander(object):
         distance = abs(self.foot - self.plane.position) - dist
         self.bp = self.__get_point_ahead(distance)
 
+    def make_decision(self):
+        '''
+        Make a decision if trying to land or not depending on whether the
+        target runway is free or not. If free, return True and mark runway
+        busy, otherwise return False.
+        '''
+        rman = self.plane.aerospace.runways_manager
+        if rman.check_runway_free(self.port, self.rnwy):
+            rman.use_runway(self.port, self.rnwy, self.plane)
+            full_length_speed = float(self.rnwy['length'])/RUNWAY_BUSY_TIME
+            self.taxiing_data = dict(
+                 speed = min(self.plane.landing_speed, full_length_speed),
+                 timer = RUNWAY_BUSY_TIME)
+            log.debug('%s *positive* landing decision on %s %s' %
+                      (self.plane.icao, self.port.iata, self.rnwy['name']))
+            self.plane.flags.locked = True
+            return True
+        log.debug('%s *negative* landing decision on %s %s' %
+                  (self.plane.icao, self.port.iata, self.rnwy['name']))
+        msg = 'Somebody is using our landing runway!!!'
+        self.plane.pilot._abort_landing(msg)
+        return False
+
     @property
     def id(self):
         '''
@@ -179,6 +201,7 @@ class Pilot(object):
     MERGING = 2
     MATCHING = 3
     GLIDING = 4
+    TAXIING = 5
     # Radio answers
     AFFIRMATIVE_EXEC_ANSWERS = ['Roger that. Executing.',
                                 'Affirmative, initiating maneuver now.',
@@ -207,7 +230,7 @@ class Pilot(object):
         self.course_towards = None
         self.lander = None
 
-    def __abort_landing(self, msg):
+    def _abort_landing(self, msg):
         '''
         Abort landing, generating all events of the case and resetting relevant
         variables.
@@ -216,14 +239,11 @@ class Pilot(object):
         log.info('%s aborts: %s' % (self.plane.icao, msg))
         self.say('Aborting landing: %s' % msg, ALERT_COLOUR)
         self.plane.flags.cleared_down = False
+        # Marked runway as free
+        if self.lander and self.lander.taxiing_data:
+            self.aerospace.runways_manger.release_runway(self.plane)
         self.lander = None
-        # Adjust altitude to match a valid flight level
-        if self.plane.position.z < 500:
-            self.target_conf['altitude'] = 500
-        else:
-            extra = self.plane.position.z % 500
-            extra = -extra if extra < 250 else 500-extra
-            self.target_conf['altitude'] = self.plane.position.z + extra
+        self.adjust_to_valid_FL()
 
     def _abort_command(self, last_only=False):
         '''
@@ -299,10 +319,14 @@ class Pilot(object):
             msg = '...'
             self.say(msg, KO_COLOUR)
             return False
+        # Reject order other than TAKEOFF or SQUAWK if plane is locked
+        if pl.flags.locked and commands[0][0] != 'SQUAWK':
+            msg = 'You can only SQUAWK this plane.'
+            self.say(msg, KO_COLOUR)
+            return False
         # Reject order other than TAKEOFF or SQUAWK if plane is on ground
-        if pl.flags.on_ground and commands[0][0] not \
-                                in ('TAKEOFF', 'SQUAWK'):
-            msg = 'We can\'t do that: we are still on the ground!'
+        if pl.flags.on_ground and commands[0][0] not in ('TAKEOFF', 'SQUAWK'):
+            msg = 'You can only SQUAWK this plane or instruct it to TAKEOFF.'
             self.say(msg, KO_COLOUR)
             return False
         # Otherwise execute what requested
@@ -515,6 +539,17 @@ class Pilot(object):
         acc_module = sqrt(g_to_mks(max_manouvering_g)**2-g_to_mks(1)**2)
         return acc_module/speed
 
+    def adjust_to_valid_FL(self):
+        '''
+        Adjust altitude to match a valid flight level.
+        '''
+        if self.plane.position.z < 500:
+            self.target_conf['altitude'] = 500
+        else:
+            extra = self.plane.position.z % 500
+            extra = -extra if extra < 250 else 500-extra
+            self.target_conf['altitude'] = self.plane.position.z + extra
+
     def takeoff(self, runway=None):
         '''
         Manage the take off procedure
@@ -525,6 +560,7 @@ class Pilot(object):
         # BEGINNING OF TAKE OFF
         if pl.flags.cleared_up == RUNWAY_BUSY_TIME:  #initial condition
             # initiate takeoff flags
+            pl.flags.locked = True
             ld['has_lifted'] = False
             ld['has_cleared_runway'] = False
             log.debug('%s is on runway' % pl.icao)
@@ -535,8 +571,9 @@ class Pilot(object):
             self.set_target_conf_to_current()
             # calculate the target configuration
             t = ld['target_conf']
+            # heading 000 would return False if not compared to None..
+            t['heading'] = t['heading'] if t['heading'] != None else pl.heading
             t['speed'] = t['speed'] if t['speed'] else pl.max_speed
-            t['heading'] = t['heading'] if t['heading'] else pl.heading
             t['altitude'] = t['altitude'] if t['altitude'] else pl.max_altitude
             # Give target speed for takeoff
             self.target_conf['speed'] = ld['target_conf']['speed']
@@ -548,6 +585,7 @@ class Pilot(object):
             pl.flags.cleared_up = False
             pl.flags.on_ground = False
             pl.flags.busy = True
+            pl.flags.locked = False
             self.aerospace.runways_manager.release_runway(pl)
             return  #prevents setting again the cleared_up flag.
         # THE FOLLOWING ALWAYS RUN
@@ -566,18 +604,18 @@ class Pilot(object):
                 log.info('%s crashed due to too short runway' % pl.icao)
                 pl.terminate(PLANE_CRASHES)
 
-    def land(self, port_name=None, rnw_name=None):
+    def land(self, port_name=None, rnwy_name=None):
         '''
         Guide a plane towards the ILS descent path and then makes it land.
         Return the phase of the landing sequence.
         '''
-        assert not (port_name == rnw_name == None and not self.lander)
+        assert not (port_name == rnwy_name == None and not self.lander)
         pl = self.plane
         # The first time the land() method is called, generates a Lander()
         # object. This is a also a good place for early returns if we
         # already know it's impossible to land from current plane position
         if not self.lander:
-            l = Lander(pl, port_name, rnw_name)
+            l = Lander(pl, port_name, rnwy_name)
             # EARLY RETURN - Maximum incidence angle into the ILS is 60°
             ils_heading = v3_to_heading(l.ils)
             ils_heading = v3_to_heading(l.ils)
@@ -586,18 +624,18 @@ class Pilot(object):
             if not heading_in_between(boundaries, pl.heading):
                 msg = 'ILS heading must be within %s degrees ' \
                       'from current heading' % ILS_TOLERANCE
-                return self.__abort_landing(msg)
+                return self._abort_landing(msg)
             # EARLY RETURN - No possible intersection (the RADAR_RANGE*3
             # ensures that the segments to test for intersection are long enough.
             if not l.set_intersection_point():
                 msg = 'The ILS does not intersect the plane current heading'
-                return self.__abort_landing(msg)
+                return self._abort_landing(msg)
             # EARLY RETURN - Although the intersection is ahead of the plane,
             # it's too late to merge into the ILS vector
             # BUG: doesn't work with 'expedite'! :(
             if l.set_merge_point(self.get_veering_radius('normal')) < 0:
                 msg = 'We are too close to the ILS to merge into it'
-                return self.__abort_landing(msg)
+                return self._abort_landing(msg)
             # LANDING IS NOT EXCLUDED A PRIORI...
             l.phase = self.INTERCEPTING
             self.lander = l
@@ -606,25 +644,29 @@ class Pilot(object):
         else:
             l = self.lander
         if l.phase == self.INTERCEPTING:
+            #BUG: if command is given too late the plane won't manage to
+            #     turn into the vector
+            log.debug('%s INTERCEPTING: md=%s fd=%s' % (pl.icao, l.md, l.fd))
             if l.overshot(l.mp):
                 self.set_course_towards(l.foot.xy)
                 l.phase = self.MERGING
-            log.debug('%s INTERCEPTING: md=%s fd=%s' % (pl.icao, l.md, l.fd))
         elif l.phase == self.MERGING:
-            if self.course_towards == None:
-                l.phase = self.MATCHING
             log.debug('%s MERGING: head=%s t_head= %s fd=%s' % (pl.icao,
                       pl.heading, self.target_conf['heading'], l.fd))
+            if self.course_towards == None:
+                l.phase = self.MATCHING
         elif l.phase == self.MATCHING:
+            path_alt = l.path_alt
+            alt_diff = path_alt - pl.altitude  #negative -> descend!
+            log.debug('%s MATCHING: alt=%s path_alt=%s delta=%s fd=%s' %
+                      (pl.icao, pl.altitude, path_alt, alt_diff, l.fd))
             secs_to_foot = l.fd / pl.speed
             # Abort if the plane is too fast to descend
             if abs(secs_to_foot * pl.climb_rate_limits[0]) < l.above_foot:
                 msg = 'Plane is flying too fast to lose enough altitude'
-                return self.__abort_landing(msg)
+                return self._abort_landing(msg)
             # If the delta to the path is less than the climbing/descending
             # capabilities of the aeroplane, consider it on slope...
-            path_alt = l.path_alt
-            alt_diff = path_alt - pl.altitude  #negative -> descend!
             if alt_diff < 0 and alt_diff > pl.climb_rate_limits[0] or \
                alt_diff > 0 and alt_diff < pl.climb_rate_limits[1]:
                 pl.position.z = path_alt
@@ -632,33 +674,41 @@ class Pilot(object):
                 l.set_breaking_point()
                 if l.overshot(l.bp):
                     msg = 'Plane too fast to slow down to landing speed'
-                    self.__abort_landing(msg)
+                    self._abort_landing(msg)
             # ...otherwise tell it to climb/descend!!
             else:
                 self.target_conf['altitude'] = path_alt
-            log.debug('%s MATCHING: alt=%s path_alt=%s delta=%s fd=%s' %
-                      (pl.icao, pl.altitude, path_alt, alt_diff, l.fd))
         elif l.phase == self.GLIDING:
-            # Abort if the plane is too fast to slow to landing speed
-            if l.overshot(l.bp):
-                self.target_conf['speed'] = pl.landing_speed
-            if pl.position.z <= l.foot.z:
-                pl.flags.on_ground = True
-                if pl.destination == l.port_name:
-                    msg = 'Thank you tower, we\'ve hit home. Over and out!'
-                    self.say(msg, OK_COLOUR)
-                    pl.terminate(PLANE_LANDS_CORRECT_PORT)
-                else:
-                    msg = 'Well, well... we just landed at the WRONG airport!'
-                    self.say(msg, KO_COLOUR)
-                    pl.terminate(PLANE_LANDS_WRONG_PORT)
-                return
-            ticks = 1.0 * l.fd / self.target_conf['speed'] / PING_IN_SECONDS
-            z_step = 1.0 * l.above_foot / ticks
-            self.target_conf['altitude'] -= z_step
             log.debug('%s GLIDING: footalt=%s speed=%s t_speed=%s bd=%s fd=%s'
                       % (pl.icao, l.above_foot, pl.speed,
                          self.target_conf['speed'], l.bd, l.fd))
+            # Abort if the plane is too fast to slow to landing speed
+            if l.overshot(l.bp):
+                self.target_conf['speed'] = pl.landing_speed
+            # Make decision if below minimum altitude
+            if not l.taxiing_data and l.above_foot <= DECISION_ALTITUDE:
+                l.make_decision()
+            ticks = 1.0 * l.fd / self.target_conf['speed'] / PING_IN_SECONDS
+            z_step = 1.0 * l.above_foot / ticks
+            self.target_conf['altitude'] -= z_step
+            if pl.position.z <= l.foot.z:
+                pl.flags.on_ground = True
+                l.phase = self.TAXIING
+                self.target_conf['speed'] = l.taxiing_data['speed']
+                if pl.destination == l.port.iata:
+                    msg = 'Thank you tower, we\'ve hit home. Over and out!'
+                    self.say(msg, OK_COLOUR)
+                else:
+                    msg = 'Well, well... we just landed at the WRONG airport!'
+                    self.say(msg, KO_COLOUR)
+        elif l.phase == self.TAXIING:
+            log.debug('%s TAXIING: speed=%s fd=%s' % (pl.icao, pl.speed, l.fd))
+            l.taxiing_data['timer'] -= PING_IN_SECONDS
+            if l.taxiing_data['timer'] <= 0:
+                if pl.destination == l.port.iata:
+                    pl.terminate(PLANE_LANDS_CORRECT_PORT)
+                else:
+                    pl.terminate(PLANE_LANDS_WRONG_PORT)
         return l.phase
 
     def veer(self):

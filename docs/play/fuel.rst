@@ -23,6 +23,8 @@ destination points** [1]_.
 .. index::
    pair:Fuel; Emergency
 
+.. _fuel-emergency:
+
 Fuel emergency
 --------------
 A plane declares **fuel emergency** when its fuel will be twice (or less) the

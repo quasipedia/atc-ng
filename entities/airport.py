@@ -116,6 +116,7 @@ class airport(object):
             Programmatically is a dictionary structured as follow:
         { runway_name : { name      : string     # their name
                           location  : (x,y,z)    # location on map
+                          length    : int        # length in metres
                           ils       : Vector3()  # vector to intercept for land
                           centre    : Vector3()  # centre of strip
                           twin      : string     # runway at other end of strip
@@ -131,8 +132,9 @@ class airport(object):
                 offset = offset.rotate_around(Vector3(0,0,1), r_ang)
                 ils = offset.copy()
                 offset *= strip.length / 2
+                tmp['length'] = strip.length
                 tmp['location'] = strip.centre_pos + offset
-                tmp['centre'] = strip.centre_pos
+                tmp['centre'] = strip.centre_pos.copy()
                 ils.z = abs(ils)*sin(radians(SLOPE_ANGLE))  #gliding slope = 3°
                 tmp['ils'] = -ils.normalized()
                 if rot == 0:

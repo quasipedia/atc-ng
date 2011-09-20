@@ -48,3 +48,10 @@ Use of runways
 --------------
 The runway used for taking off will be unavailable to other aircraft until the
 end of the climbing phase and however for **not less than 30 seconds**.
+
+Locked status
+-------------
+Once cleared for take off, it's up to the aeroplane crew to make decisions, and
+for this reason they will stop responding to your commands until they clear the
+airport area. To remind you of this, the aeroplane icon will switch to the
+:ref:`locked colour<sprites-colours>`.

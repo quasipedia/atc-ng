@@ -21,16 +21,18 @@ CHAR_UP          : '^'            # Modified in the font file to an up arrow
 CHAR_DOWN        : '\\'           # Modified in the font file to a down arrow
 
 # SIMULATION PARAMETERS WORLD DESCRIPTION #####################################
-MIN_FLIGHT_LEVEL : 500            # Min flying altitude in metres
-MAX_FLIGHT_LEVEL : 9500           # Max flying altitude in metres
-RUNWAY_BUSY_TIME : 30             # Time for which the runway is busy after
+MIN_FLIGHT_LEVEL  : 500           # Min flying altitude in metres
+MAX_FLIGHT_LEVEL  : 9500          # Max flying altitude in metres
+RUNWAY_BUSY_TIME  : 30            # Time for which the runway is busy after
                                   # a touchdown or during a takeoff (seconds)
-ILS_TOLERANCE    : 60             # The amount of degrees within which a plane
+ILS_TOLERANCE     : 60            # The amount of degrees within which a plane
                                   # heading must be in order to intercept the
                                   # ILS vector.
-GATE_TOLERANCE   : 30             # The amount of degrees within which a plane
+GATE_TOLERANCE    : 30            # The amount of degrees within which a plane
                                   # heading must be in order to intercept the
                                   # gate airway.
+DECISION_ALTITUDE : 100           # Altitude at which the decision to land is
+                                  # made and the runway is marked as used
 
 # COLOURS MNEMONICS ###########################################################
 WHITE            : &white    [255, 255, 255]

@@ -112,6 +112,7 @@ class Tcas(object):
         except KeyError:
             if self.state == True:
                 self.plane.pilot.set_target_conf_to_current()
+                self.plane.pilot.adjust_to_valid_FL()
             self.state = False
 
 
@@ -245,7 +246,7 @@ class Aeroplane(object):
             value = PRIORITIZED
         if self.tcas.state:
             value = COLLISION
-        if fl.locked:
+        if fl.locked:  #take_offs and landings
             value = NON_CONTROLLED
         return value
 

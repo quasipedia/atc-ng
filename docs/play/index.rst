@@ -10,6 +10,7 @@ help!) please consult :doc:`this other section
 
    basics
    interface
+   sprites
    game-commands
    plane-commands
    fuel

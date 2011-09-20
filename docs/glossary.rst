@@ -112,6 +112,11 @@ Glossary
       magnetic field, and thus the orientation of runways is relative to the
       geographical north.
 
+   Sprite
+      In computer graphics, a sprite is a two-dimensional image or animation
+      that is integrated into a larger scene. ATC-NG uses sprites for all its
+      moveable elements (aeroplane icons, flying strips, etc...)
+
    YAML
       YAML is a human-readable data serialization format (that is: a format for
       displaying computer-readable data which is nice to the eye of humans).

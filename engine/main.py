@@ -28,7 +28,9 @@ __email__ = "quasipedia@gmail.com"
 __status__ = "Development"
 
 #TODO: verify .deb package with `lintian`
-#TODO: REFACTOR using pygame events? Check if makes sense with PyGLets
+#REFACTOR: using pygame events? Check if makes sense with PyGLets
+#REFACTOR: wherever used port.iata, plane.icao, rnway.name, etc... as
+#          arguments, it might be worth passing the full object instead
 
 class MainWindow(object):
 
