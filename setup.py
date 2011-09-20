@@ -16,9 +16,17 @@ from version import *
 #    del sys.path[0]
 #README = open(os.path.join(_top_dir, 'README.rst')).read()
 
+try:
+    v_num = open('version-number', 'r').read()
+    print(v_num)
+except IOError:
+    print('Missing `version-number` file. Please generate it with the '
+          '`./version.py get -d` command.')
+    exit(1)
+
 setup(
     name = "atc-ng",
-    version = get_git_version(),
+    version = v_num,
     description = "Air Traffic Controller - Next Generation",
     packages = find_packages(exclude=['utils']),
     include_package_data = True,
@@ -47,5 +55,6 @@ setup(
     ],
     long_description = '''A real-time strategy game in which you must guide
 aeroplanes through the airspace you monitor at your radar station.
-This game is inspired from the original text-only game from the '80s called ATC [available in Ubuntu in the 'bsdgames' package.]'"'''
+This game is inspired from the original text-only game from the '80s called ATC
+[available in Ubuntu in the 'bsdgames' package.]'''
 )

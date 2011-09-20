@@ -1,105 +1,136 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Author: Douglas Creager <dcreager@dcreager.net>
-# This file is placed into the public domain.
+'''
+Provide support for handling version numbers for packaging python programs whose
+code is mantained in a git repository.
 
-# Calculates the current version number.  If possible, this is the
-# output of “git describe”, modified to conform to the versioning
-# scheme that setuptools uses.  If “git describe” returns an error
-# (most likely because we're in an unpacked copy of a release tarball,
-# rather than in a git working copy), then we fall back on reading the
-# contents of the RELEASE-VERSION file.
-#
-# To use this script, simply import it your setup.py file, and use the
-# results of get_git_version() as your package version:
-#
-# from version import *
-#
-# setup(
-#     version=get_git_version(),
-#     .
-#     .
-#     .
-# )
-#
-# This will automatically update the RELEASE-VERSION file, if
-# necessary.  Note that the RELEASE-VERSION file should *not* be
-# checked into git; please add it to your top-level .gitignore file.
-#
-# You'll probably want to distribute the RELEASE-VERSION file in your
-# sdist tarballs; to do this, just create a MANIFEST.in file that
-# contains the following line:
-#
-#   include RELEASE-VERSION
+©2011 - Mac Ryan - Released into the public domain.
 
-__all__ = ("get_git_version")
+The script will assing a version number to your program based on the last
+signed tag on the repository branch you are building your package from.
 
+The script assumes that source files where the version number needs to be
+inserted contains a commented line whose first non-hash characters are
+``__version__``. This is done to preserve the versioning number of third-party
+modules that must not follow your code versioning schema, but can be overridden
+from commandline.
+'''
+
+import argparse
+import os
+import sys
+import re
+import fileinput
 from subprocess import Popen, PIPE
 
+__all__ = ("get_git_version",)
+__author__ = "Mac Ryan"
+__copyright__ = "Copyright 2011, Mac Ryan"
+__license__ = "Public Domain"
 
-def call_git_describe(abbrev=4):
+def get_git_version(branch, dump_to_file=False):
+    '''
+    Return the ``git describe --abbrev`` of a given branch.
+    '''
     try:
-        p = Popen(['git', 'describe', '--abbrev=%d' % abbrev],
+        HASH_LEN = 4
+        p = Popen(['git', 'describe', '--abbrev=%d' % HASH_LEN, branch],
                   stdout=PIPE, stderr=PIPE)
         p.stderr.close()
-        line = p.stdout.readlines()[0]
-        return line.strip()
-
-    except:
-        return None
-
-
-def read_release_version():
-    try:
-        f = open("RELEASE-VERSION", "r")
-
-        try:
-            version = f.readlines()[0]
-            return version.strip()
-
-        finally:
+        version = p.stdout.readlines()[0].strip()
+        if dump_to_file:
+            f = open('version-number', 'w')
+            f.write(version)
             f.close()
-
+        return version
     except:
-        return None
-
-
-def write_release_version(version):
-    f = open("RELEASE-VERSION", "w")
-    f.write("%s\n" % version)
-    f.close()
-
-
-def get_git_version(abbrev=4):
-    # Read in the version that's currently in RELEASE-VERSION.
-
-    release_version = read_release_version()
-
-    # First try to get the current version using “git describe”.
-
-    version = call_git_describe(abbrev)
-
-    # If that doesn't work, fall back on the value that's in
-    # RELEASE-VERSION.
-
-    if version is None:
-        version = release_version
-
-    # If we still don't have anything, that's an error.
-
-    if version is None:
         raise ValueError("Cannot find the version number!")
 
-    # If the current version is different from what's in the
-    # RELEASE-VERSION file, update the file to be current.
+def __get_source_files():
+    '''
+    Return a list of all source files, search in all subdirectories of the
+    curren one (=ignores the current one).
+    '''
+    fnames = []
+    for dirname, dirlist, filelist in os.walk('.'):
+        if dirname == '.' or dirname.find('./.git') != -1:
+            continue
+        for name in filelist:
+            if name[-3:] != '.py':
+                continue
+            fnames.append(os.path.join(dirname, name))
+    return fnames
 
-    if version != release_version:
-        write_release_version(version)
+def __replace_in_file(fname, version_number, substite_uncommented=False):
+    '''
+    Replace ``__version__`` metadata in a given file.
+    '''
+    if substite_uncommented:
+        pattern = re.compile(r'^#*__version__')
+    else:
+        pattern = re.compile(r'#+__version__')
+    counter = 0
+    for line in fileinput.input(fname, inplace=True):
+        if pattern.search(line):
+            counter += 1
+            line = '__version__ = "%s"\n' % version_number
+        sys.stdout.write(line)
+    if counter:
+        return counter, fname
+    return None
 
-    # Finally, return the current version.
+def substitute_in_source(branch, substite_uncommented=False):
+    '''
+    Substitute program version number in source files.
+    '''
+    version = get_git_version(branch, dump_to_file=False)
+    fnames = __get_source_files()
+    substitutions = []
+    for fn in fnames:
+        r = __replace_in_file(fn, version, substite_uncommented)
+        if r:
+            substitutions.append(r)
+    return substitutions
 
-    return version
-
+def parse():
+    '''
+    Argparse descriptor.
+    '''
+    # General description of the program
+    desc = 'Support for automatic version numbers in python .deb packages.'
+    parser = argparse.ArgumentParser(description=desc)
+    # The action to untertake
+    hlpmsg = 'The action to untertake.'
+    parser.add_argument('action', choices=['get', 'substitute'], nargs=1,
+                        help=hlpmsg)
+    # Specify a particular branch
+    hlpmsg = 'Specify a git branch to get the version number from. Defaults ' \
+             'to `master`.'
+    parser.add_argument('-b', '--branch', default='master', help=hlpmsg)
+    # Dump to file option
+    hlpmsg = 'Whether the version number should also be dumped in the ' \
+             '`version-number` file.'
+    parser.add_argument('-d', '--dump', action='store_true', help=hlpmsg)
+    # Substitute uncommented too
+    hlpmsg = 'Whether the subtitution in source files should also apply to' \
+             'uncommented ``__version__`` declarations.'
+    parser.add_argument('-u', '--uncommented', action='store_true', help=hlpmsg)
+    # Parse!
+    args = parser.parse_args()
+    if args.action == ['get']:
+        version = get_git_version(args.branch, args.dump)
+        print "Software version on branch `%s`: %s." % (args.branch, version)
+    elif args.action == ['substitute']:
+        subs = substitute_in_source(args.branch, args.uncommented)
+        if not subs:
+            print "No substitutions have been performed."
+        else:
+            fnumb = len(subs)
+            total = sum([n for n,f in subs])
+            print "Substitution happened in the follwing files:"
+            for data in subs:
+                print "%i : %s" % data
+            print "Overall total substitutions: %i in %i files" % (total, fnumb)
 
 if __name__ == "__main__":
-    print get_git_version()
+    parse()
