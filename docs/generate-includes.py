@@ -38,19 +38,29 @@ class Generator(object):
         Load and return a yml file stored in the /data directory of `package`.
         '''
         data = resource_stream(__name__,
-                           os.path.join('..', package, 'data', fname+'.yml'))
+                           os.path.join('..', package, 'data', fname + '.yml'))
         return yaml.load(data)
 
-    def generate_plane_commands(self):
+    def parse_commands_description_file(self, fname):
         '''
-        Description list with plane commands.
+        Parse the commands description file and return the rst output.
+        ``fname`` is both the name of the .yml file to load the data from and
+        that of the .inc file into which to dump the rst content.
         '''
-        commands = self.__load_yaml('engine', 'pcommands')
+        assert fname in ['pcommands', 'gcommands']
+        if fname == 'pcommands':
+            extended_name = 'Aeroplane command'
+        if fname == 'gcommands':
+            extended_name = 'Game command'
+        commands = self.__load_yaml('engine', fname)
         lines = []
+        lines.append('.. highlight:: none\n')
         for cname in sorted(commands):
             data = commands[cname]
-            lines.append(cname)       #command title
-            lines.append('-'*len(cname))      #make it subsection
+            lines.append('.. index:: ' + extended_name + '; ' + cname + '\n')
+            lines.append('.. _' + fname + '-' + cname + ':\n')  #anchor
+            lines.append(cname) #command title
+            lines.append('-'*len(cname)) #make it subsection
             lines.append('**Example Usage:**')
             lines.append(data['examples'])
             lines.append('**Description:**')
@@ -70,23 +80,16 @@ class Generator(object):
             lines.append('\n')
         #Save the file
         rst = '\n'.join(lines)
-        f = open('pcommands.inc', 'w')
+        f = open(fname + '.inc', 'w')
         f.write(rst)
         f.close()
-
-    def generate_settings_file(self):
-        yaml_file = open('../engine/data/template_user_dir/settings.yml')
-        inc_file = open('settings-file.inc', 'w')
-        inc_file.write('::\n\n')
-        for line in yaml_file.readlines():
-            inc_file.write('  ' + line)
 
     def generate_all(self):
         '''
         Generate all inclusion files.
         '''
-        self.generate_plane_commands()
-        self.generate_settings_file()
+        for fname in ['pcommands', 'gcommands']:
+            self.parse_commands_description_file(fname)
 
 if __name__ == '__main__':
     Generator().generate_all()

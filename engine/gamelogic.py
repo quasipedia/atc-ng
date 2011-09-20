@@ -29,6 +29,48 @@ __email__ = "quasipedia@gmail.com"
 __status__ = "Development"
 
 
+class GameCommandsProcessor(object):
+
+    '''
+    Process game commands.
+    '''
+
+    def __init__(self, gamelogic):
+        self.gamelogic = gamelogic
+
+    def __toggle_paused(self):
+        '''
+        Toggle the paused machine state.
+        '''
+        ms = self.gamelogic.machine_state
+        ms = (ms == MS_RUN)[MS_RUN, MS_PAUSED]
+
+    def __help_on(self, cname):
+        '''
+        Provide help on a given command.
+        '''
+
+    def process_command(self, commandline):
+        '''
+        Execute a game command.
+        '''
+        MS_RUN
+        cname, args = commandline
+        if cname == 'QUIT':
+            self.gamelogic.machine_state = MS_QUIT
+        if cname == 'PAUSE':
+            self.__toggle_paused()
+        if cname == 'HELP':
+            pass
+        if cname == 'SORT':
+            pass
+        if cname == 'LIST':
+            pass
+        if cname == 'LOAD':
+            pass
+
+
+
 class GameLogic(object):
 
     '''
@@ -53,7 +95,7 @@ class GameLogic(object):
                              (SCORE_RECT.x + SCORE_RECT.w, SCORE_RECT.y-1))
         self.aerospace = aerospace.Aerospace(self, self.radar_surface)
         self.cli = commander.CommandLine(self.cli_surface, self.aerospace,
-                                         self.game_commands_processor)
+                                 GameCommandsProcessor(self).process_command)
         self.ms_from_last_ping = PING_PERIOD+1  #force update on first run
         self.strips = sprites.guisprites.StripsGroup()
         self.maps = []
@@ -153,13 +195,6 @@ class GameLogic(object):
             self.maps_surface.blit(map_, (x, y))
             y += map_.get_height()+1
 
-    def game_commands_processor(self, command):
-        '''
-        Execute a game command.
-        '''
-        cname, args = command
-        if cname == 'QUIT':
-            self.machine_state = MS_QUIT
 
     def say(self, who, what, color):
         '''

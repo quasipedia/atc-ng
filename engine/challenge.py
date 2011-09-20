@@ -29,6 +29,7 @@ class Challenge(object):
     Docstring.
     '''
 
+    DELAY = 5                     # delay before the first plane appears
     PLANE_NUMBER_START = 2        # begin game with X planes
     MOD_PERIOD = 60               # modify frequency every X seconds
     FREQ_START = 120              # new plane every X seconds
@@ -47,7 +48,7 @@ class Challenge(object):
         # PLANE ENTRY VARIABLES
         self.plane_counter = 0
         self.frequency = self.FREQ_START
-        self.last_entry = time() - self.FREQ_START + 5  #Lives 5 seconds empty
+        self.last_entry = time() - self.FREQ_START + DELAY
         self.last_freq_increase = time()
 
     def __init_scenario(self):

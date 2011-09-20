@@ -5,6 +5,14 @@ a game inspired by the classic text-only *atc* game from the early 80's.
 Currently the game is in **alpha state**: some of the final functionality is
 already implemented, but not enough to play the game completely.
 
+Important links
+---------------
+
+* **Project documentation:** http://quasipedia.github.com/atc-ng
+* **Project code:** https://github.com/quasipedia/atc-ng
+* **Package download:** https://github.com/quasipedia/atc-ng/downloads
+* **Issue tracker:** https://github.com/quasipedia/atc-ng/issues
+
 Contents
 --------
 .. toctree::

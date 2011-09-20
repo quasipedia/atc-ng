@@ -11,6 +11,7 @@ help!) please consult :doc:`this other section
    basics
    interface
    sprites
+   flight-strips
    game-commands
    plane-commands
    fuel

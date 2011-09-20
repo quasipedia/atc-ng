@@ -1,0 +1,119 @@
+# Game commands description file
+#
+# ©2011 Mac Ryan - Licensed under GPL v.3
+#
+# This file is intended to work with the ATC-NG game available at
+# https://github.com/quasipedia/atc-ng
+
+QUIT:
+  spellings: [QUIT, EXIT]
+  arguments: 0
+  flags: []
+  validator: null
+  description: >
+    Quit the program immediately (no further question asked).
+  examples: |
+
+    >>> /QUIT
+    >>> /EXIT
+
+PAUSE:
+  spellings: [PAUSE, P]
+  arguments: 0
+  flags: []
+  validator: null
+  description: >
+    Toggle between the game running normally e the game being paused. On some
+    systems it's possible to achieve the same result by pressing the
+    :kbd:`pause` key, if present.
+
+      While the game is paused, the radar screen is obfuscated.
+  examples: |
+
+    >>> /PAUSE
+    >>> /P
+
+LIST:
+  spellings: [LIST, LS]
+  arguments: 1
+  flags:
+    DESCRIPTION: [DESCRIPTION, D]
+  validator: _validate_list
+  description: >
+    List the available scenarios on the system.
+
+      Without arguments, the command will list all the available scenarios, but
+      it is possible to filter them using a :term:`glob<globbing>` as parameter.
+      ATC-NG uses an extremely simplified form of globbing, for which the
+      parameter will be surrounded by asterisks (see example below).
+
+      Normally, pattern matching is performed on file names, but if the
+      ``DESCRIPTION`` flag is used, the matching will be performed on the
+      description of the scenario.
+
+      +--------------------+--------------------------------------------------+
+      | ISSUED COMMAND     | LISTED SCENARIOS                                 |
+      +====================+==================================================+
+      | /LIST              | All currently available (all installed)          |
+      +--------------------+--------------------------------------------------+
+      | /LIST SKY-OVER-    | All whose filename match the *SKY-OVER-* glob.   |
+      +--------------------+--------------------------------------------------+
+      | /LS FUNNY D        | All that contain the word "funny" in their       |
+      |                    | description.                                     |
+      +--------------------+--------------------------------------------------+
+
+      Patter matching is **case insensitive**.
+  examples: |
+
+    >>> /LIST SKY-OVER-
+    >>> /LS FUNNY D
+
+LOAD:
+  spellings: [LOAD, LO]
+  arguments: 1
+  flags: []
+  validator: _validate_load
+  description: >
+    Load a scenario (start a new game on that scenario).
+
+      The parameter must be the name of a scenario currently installed on the
+      system. Use the ``/LIST`` command for a list of installed scenarios.
+  examples: |
+
+    >>> /LOAD SKY-OVER-STOCKHOLM
+    >>> /LO SKY-OVER-STOCKHOLM
+
+HELP:
+  spellings: [HELP, MAN]
+  arguments: 1
+  flags: []
+  validator: _validate_help
+  description: >
+    Land a hand to players who lost their faith in ATC-NG.
+
+      The command ``/HELP`` provides help on game and aeroplane commands (the
+      name of the command must be passed as an argument). If issued without
+      arguments, ``/HELP`` display a general help message.
+  examples: |
+
+    >>> /HELP LAND
+    >>> /MAN MAN
+
+SORT:
+  spellings: [SORT, SO]
+  arguments: 1
+  flags: []
+  validator: _validate_sort
+  description: >
+    Sort the :term:`flight progress strips`.
+
+       F
+  examples: |
+
+    >>> /SORT TIME
+    >>> /SO FUEL
+
+
+
+
+        if cname == 'SORT':

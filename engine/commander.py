@@ -30,12 +30,17 @@ def __command_files_sanity_check():
     '''
     Verify the command files make sense.
     '''
+    sets = []
     for file in (GAME_COMMANDS, PLANE_COMMANDS):
         # No two spellings are the same
         spells = []
         for comm in file.values():
             spells.extend(comm['spellings'])
-        assert len(spells) == len(set(spells))
+        set_ = set(spells)
+        assert len(spells) == len(set_)
+        sets.append(set_)
+    # There are no game and plane commands with the same name
+    assert len(sets[0]|sets[1]) == len(sets[0]) + len(sets[1])
 
 GAME_COMMANDS = {'QUIT' : {'spellings': ['QUIT', 'Q'],
                            'arguments': 0,

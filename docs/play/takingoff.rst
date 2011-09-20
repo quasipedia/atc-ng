@@ -54,4 +54,4 @@ Locked status
 Once cleared for take off, it's up to the aeroplane crew to make decisions, and
 for this reason they will stop responding to your commands until they clear the
 airport area. To remind you of this, the aeroplane icon will switch to the
-:ref:`locked colour<sprites-colours>`.
+:ref:`locked colour<sprites-colour>`.

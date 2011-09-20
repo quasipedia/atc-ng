@@ -45,7 +45,7 @@ The landing sequence can be stopped at any moment using the appropriate
 ``ABORT`` command. However, once the aeroplane reaches decision altitude, the
 crew will take over any decision and for this reason they will stop responding
 to your commands. To remind you of this, the aeroplane icon will switch to the
-:ref:`locked colour<sprites-colours>`.
+:ref:`locked colour<sprites-colour>`.
 
 Other landing "gotchas"
 -----------------------

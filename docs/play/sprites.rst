@@ -1,10 +1,13 @@
-.. index:: Scoring
+.. index::
+   pair: Aeroplane; Sprite
 
 Aeroplane sprites
 =================
 
 Aeroplanes :term:`sprites<sprite>` are designed to convey some basic information
 in a symbolical and intuitive way.
+
+.. index:: Sprite; Orientation
 
 Orientation
 -----------
@@ -13,8 +16,10 @@ which always matches the **current heading** the aircraft.
 
 .. _sprites-shapes:
 
-Shapes
-------
+.. index:: Sprite; Shape
+
+Shape
+-----
 A second piece of information is given by the shape of the sprite. The shape
 provides information on the class the model of the aircraft belongs to. In turn
 the class of the aircraft conveys information on certain in-game properties.
@@ -54,10 +59,12 @@ Currently three classes have been implemented:
 |                          |                                                   |
 +--------------------------+---------------------------------------------------+
 
-.. _sprites-colours:
+.. _sprites-colour:
 
-Colours
--------
+.. index:: Sprite; Colour
+
+Colour
+------
 Finally, the third piece of information conveyed by sprites is the current
 status of the plane, which is associated to the sprite colour.
 
