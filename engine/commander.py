@@ -42,21 +42,12 @@ def __command_files_sanity_check():
     # There are no game and plane commands with the same name
     assert len(sets[0]|sets[1]) == len(sets[0]) + len(sets[1])
 
-GAME_COMMANDS = {'QUIT' : {'spellings': ['QUIT', 'Q'],
-                           'arguments': 0,
-                           'validator': None,
-                           'flags'    : []
-                           },
-                 'HELP' : {'spellings': ['HELP', 'H', 'MAN'],
-                           'arguments': 0,
-                           'validator': None,
-                           'flags'    : []
-                           }
-                 }
-
+# LOAD COMMAND DESCRIPTIONS
+data = resource_stream(__name__, path.join('data', 'gcommands.yml'))
+GAME_COMMANDS = yaml.load(data)
 data = resource_stream(__name__, path.join('data', 'pcommands.yml'))
 PLANE_COMMANDS = yaml.load(data)
-
+# ACCEPTED COMMAND COMBOS (for planes only)
 VALID_PLANE_COMMANDS_COMBOS = [('HEADING', 'ALTITUDE', 'SPEED'),
                                ('TAKEOFF', 'ALTITUDE', 'SPEED', 'HEADING'),
                                ('CIRCLE', 'ALTITUDE', 'SPEED'),]
@@ -347,6 +338,7 @@ class CommandLine(object):
         small_size = rint(small_size)
         self.large_f = pygame.font.Font(MAIN_FONT, large_size)
         self.small_f = pygame.font.Font(MAIN_FONT, small_size)
+        self.gcomm_processor = game_commands_processor
         self.parser = Parser(aerospace, game_commands_processor)
 
     def _get_list_of_existing(self, what, context=None):
@@ -492,6 +484,8 @@ class CommandLine(object):
         if event.key == K_RETURN:
             self.do_parsing()
             self.history_ptr = 0
+        elif event.key == K_PAUSE:
+            self.gcomm_processor(('PAUSE', []))
         elif event.key == K_ESCAPE:
             self.chars = []
         elif event.key == K_BACKSPACE and self.chars:

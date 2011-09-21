@@ -35,6 +35,8 @@ class Challenge(object):
     FREQ_START = 120              # new plane every X seconds
     FREQ_STEP = -3                # step of frequency modification
     FREQ_LIMIT = 20               # maximum rate of new planes on screen
+    MAX_LOST = 3                  # number of lost planes at which the game
+                                  # will be over
     MAX_PORT_PLANES = 6           # maximum number of created planes that can
                                   # be on ground simultaneously
 
@@ -48,7 +50,7 @@ class Challenge(object):
         # PLANE ENTRY VARIABLES
         self.plane_counter = 0
         self.frequency = self.FREQ_START
-        self.last_entry = time() - self.FREQ_START + DELAY
+        self.last_entry = time() - self.FREQ_START + self.DELAY
         self.last_freq_increase = time()
 
     def __init_scenario(self):
@@ -179,7 +181,8 @@ class Challenge(object):
             self.last_freq_increase = now
             self.frequency += self.FREQ_STEP
         # If there have been 3 (or more) destroyed planes, terminate the match
-        if self.gamelogic.fatalities > 2:
-            log.info('THREE_STRIKES_OUT: Match si over after %s planes entered'
-                     % self.plane_counter)
-            self.gamelogic.machine_state = MS_QUIT
+        if self.gamelogic.fatalities >= self.MAX_LOST:
+            msg = 'THREE_STRIKES_OUT: Match si over after %s planes entered' \
+                  'the aerospace' % self.plane_counter
+            log.info(msg)
+            self.gamelogic.game_commander.display(msg)

@@ -73,7 +73,7 @@ class MainWindow(object):
         The mainloop is active until the machine state "running" is set to
         False.
         '''
-        while self.game_logic.machine_state == MS_RUN:
+        while self.game_logic.machine_state != MS_QUIT:
             capt = "Air Traffic Controller - NG     (FPS: %i)"
             pygame.display.set_caption(capt % self.clock.get_fps())
             self.handle_events()

@@ -49,6 +49,33 @@ def render_lines(fontobj, lines, colour):
         result.blit(surfaces[i], (0,i*font_height))
     return result
 
+def blur_image(surface, amt):
+    '''
+    Return a blurred copy of ``surface`` by the given ``amount`` (that must be
+    1 or greater).
+    [Adapted from: http://www.akeric.com/blog/?p=720]
+    '''
+    # 'amt' must be greater than 1.0
+    assert amt > 1
+    scale = 1.0/amt
+    surf_size = surface.get_size()
+    scale_size = (int(surf_size[0]*scale), int(surf_size[1]*scale))
+    surf = pygame.transform.smoothscale(surface, scale_size)
+    surf = pygame.transform.smoothscale(surf, surf_size)
+    return surf
+
+def blit_dead_centre(dest, source, pos=None):
+    '''
+    Blit ``source`` onto ``dest`` by using ``dest`` centre (instead of its
+    upper-left corner as reference. The ``pos`` parameter defaults to
+    ``dest.center``.
+    '''
+    if pos == None:
+        pos = dest.get_rect().center
+    target_pos = (pos[0] - source.get_width()/2,
+                  pos[1] - source.get_height()/2)
+    dest.blit(source, target_pos)
+
 def in_between(boundaries, value):
     '''
     Return True if value is between boundaries.
