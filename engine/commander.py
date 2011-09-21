@@ -26,6 +26,10 @@ __email__ = "quasipedia@gmail.com"
 __status__ = "Development"
 
 
+# +------------------+
+# | HELPER FUNCTIONS |
+# +------------------+
+
 def __command_files_sanity_check():
     '''
     Verify the command files make sense.
@@ -42,17 +46,68 @@ def __command_files_sanity_check():
     # There are no game and plane commands with the same name
     assert len(sets[0]|sets[1]) == len(sets[0]) + len(sets[1])
 
-# LOAD COMMAND DESCRIPTIONS
-data = resource_stream(__name__, path.join('data', 'gcommands.yml'))
-GAME_COMMANDS = yaml.load(data)
-data = resource_stream(__name__, path.join('data', 'pcommands.yml'))
-PLANE_COMMANDS = yaml.load(data)
-# ACCEPTED COMMAND COMBOS (for planes only)
-VALID_PLANE_COMMANDS_COMBOS = [('HEADING', 'ALTITUDE', 'SPEED'),
-                               ('TAKEOFF', 'ALTITUDE', 'SPEED', 'HEADING'),
-                               ('CIRCLE', 'ALTITUDE', 'SPEED'),]
+def __attach_combo_info():
+    '''
+    Attach the information on combatible commands to the PLANE_COMMANDS dict.
+    '''
+    dict_ = {}
+    # Create initial dictionary
+    for combo in VALID_PLANE_COMMANDS_COMBOS:
+        for command in combo:
+            try:
+                dict_[command].extend(combo)
+            except KeyError:
+                dict_[command] = combo
+    # Eliminates redoundancies and self and attach on target dictionary
+    for k, v in dict_.items():
+        PLANE_COMMANDS[k]['combos'] = list(set(v) - set([k]))
 
+# +-----------------------+
+# | MODULE INITIALISATION |
+# +-----------------------+
+
+# LOAD COMMAND DESCRIPTIONS
+__data = resource_stream(__name__, path.join('data', 'gcommands.yml'))
+GAME_COMMANDS = yaml.load(__data)
+__data = resource_stream(__name__, path.join('data', 'pcommands.yml'))
+PLANE_COMMANDS = yaml.load(__data)
+__data = resource_stream(__name__, path.join('data', 'pcombos.yml'))
+VALID_PLANE_COMMANDS_COMBOS = yaml.load(__data)
 __command_files_sanity_check()
+__attach_combo_info()
+
+# STRIPPING REGEX TO CONVERT FROM reStructuredText TO plain text
+__rst_to_strip = re.compile(
+        r'(`)|'                           # literals and interpreted arguments
+        r'(:[a-z-]+:)|'                   # interpreted markers
+        r'(\*+)|'                         # emphasis
+            r'((\+{1}[-=\+]+\+{1}){1}'    # table upper delimiter
+            r'(.|\n)+'                    # anything
+            r'(\+{1}[-=\+]+\+{1}){1})'    # tables lower delimiter
+        )
+
+# +------------------+
+# | MODULE FUNCTIONS |
+# +------------------+
+
+def get_command_description(cname):
+    '''
+    Return the available information on the command ``cname``.
+    '''
+    if cname in PLANE_COMMANDS.keys():
+        command = PLANE_COMMANDS[cname]
+    elif cname in GAME_COMMANDS.keys():
+        command = GAME_COMMANDS[cname]
+    assert command
+    res = command.copy()
+    # Strips reStructuredText markup
+    res['description'] = __rst_to_strip.sub('', res['description'])
+    res['description'] = res['description'].replace('  ', ' ')
+    return res
+
+# +----------------+
+# | MODULE CLASSES |
+# +----------------+
 
 class Parser(object):
 
@@ -144,7 +199,6 @@ class Parser(object):
                 not (None == re.match(r'^\d{2}(L|C|R)?$', runway))):
             return [iata, runway]
         return False
-
 
     def _validate_circle(self, direction):
         '''

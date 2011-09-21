@@ -89,7 +89,7 @@ HELP:
   flags: []
   validator: _validate_help
   description: >
-    Land a hand to players who lost their faith in ATC-NG.
+    Lend a hand to players who lost their faith in ATC-NG.
 
       The command ``/HELP`` provides help on game and aeroplane commands (the
       name of the command must be passed as an argument). If issued without

@@ -40,14 +40,42 @@ def render_lines(fontobj, lines, colour):
     '''
     Return the image of the rendered multiline text.
     '''
+    new_lines = [(l, colour) for l in lines]
+    return render_colour_lines(fontobj, new_lines)
+
+def render_colour_lines(fontobj, lines):
+    '''
+    Return the image of the rendered multiline text. Each enty in ``lines``
+    is a tuple in the form (text, colour).
+    '''
     font_height = fontobj.get_height()
-    surfaces = [fontobj.render(ln, True, colour) for ln in lines]
+    surfaces = [fontobj.render(ln, True, col) for ln, col in lines]
     maxwidth = max([s.get_width() for s in surfaces])
     result = pygame.surface.Surface((maxwidth, len(lines)*font_height),
                                     SRCALPHA)
     for i in range(len(lines)):
         result.blit(surfaces[i], (0,i*font_height))
     return result
+
+def get_fontobj_by_text_width(font, text, max_size):
+    '''
+    Return a font object calibrated for the ``text`` to fit within the box
+    defined by ``max_size``, a (width, height) tuple.
+    '''
+    size = 1
+    max_w, max_h = max_size
+    while True:
+        fontobj = pygame.font.Font(font, size)
+        if isinstance(text, list):
+            img = render_lines(fontobj, text, WHITE)
+        else:
+            img = fontobj.render(text, True, WHITE)
+        w,h = img.get_size()
+        if w > max_w or h > max_h:
+            break
+        last_ok = fontobj
+        size += 1
+    return last_ok
 
 def blur_image(surface, amt):
     '''

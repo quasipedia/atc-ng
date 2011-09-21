@@ -37,6 +37,7 @@ DECISION_ALTITUDE : 100           # Altitude at which the decision to land is
 # COLOURS MNEMONICS ###########################################################
 WHITE            : &white    [255, 255, 255]
 GRAY             : &gray     [128, 128, 128]
+PALE_GRAY        :           [192, 192, 192]
 DARK_GRAY        :           [20,   20,  20]
 MAGENTA          : &magenta  [255,   0, 255]
 YELLOW           : &yellow   [255, 255,   0]

@@ -1,0 +1,10 @@
+# Combination of aeroplane commands description file
+#
+# ©2011 Mac Ryan - Licensed under GPL v.3
+#
+# This file is intended to work with the ATC-NG game available at
+# https://github.com/quasipedia/atc-ng
+
+- [HEADING, ALTITUDE, SPEED]
+- [TAKEOFF, ALTITUDE, SPEED, HEADING]
+- [CIRCLE, ALTITUDE, SPEED]

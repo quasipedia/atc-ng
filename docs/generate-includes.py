@@ -41,6 +41,23 @@ class Generator(object):
                            os.path.join('..', package, 'data', fname + '.yml'))
         return yaml.load(data)
 
+    def __attach_combo_info(self, commands):
+        '''
+        Attach the information on combatible commands to the PLANE_COMMANDS dict.
+        '''
+        combos = self.__load_yaml('engine', 'pcombos')
+        dict_ = {}
+        # Create initial dictionary
+        for combo in combos:
+            for command in combo:
+                try:
+                    dict_[command].extend(combo)
+                except KeyError:
+                    dict_[command] = combo
+        # Eliminates redoundancies and self and attach on target dictionary
+        for k, v in dict_.items():
+            commands[k]['combos'] = list(set(v) - set([k]))
+
     def parse_commands_description_file(self, fname):
         '''
         Parse the commands description file and return the rst output.
@@ -48,11 +65,12 @@ class Generator(object):
         that of the .inc file into which to dump the rst content.
         '''
         assert fname in ['pcommands', 'gcommands']
+        commands = self.__load_yaml('engine', fname)
         if fname == 'pcommands':
             extended_name = 'Aeroplane command'
+            self.__attach_combo_info(commands)
         if fname == 'gcommands':
             extended_name = 'Game command'
-        commands = self.__load_yaml('engine', fname)
         lines = []
         lines.append('.. highlight:: none\n')
         for cname in sorted(commands):
@@ -77,6 +95,9 @@ class Generator(object):
                                  ', '.join(spellings) + ')')
             else:
                 lines.append('  ---')
+            if 'combos' in data.keys():
+                lines.append('**Can be combined with:**')
+                lines.append('  ' + ', '.join([c+'_' for c in data['combos']]))
             lines.append('\n')
         #Save the file
         rst = '\n'.join(lines)
