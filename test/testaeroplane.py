@@ -29,6 +29,7 @@ class MockAerospace(object):
     def __init__(self):
         self.tcas_data = {}
         self.gamelogic = MockGameLogic()
+        self.airports = []
 
 class AtomicTest(unittest.TestCase):
 
@@ -234,14 +235,14 @@ class AtomicTest(unittest.TestCase):
         Test that the commands do not raise exceptions (complete returning
         True or False).
         '''
-        TO_TEST = [('circle', ['ccw'], []),
-                   ('squawk', [], []),
-                   ('land', ['abc', '36'], []),
-                   ('altitude', [5], ['expedite']),
-                   ('abort', [], ['lastonly']),
-                   ('takeoff', [1000], []),
-                   ('speed', [500], []),
-                   ('heading', [270], ['long'])]
+        TO_TEST = [('CIRCLE', ['CCW'], []),
+                   ('SQUAWK', [], []),
+                   ('LAND', ['ABC', '36'], []),
+                   ('ALTITUDE', [5], ['EXPEDITE']),
+                   ('ABORT', [], ['LASTONLY']),
+                   ('TAKEOFF', [1000], []),
+                   ('SPEED', [500], []),
+                   ('HEADING', [270], ['LONG'])]
         # This tests if this test is complete, by verifying there is at least
         # a test command for each existing command
         self.assertEqual(set(engine.commander.PLANE_COMMANDS.keys()),
@@ -255,7 +256,7 @@ class AtomicTest(unittest.TestCase):
         Test that the plane execute veering in the right direction.
         '''
         self.plane.velocity = heading_to_v3(90).normalized() * 300 / 3.6
-        self.pilot.execute_command([('heading', [180], ['long'])])
+        self.pilot.execute_command([('HEADING', [180], ['LONG'])])
         self.plane.update(5)
         self.assertFalse(heading_in_between([90,180], self.plane.heading))
 

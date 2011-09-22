@@ -34,6 +34,7 @@ class MockAerospace(object):
         self.gamelogic = MockGameLogic()
         self.plane = None
         self.beacons = {'NDB1':MockBeacon()}
+        self.airports = []
     def get_plane_by_icao(self, icao):
         return self.plane if icao == self.plane.icao else None
 class MockProcessor(object):
