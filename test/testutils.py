@@ -5,7 +5,6 @@ Test the util heading_in_betweentions for ATC-NG game.
 '''
 
 import unittest
-import entities.aeroplane as aero
 from lib.utils import *
 from random import randint
 from lib.euclid import Vector3
@@ -13,7 +12,8 @@ from lib.euclid import Vector3
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
 __license__ = "GPL v3"
-#__version__ = "1.0.0"
+#__version__ = "<dev>"
+#__date__ = "<unknown>"
 __maintainer__ = "Mac Ryan"
 __email__ = "quasipedia@gmail.com"
 __status__ = "Development"
@@ -214,6 +214,32 @@ class Test(unittest.TestCase):
                                         [point, origin, vector])
             result = distance_point_line(point, origin, vector)
             self.assertAlmostEqual(result, expected)
+
+    def testXor(self):
+        '''
+        logical_xor - boolean XOR
+        '''
+        TO_TEST = [((True, False), True),
+                   ((False, True), True),
+                   ((True, True), False),
+                   ((False, False), False)]
+        for args, expected in TO_TEST:
+            self.assertEqual(logical_xor(*args), expected)
+
+    def testOnlyOne(self):
+        '''
+        only_one - only and only one element in the list has boolean == True
+        '''
+        TO_TEST = [((True, False, False), True),
+                   ((False, True, True), False),
+                   ((True, True, True), False),
+                   ((False, False, False), False),
+                   (('hello', False, False), True),
+                   ((False, 42, False), True),
+                   ((False, False, ['hello', 42]), True),
+                   (('hello', 42, False), False)]
+        for arg, expected in TO_TEST:
+            self.assertEqual(only_one(arg), expected)
 
 
 if __name__ == "__main__":

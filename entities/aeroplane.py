@@ -4,7 +4,7 @@
 Aeroplanes modelling of the ATC simulation game.
 '''
 
-import pilot
+import pilot.pilot
 from engine.settings import *
 from lib.utils import *
 from math import sqrt
@@ -15,7 +15,8 @@ from time import time
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
 __license__ = "GPL v3"
-#__version__ = "1.0.0"
+#__version__ = "<dev>"
+#__date__ = "<unknown>"
 __maintainer__ = "Mac Ryan"
 __email__ = "quasipedia@gmail.com"
 __status__ = "Development"
@@ -29,7 +30,9 @@ class Flags(object):
 
     '''
     A simple container for flags, used only to avoid using dictionaries all
-    over the place.
+    over the place. Flags are mostly used for sprite colour-control. Most of
+    the static information on what the plane is doing are contained within
+    ``pilot.pilot.Pilot()``.
     '''
 
     def __init__(self):
@@ -37,17 +40,14 @@ class Flags(object):
 
     def reset(self):
         '''
-        Set all flags to their default value
+        Set all flags to their default value.
         '''
-        self.expedite = False
-        self.cleared_up = False        # take off clearance
-        self.cleared_down = False      # landing clearance
-        self.cleared_beacon = False    # clearance to reach beacon
-        self.priority = False
-        self.circling = False
+        self.collision = False         # The plane is about to collide
+        self.priority = False          # The plane needs a priority landing
         self.locked = False            # The plane is under computer control
         self.busy = False              # The plane is executing a command
-        self.on_ground = False
+        self.on_ground = False         # The plane is not flying
+
 
 class Tcas(object):
 
@@ -62,7 +62,7 @@ class Tcas(object):
         self.plane = plane
         self.state = False  #OFF state
 
-    def set_aversion_course(self, colliding):
+    def get_aversion_course(self, colliding):
         '''
         Calculate the best course to avoid the colliding plane(s).
         This is done by:
@@ -72,7 +72,7 @@ class Tcas(object):
         - Setting the course for the resulting vector.
         '''
         plane = self.plane
-        pilot = self.plane.pilot
+        pilot = self.pilot
         # CALCULATE THE AVOIDANCE VECTOR
         # Prevents unresolved cases but altering slighly the plane position if
         # two planes are stacked one on top of the other or fly at the same
@@ -102,9 +102,7 @@ class Tcas(object):
         '''
         try:
             colliding = self.plane.aerospace.tcas_data[self.plane.icao]
-            # Aversion is an emergency and voids any order and order queue
             self.plane.flags.reset()
-            self.plane.queued_commands = []
             if self.state == False:
                 self.plane.aerospace.gamelogic.score_event(EMERGENCY_TCAS)
             self.state = True
@@ -169,10 +167,9 @@ class Aeroplane(object):
         self.time_last_cmd = time()
         self.trail = deque([sc(self.position.xy)] * TRAIL_LENGTH, TRAIL_LENGTH)
         self.colliding_planes = []
-        self.pilot = pilot.Pilot(self)
-        self.pilot.set_target_conf_to_current()
         self.__accelerometer = ' '
         self.__variometer = ' '
+        self.pilot = pilot.pilot.Pilot(self)
 
     @property
     def heading(self):
@@ -191,6 +188,14 @@ class Aeroplane(object):
     def altitude(self):
         '''Current altitude [m]'''
         return self.position.z
+
+    def get_current_configuration(self):
+        '''
+        Return a dictionary with current heading, speed and altitude.
+        '''
+        return dict(speed = self.speed,
+                    altitude = self.altitude,
+                    heading = self.heading)
 
     def update_instruments(self):
         '''
@@ -282,11 +287,3 @@ class Aeroplane(object):
         # Update sprite
         self.rect = sc(self.position.xy)
         self.trail.appendleft(sc(self.position.xy))
-
-    def get_current_configuration(self):
-        '''
-        Return a dictionary with current heading, speed and altitude.
-        '''
-        return dict(speed = self.speed,
-                    altitude = self.altitude,
-                    heading = self.heading)

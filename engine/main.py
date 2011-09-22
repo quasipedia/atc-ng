@@ -17,12 +17,13 @@ import engine.settings
 import pygame.display
 import pygame.image
 import traceback
-from pkg_resources import resource_filename
+from pkg_resources import resource_filename #@UnresolvedImport
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
 __license__ = "GPL v3"
-#__version__ = "1.0.0"
+#__version__ = "<dev>"
+#__date__ = "<unknown>"
 __maintainer__ = "Mac Ryan"
 __email__ = "quasipedia@gmail.com"
 __status__ = "Development"
@@ -31,6 +32,7 @@ __status__ = "Development"
 #REFACTOR: using pygame events? Check if makes sense with PyGLets
 #REFACTOR: wherever used port.iata, plane.icao, rnway.name, etc... as
 #          arguments, it might be worth passing the full object instead
+#FIXME: Love for docstrings/comments! See: http://goo.gl/JK92Y
 
 class MainWindow(object):
 

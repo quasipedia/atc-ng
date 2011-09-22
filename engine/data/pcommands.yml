@@ -4,26 +4,25 @@
 #
 # This file is intended to work with the ATC-NG game available at
 # https://github.com/quasipedia/atc-ng
+#
+# In order to simplify the parser structure, optional arguments are not
+# possible for aeroplane commands.
 
 ABORT:
-  spellings: [ABORT, PURGE]
+  spellings: [ABORT, AB, STOP]
   arguments: 0
-  flags:
-    LASTONLY: [LASTONLY, LAST, L]
+  flags: []
   validator: null
   description: >
     An aeroplane that is maneuvering can't execute a new command until the
     maneuver is completed. The ``ABORT`` command makes a plane that is perfoming
-    a command to stop its execution (mantaining heading, speed and altitude) and
-    makes it available to receive new commands.
-
-      Beside halting command execution, an ``ABORT`` command will also flush the
-      command queue. The ``LASTONLY`` flag - on the other hand - allows to
-      eliminate *only the last* command in the queue.
+    a command to stop its execution (mantaining current heading and speed and
+    flying to the nearest :term:`flight level` and makes it available to
+    receive new commands.
   examples: |
 
     >>> QFA1234 ABORT
-    >>> DLH5678 PURGE LAST
+    >>> DLH5678 STOP
 
 ALTITUDE:
   spellings: [ALTITUDE, A, ALT]
@@ -33,7 +32,7 @@ ALTITUDE:
   validator: _validate_altitude
   description: >
     The ``ALTITUDE`` command alters the flying target altitude of an aeroplane.
-    Altitude is expressed as a :term:`Flight level` (hundreds of metres above
+    Altitude is expressed as a :term:`flight level` (hundreds of metres above
     sea level) in the form of a two-digit number. Altitude must be above 0 and
     below 10000 metres asl and a multiple of 500.
 
@@ -44,8 +43,25 @@ ALTITUDE:
     >>> QFA1234 ALTITUDE 55
     >>> DLH5678 ALTITUDE 80 X
 
+BYE:
+  spellings: [BYE, BY, FORGET]
+  arguments: 0
+  flags: []
+  validator: _validate_clear
+  description: >
+    The ``BYE`` command will inform the pilots that they are cleared to leave
+    the aerospace without further instruction, the airplane marker on the radar
+    screen will then show as *busy* until the aircraft leaves the aerospace.
+
+      It is however still possible to issue ABORT_ in case it becomes necessary
+      to alter the course of the aeroplane at a later stage.
+  examples: |
+
+    >>> QFA1234 BYE
+    >>> DLH5678 FORGET
+
 CIRCLE:
-  spellings: [CIRCLE, C, HOLD]
+  spellings: [CIRCLE, CI, HOLD]
   arguments: 1
   flags: []
   validator: _validate_circle
@@ -61,12 +77,27 @@ CIRCLE:
     >>> QFA1234 CIRCLE CCW
     >>> DLH5678 HOLD R
 
+CLEAR:
+  spellings: [CLEAR, CL, REACH]
+  arguments: 1
+  flags: []
+  validator: _validate_clear
+  description: >
+    The ``CLEAR`` command will inform the pilot onboard the aeroplane that they
+    are cleared to reach a given beacon on the map. Upon receiving the command,
+    the pilot will veer towards the beacon and the airplane marker on the radar
+    screen will show as *busy* until the plane fly past that point.
+  examples: |
+
+    >>> QFA1234 CLEAR NDB3
+    >>> DLH5678 REACH NDB7
+
 HEADING:
   spellings: [HEADING, H, HEAD]
   arguments: 1
   flags:
     EXPEDITE: [EXPEDITE, X]
-    LONG: [L, LONG]
+    LONG: [LONG, L]
   validator: _validate_heading
   description: >
     The ``HEADING`` command alter the target heading of an aeroplane. The
@@ -89,7 +120,7 @@ HEADING:
     >>> DLH5678 HEADING NDB1 LONG EXPEDITE
 
 LAND:
-  spellings: [LAND, L, DOWN]
+  spellings: [LAND, LA, DOWN]
   arguments: 2
   flags: []
   validator: _validate_land
@@ -124,7 +155,7 @@ SPEED:
     >>> DLH5678 SP 450 EXPEDITE
 
 SQUAWK:
-  spellings: [SQUAWK, TOUCH, SQ]
+  spellings: [SQUAWK, SQ, TOUCH]
   arguments: 0
   flags: []
   validator: ''
@@ -134,7 +165,7 @@ SQUAWK:
     or airport that the plane *should* reach, not the one that the player
     *instructed* to head towards.
 
-      The info provided by the ``SQWAWK`` command are also available elsewhere
+      The info provided by the ``SQUAWK`` command are also available elsewhere
       in the game interface. The main use of this command is that of updating a
       plane's *time of last received command*. This can be useful if you cycle
       through your flight strips ordered in this way, as it will move the strip
@@ -156,7 +187,7 @@ TAKEOFF:
     Once airborne, the plane will keep on climbing until its maximum flight
     altitude and its maximum flight speed, maintaining the heading of the
     runway it departed from. This behaviour can be overridden by issuing the
-    command in combination with ``HEADING``, ``ALTITUDE`` or ``SPEED``. Read
+    command in combination with HEADING_, ALTITUDE_ or SPEED_. Read
     more on the :doc:`specific section<takingoff>` of the manual.
 
       The ``EXPEDITE`` flag increases the climbing rate, making the maneuver to

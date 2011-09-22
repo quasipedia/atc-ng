@@ -16,7 +16,7 @@ MS_PAUSED        : 2
 
 # TEXT CONSOLE ################################################################
 VALID_CHARS      : >
-  abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ 1234567890./
+  abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ 1234567890/
 CHAR_UP          : '^'            # Modified in the font file to an up arrow
 CHAR_DOWN        : '\\'           # Modified in the font file to a down arrow
 

@@ -8,6 +8,7 @@ the user directory for a ``.atc-ng`` entry and either create it and populate it
 with standard files, either load the custom files into the program.
 
 Typical usage: "from globals import *"
+@DynamicAttrs
 '''
 
 import pygame.display
@@ -21,7 +22,8 @@ from pkg_resources import resource_filename as fname
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
 __license__ = "GPL v3"
-#__version__ = "1.0.0"
+#__version__ = "<dev>"
+#__date__ = "<unknown>"
 __maintainer__ = "Mac Ryan"
 __email__ = "quasipedia@gmail.com"
 __status__ = "Development"
@@ -142,10 +144,18 @@ __initialise_user_directory()
 __fname = os.path.join(__home, '.atc-ng', 'settings.yml')
 __load_configuration_file(__fname, __overridable_settings)
 
+# +--------------------+
+# | HARDCORE VARIABLES |
+# +--------------------+
+
+LEFT = CCW = L = -1
+RIGHT = CW = R = +1
+
 # +-----------------------------+
 # | CALCULATE DERIVATIVE VALUES |
 # +-----------------------------+
 
+PING_IN_SECONDS = PING_PERIOD / 1000.0
 MAIN_FONT = fname(__name__, os.path.join('data', 'ex_modenine.ttf'))
 WINDOW_SIZE = __get_ratioed_max_size(ASPECT_RATIO)
 RADAR_RECT = pygame.rect.Rect(

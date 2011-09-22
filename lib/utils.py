@@ -14,7 +14,8 @@ from pygame.locals import *
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
 __license__ = "GPL v3"
-#__version__ = "1.0.0"
+#__version__ = "<dev>"
+#__date__ = "<unknown>"
 __maintainer__ = "Mac Ryan"
 __email__ = "quasipedia@gmail.com"
 __status__ = "Development"
@@ -269,3 +270,17 @@ def distance_point_line(point, origin, vector):
     ap = point - origin
     unit = vector.normalized()
     return abs(ap - (ap.dot(unit) * unit))
+
+def logical_xor(a, b):
+    '''
+    Perform logical XOR.
+    '''
+    return bool(a) ^ bool(b)
+
+def only_one(list_):
+    '''
+    Return True if one, and only one in the list has boolean value == True.
+    '''
+    return len(filter(bool, list_)) == 1
+
+

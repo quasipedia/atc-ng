@@ -10,7 +10,7 @@ pygame.display.set_mode((64,48))
 
 import unittest
 import entities.aeroplane
-import entities.pilot
+import pilot.pilot
 import entities.airport
 import engine.aerospace
 import engine.commander
@@ -20,7 +20,8 @@ from lib.utils import *
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
 __license__ = "GPL v3"
-#__version__ = "1.0.0"
+#__version__ = "<dev>"
+#__date__ = "<unknown>"
 __maintainer__ = "Mac Ryan"
 __email__ = "quasipedia@gmail.com"
 __status__ = "Development"
@@ -77,7 +78,7 @@ class LanderTest(unittest.TestCase):
         strip = entities.airport.AsphaltStrip(**strip_kwargs)
         a_port = entities.airport.airport(strips=[strip], **port_kwargs)
         aerospace.add_airport(a_port)
-        entities.pilot.Pilot.set_aerospace(aerospace)
+        pilot.pilot.Pilot.set_aerospace(aerospace)
         self.plane = entities.aeroplane.Aeroplane(aerospace, **plane_kwargs)
         self.pilot = self.plane.pilot
         self.gamelogic = gamelogic

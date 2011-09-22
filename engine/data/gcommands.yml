@@ -4,38 +4,31 @@
 #
 # This file is intended to work with the ATC-NG game available at
 # https://github.com/quasipedia/atc-ng
+#
+# The "default" field both signals that the arguments are optional and provide
+# a default value for them.
 
-QUIT:
-  spellings: [QUIT, EXIT]
-  arguments: 0
+HELP:
+  spellings: [HELP, MAN]
+  arguments: 1
+  default: HELP
   flags: []
-  validator: null
+  validator: _validate_help
   description: >
-    Quit the program immediately (no further question asked).
+    Lend a hand to players who lost their faith in ATC-NG.
+
+      The command ``/HELP`` provides help on game and aeroplane commands (the
+      name of the command must be passed as an argument). If issued without
+      arguments, ``/HELP`` display a general help message.
   examples: |
 
-    >>> /QUIT
-    >>> /EXIT
-
-PAUSE:
-  spellings: [PAUSE, P]
-  arguments: 0
-  flags: []
-  validator: null
-  description: >
-    Toggle between the game running normally e the game being paused. On some
-    systems it's possible to achieve the same result by pressing the
-    :kbd:`pause` key, if present.
-
-      While the game is paused, the radar screen is obfuscated.
-  examples: |
-
-    >>> /PAUSE
-    >>> /P
+    >>> /HELP LAND
+    >>> /MAN MAN
 
 LIST:
   spellings: [LIST, LS]
   arguments: 1
+  default: ''
   flags:
     DESCRIPTION: [DESCRIPTION, D]
   validator: _validate_list
@@ -69,8 +62,9 @@ LIST:
     >>> /LS FUNNY D
 
 LOAD:
-  spellings: [LOAD, LO]
+  spellings: [LOAD, LO, RUN, PLAY]
   arguments: 1
+  default: null
   flags: []
   validator: _validate_load
   description: >
@@ -78,42 +72,84 @@ LOAD:
 
       The parameter must be the name of a scenario currently installed on the
       system. Use the ``/LIST`` command for a list of installed scenarios.
+
+      If the parameter is omitted, the game will load a random scenario.
   examples: |
 
     >>> /LOAD SKY-OVER-STOCKHOLM
-    >>> /LO SKY-OVER-STOCKHOLM
+    >>> /PLAY
 
-HELP:
-  spellings: [HELP, MAN]
-  arguments: 1
+PAUSE:
+  spellings: [PAUSE, P]
+  arguments: 0
   flags: []
-  validator: _validate_help
+  validator: null
   description: >
-    Lend a hand to players who lost their faith in ATC-NG.
+    Toggle between the game running normally e the game being paused. On some
+    systems it's possible to achieve the same result by pressing the
+    :kbd:`pause` key, if present.
 
-      The command ``/HELP`` provides help on game and aeroplane commands (the
-      name of the command must be passed as an argument). If issued without
-      arguments, ``/HELP`` display a general help message.
+      While the game is paused, the radar screen is obfuscated.
   examples: |
 
-    >>> /HELP LAND
-    >>> /MAN MAN
+    >>> /PAUSE
+    >>> /P
+
+QUIT:
+  spellings: [QUIT, EXIT]
+  arguments: 0
+  flags: []
+  validator: null
+  description: >
+    Quit the program immediately (no further question asked).
+  examples: |
+
+    >>> /QUIT
+    >>> /EXIT
+
+SCORES:
+  spellings: [SCORES, SC, BOARD]
+  arguments: 1
+  default: null
+  flags: []
+  validator: null
+  description: >
+    Show ATC-NG scores.
+
+      Issued without arguments, the command display the top scores on the
+      system (regardless of which user and what scenario).
+
+      If an argument is passed, this must be a string that will be used for
+      pattern-matching against both scenarios and users (only scores achieved
+      by a user with a matched username or on a scenario with a matched name
+      will be shown.)
+  examples: |
+
+    >>> /SCORES
+    >>> /BOARD STOCKHOLM
 
 SORT:
   spellings: [SORT, SO]
   arguments: 1
+  default: TIME
   flags: []
   validator: _validate_sort
   description: >
     Sort the :term:`flight progress strips`.
 
-       F
+       The flight progress strips can be sorted according to various criteria.
+       The general idea is that *the strip at the bottom of the stack should
+       always be the one requiring your attention first*.
+
+       The command accepts a parameter indicating what criteria to use. Valid
+       criterias are:
+
+       * ALTITUDE (lowest aeroplanes first)
+       * FUEL (closest to be in an emergency first)
+       * STATUS (statuses that require immediate action first)
+       * TIME (priority to last order issued a long time ago)
+       * SPEED (slowest aeroplanes first)
   examples: |
 
     >>> /SORT TIME
     >>> /SO FUEL
-
-
-
-
-        if cname == 'SORT':

@@ -20,7 +20,8 @@ import os.path as path
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
 __license__ = "GPL v3"
-#__version__ = "1.0.0"
+#__version__ = "<dev>"
+#__date__ = "<unknown>"
 __maintainer__ = "Mac Ryan"
 __email__ = "quasipedia@gmail.com"
 __status__ = "Development"
@@ -83,7 +84,8 @@ __rst_to_strip = re.compile(
         r'(\*+)|'                         # emphasis
             r'((\+{1}[-=\+]+\+{1}){1}'    # table upper delimiter
             r'(.|\n)+'                    # anything
-            r'(\+{1}[-=\+]+\+{1}){1})'    # tables lower delimiter
+            r'(\+{1}[-=\+]+\+{1}){1})|'   # tables lower delimiter
+        r'(_)'                            # hyperlinks
         )
 
 # +------------------+
@@ -150,16 +152,26 @@ class Parser(object):
 
     def _validate_heading(self, arg):
         '''
-        Valid headings can be either a 3 digit angle between 000° and 360° or a
-        beacon/gate.
+        Valid headings can be either:
+
+        - a 3 digit angle between 000° and 360° (absolute heading)
+        - a signed integer like -15 or +180 (heading delta)
+        - a beacon name (target point)
+
+        The first two will convert in validation to a numeric heading in
+        degrees. The latter in a ``euclid.Vector3()`` instance.
         '''
+        sign = arg[0] if arg[0] in '+-' else None
         try:  #argument is a numerical heading
             num_h = int(arg)
-            if not (0 <= num_h <= 360 and len(arg) == 3):
+            if sign:  #it's a variation
+                #FIXME: implement heading variation
+                raise BaseException('Heading variation not yet implemented!')
+            elif not (0 <= num_h <= 360 and len(arg) == 3):
                 return False
             return [num_h]
         except ValueError:  #argument is a beacon id
-            if not arg in [k for k in self.aerospace.beacons.keys()]:
+            if not arg in self.aerospace.beacons:
                 return False
             else:
                 return [self.aerospace.beacons[arg].location]
@@ -208,6 +220,13 @@ class Parser(object):
             return False
         return [direction]
 
+    def _validate_clear(self, marker):
+        '''
+        Marker must be an existing beacon, if given.
+        '''
+        #FIXME: CLEAR command valiation is missing
+        pass
+
     def _validate_takeoff(self, runway):
         '''
         Parameter must be formatted as runway.
@@ -232,14 +251,6 @@ class Parser(object):
         # We're issuing commands to a plane
         if self._validate_icao(first):
             return self.parse_plane_commands(first)
-        # We're appending commands to a plane queue
-        elif first[0] == '.':
-            icao = self.bits.pop()
-            if self._validate_icao(icao):
-                return self.parse_plane_commands(icao, to_queue=True)
-            else:
-                msg = '"%s" is not a valid flight number.' % icao
-                return msg
         # We're issuing a game command
         elif first == '/':
             return self.parse_game_command()
@@ -249,8 +260,9 @@ class Parser(object):
 
     def parse_plane_commands(self, icao, to_queue=False):
         '''
-        Parse all commands on the command line, dispatching them to the plane
-        whose ICAO code is given.
+        Parse the command line as aeroplane commands. Return a callable and a
+        list of arguments structured as a list of triplets each of them in the
+        format: [command, [arg1, arg2, ...], [flag1, flag2, ...]].
         '''
         parsed_commands = []
         try:
@@ -333,7 +345,7 @@ class Parser(object):
         elif len(parsed_commands) != 1:
             # No duplicates!
             if len(command_list) != len(command_set):
-                msg = 'You can\'t repeat commands in the same transmission.'
+                msg = 'You can\'t repeat commands in the same radio message.'
                 return msg
             valid = False
             # Can be logically mixed
@@ -526,14 +538,15 @@ class CommandLine(object):
         # Parsing outcome: an iterable if successful OR a string if failure
         if type(parsed) in (unicode, str):
             answer_prefix = 'ERROR: '
-            self.msg_append(RED, answer_prefix+parsed)
+            self.msg_append(KO_COLOUR, answer_prefix+parsed)
         else:
             callable_, args = parsed
             fname = callable_.__name__
             # Successfully parsed commands get logged on console and inserted
             # into command history
-            if fname in ('execute_command', 'queue_command'):
-                self.msg_append(WHITE, ' '.join((self.cmd_prefix,self.text)))
+            if fname == '_execute_command':
+                self.msg_append(NEUTRAL_COLOUR,
+                                ' '.join((self.cmd_prefix,self.text)))
                 self.command_history.insert(0, self.text)
             # ...and executed
             callable_(args)
@@ -583,8 +596,8 @@ class CommandLine(object):
                (len(self.chars) == 0 or self.chars[-1] == ' '):
                 return
             self.chars.append(character)
-            # command modifiers from commands
-            if event.unicode in './':
+            # game command modifyer
+            if event.unicode == '/':
                 self.chars.append(' ')
 
     def _render_console_lines(self):

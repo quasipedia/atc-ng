@@ -15,11 +15,13 @@ from lib.euclid import Vector3
 import pygame.sprite
 import entities.aeroplane
 import sprites.radarsprites
+import pilot.pilot
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
 __license__ = "GPL v3"
-#__version__ = "1.0.0"
+#__version__ = "<dev>"
+#__date__ = "<unknown>"
 __maintainer__ = "Mac Ryan"
 __email__ = "quasipedia@gmail.com"
 __status__ = "Development"
@@ -108,7 +110,7 @@ class Aerospace(object):
         self.__beacons = {}
         self.__gates = {}
         self.tcas_data = {}
-        entities.pilot.Pilot.set_aerospace(self)
+        pilot.pilot.Pilot.set_aerospace(self)
         self.runways_manager = RunwayManager(self)
 
     def __draw_radar_aid(self):
