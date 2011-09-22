@@ -184,6 +184,9 @@ class Aerospace(object):
                heading_in_between(boundaries, gate.radial) and \
                gate.bottom <= plane.altitude <= gate.top:
                 crossed.append(gate)
+#            for v in [dist, gate.bottom, gate.top]:
+#                print v, type(v)
+        print crossed
         return crossed
 
     def add_plane(self, plane):

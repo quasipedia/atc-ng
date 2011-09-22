@@ -395,6 +395,16 @@ class CommandLine(object):
         self.gcomm_processor = game_commands_processor
         self.parser = Parser(aerospace, game_commands_processor)
 
+    def __get_all_spellings_all_commands(self, commands):
+        '''
+        Return a list of all possible spellings of all the commands in a pool
+        of commands.
+        '''
+        ret = []
+        for c in commands.values():
+            ret.extend(c['spellings'])
+        return ret
+
     def _get_list_of_existing(self, what, context=None):
         '''
         Return a list of existing (=valid) strings representing `what`
@@ -405,7 +415,7 @@ class CommandLine(object):
         if what == 'planes':
             return [p.icao for p in self.aerospace.aeroplanes]
         elif what == 'plane_commands':
-            return [key for key in PLANE_COMMANDS.keys()]
+            return self.__get_all_spellings_all_commands(PLANE_COMMANDS)
         elif what == 'airports':
             return [iata for iata in self.aerospace.airports.keys()]
         elif what == 'runaways':
@@ -417,7 +427,7 @@ class CommandLine(object):
         elif what == 'beacons':
             return [id for id in self.aerospace.beacons.keys()]
         elif what == 'game_commands':
-            return [key for key in GAME_COMMANDS.keys()]
+            return self.__get_all_spellings_all_commands(GAME_COMMANDS)
         else:
             raise BaseException('Unknown type of items: %s!' % what)
 
