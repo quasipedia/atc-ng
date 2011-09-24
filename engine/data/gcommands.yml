@@ -112,7 +112,7 @@ SCORES:
   arguments: 1
   default: null
   flags: []
-  validator: null
+  validator: _validate_scores
   description: >
     Show ATC-NG scores.
 

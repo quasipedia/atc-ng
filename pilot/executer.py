@@ -9,7 +9,7 @@ from time import time
 from engine.settings import *
 from engine.logger import log
 from lib.utils import rint
-import pilot.procedures as procedures
+import procedures
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright ©2011, Mac Ryan"
@@ -42,8 +42,9 @@ class Executer(object):
         Abort execution of a command / procedure.
         '''
         self.pilot._reset_status()
-        self.pilot.set_target_conf_to_current()
+        self.pilot._set_target_conf_to_current()
         self.plane.flags.reset()
+        self.pilot._adjust_to_valid_FL()
 
     def process_commands(self, commands):
         '''
@@ -62,27 +63,31 @@ class Executer(object):
         pl = self.plane
         for cname, (args, flags) in commands.items():
             log.info('%s executes: %s' %
-                     (pl.icao, ' '.join((cname, args, flags))))
+                     (pl.icao, ' '.join((cname, repr(args), repr(flags)))))
             # PROCESS COMMANDS
             # Since flags are "universal" across commands (they all do the same
             # thing if they are called the same), it is possible to process
             # them separately.
             if cname == 'HEADING':
                 assert len(args) == 1
-                pi.target_conf['heading'] = args[0]
+                pi.target_conf.heading = args[0]
                 pi.status['veer_dir'] = \
                                 pi.navigator.get_shortest_veering_direction()
             elif cname == 'ALTITUDE':
-                pi.target_conf['altitude'] = args[0]
+                pi.target_conf.altitude = args[0]
             elif cname == 'SPEED':
-                pi.target_conf['speed'] = args[0]
+                pi.target_conf.speed = args[0]
             elif cname == 'ABORT':
                 self.abort()
             elif cname == 'SQUAWK':
-                self.say('Currently heading %s, our destination is %s' %
-                          (rint(pl.heading), pl.destination), OK_COLOUR)
+                if pl.flags.on_ground:
+                    pi.say('Currently at airport %s, our destination is %s' %
+                              (pl.origin, pl.destination), OK_COLOUR)
+                else:
+                    pi.say('Currently heading %s, our destination is %s' %
+                              (rint(pl.heading), pl.destination), OK_COLOUR)
             elif cname == 'BYE':
-                self.status['bye'] = True
+                pi.status['bye'] = True
             else:
                 log.debug('process_commands() ignored: %s' % cname)
             # PROCESS FLAGS
@@ -107,11 +112,11 @@ class Executer(object):
         pi = self.pilot
         # Update last order time and score event
         pl.time_last_cmd = time()
-        cnames = commands.keys()
+        cnames = set(commands.keys())
         if 'SQUAWK' not in cnames:
             pi.aerospace.gamelogic.score_event(COMMAND_IS_ISSUED)
-        proc_name = cnames & set(self.PROCEDURES.keys())
         # PROCEDURES
+        proc_name = cnames & set(self.PROCEDURES.keys())
         if proc_name:
             assert len(proc_name) == 1  #only one procedure at a time!
             self.PROCEDURES[proc_name.pop()](pi, commands)

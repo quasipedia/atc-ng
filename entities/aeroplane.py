@@ -22,10 +22,6 @@ __email__ = "quasipedia@gmail.com"
 __status__ = "Development"
 
 
-# Module variables
-PING_IN_SECONDS = PING_PERIOD / 1000.0
-
-
 class Flags(object):
 
     '''
@@ -62,7 +58,7 @@ class Tcas(object):
         self.plane = plane
         self.state = False  #OFF state
 
-    def get_aversion_course(self, colliding):
+    def set_aversion_course(self, colliding):
         '''
         Calculate the best course to avoid the colliding plane(s).
         This is done by:
@@ -72,7 +68,7 @@ class Tcas(object):
         - Setting the course for the resulting vector.
         '''
         plane = self.plane
-        pilot = self.pilot
+        pilot = self.plane.pilot
         # CALCULATE THE AVOIDANCE VECTOR
         # Prevents unresolved cases but altering slighly the plane position if
         # two planes are stacked one on top of the other or fly at the same
@@ -90,10 +86,10 @@ class Tcas(object):
         # SET THE TARGET CONFIGURATION
         tc = pilot.target_conf
         max_up = min(plane.max_altitude, MAX_FLIGHT_LEVEL)
-        tc['altitude'] = max_up if vector.z > 0 else MIN_FLIGHT_LEVEL
-        tc['speed'] = plane.min_speed
-        tc['heading'] = (90-degrees(atan2(vector.y, vector.x)))%360
-        pilot.veering_direction = pilot.shortest_veering_direction()
+        tc.altitude = max_up if vector.z > 0 else MIN_FLIGHT_LEVEL
+        tc.speed = plane.min_speed
+        tc.heading = (90-degrees(atan2(vector.y, vector.x)))%360
+        pilot.veering_direction = pilot.get_shortest_veering_direction()
 
     def update(self):
         '''
@@ -150,7 +146,6 @@ class Aeroplane(object):
                         'velocity',          # 3D vector
                         'fuel',              # remaining fuel
                        ]
-
 
     def __init__(self, aerospace, **kwargs):
         # Required parameters/properties
@@ -214,7 +209,7 @@ class Aeroplane(object):
         self.__variometer = indicator
         # SPEEDOMETER
         # TODO: Decouple from pilot and use acceleration?
-        t_speed = self.pilot.target_conf['speed']
+        t_speed = self.pilot.target_conf.speed
         indicator = ' '
         if t_speed > self.speed:
             indicator = CHAR_UP
@@ -244,8 +239,7 @@ class Aeroplane(object):
         '''
         value = CONTROLLED
         fl = self.flags
-        if fl.busy or self.pilot.queued_commands or fl.circling or \
-           fl.cleared_down or fl.cleared_up or fl.cleared_beacon:
+        if fl.busy:
             value = INSTRUCTED
         if fl.priority:
             value = PRIORITIZED
@@ -266,7 +260,7 @@ class Aeroplane(object):
         Update the plane status according to the elapsed time.
         Pings = number of radar pings from last update.
         '''
-        burning_speed = 1 if self.flags.expedite == False else 2
+        burning_speed = 1 if self.pilot.status['haste'] == 'normal' else 2
         initial = self.position.copy()
         for i in range(pings):
             # Pilot's updates

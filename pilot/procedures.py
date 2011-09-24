@@ -10,7 +10,8 @@ different actions at different stages of it.
 from lib.euclid import Vector3
 from lib.utils import v3_to_heading, heading_in_between
 from engine.logger import log
-from pilot.navigator import Lander
+from engine.settings import *
+from navigator import Lander
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright ©2011, Mac Ryan"
@@ -27,7 +28,7 @@ class GeneralProcedure(object):
 
     '''
     Virtual class to serve as ancestor for the various procedures. Provide a
-    sensible default ``__initiate method``, that works for the majority of the
+    sensible default ``_initiate method``, that works for the majority of the
     procedures, but the ``update()`` one must be overridden.
     '''
 
@@ -41,9 +42,9 @@ class GeneralProcedure(object):
         self.pilot = pilot
         self.plane = pilot.plane
         pilot.status['procedure'] = self
-        self.__initiate(args)
+        self._initiate(*args)
 
-    def __initiate(self, args):
+    def _initiate(self, args):
         '''
         This is the general case for most of the procedures.
         '''
@@ -65,7 +66,7 @@ class Avert(GeneralProcedure):
     (either by an aeroplane or by ground).
     '''
 
-    def __initiate(self, point):
+    def _initiate(self, point):
         '''
         Automatically called by ancestor class upon ``__init__``
         '''
@@ -88,13 +89,13 @@ class Circle(GeneralProcedure):
     Procedure to hold the plane circling in the same direction.
     '''
 
-    def __initiate(self, commands):
+    def _initiate(self, commands):
         '''
         Automatically called by ancestor class upon ``__init__``
         '''
         self.pilot.executer.process_commands(commands)
         st = self.pilot.status
-        param = commands['CIRCLE']
+        param = commands['CIRCLE'][0][0]
         if param in ('L', 'LEFT', 'CCW'):
             st['veer_dir'] = LEFT
         elif param in ('R', 'RIGHT', 'CW'):
@@ -124,7 +125,7 @@ class Clear(GeneralProcedure):
     Procedure to make the plane fly over a given point on the map.
     '''
 
-    def __initiate(self, commands):
+    def _initiate(self, commands):
         '''
         Automatically called by ancestor class upon ``__init__``
         '''
@@ -153,13 +154,15 @@ class Land(GeneralProcedure):
     GLIDING = 4
     TAXIING = 5
 
-    def __initiate(self, commands):
+    def _initiate(self, commands):
         '''
         Automatically called by ancestor class upon ``__init__``
         '''
         pl = self.plane
+        pi = self.pilot
         port_name, rnwy_name = commands['LAND'][0]
-        l = Lander(self.pilot, port_name, rnwy_name)
+        self.lander = Lander(self.pilot, port_name, rnwy_name)
+        l = self.lander
         # EARLY RETURN - Maximum incidence angle into the ILS is 60°
         ils_heading = v3_to_heading(l.ils)
         boundaries = [(ils_heading-ILS_TOLERANCE)%360,
@@ -176,11 +179,10 @@ class Land(GeneralProcedure):
         # EARLY RETURN - Although the intersection is ahead of the plane,
         # it's too late to merge into the ILS vector
         # BUG: doesn't work with 'expedite'! :(
-        if l.set_merge_point(self.get_veering_radius('normal')) < 0:
+        if l.set_merge_point(pi.navigator.get_veering_radius('normal')) < 0:
             msg = 'We are too close to the ILS to merge into it'
             return self._abort_landing(msg)
         # LANDING IS NOT EXCLUDED A PRIORI...
-        self.lander = l
         log.info('%s started landing procedure, destination: %s %s' %
                                 (self.plane.icao, port_name, rnwy_name))
         # SETTING PERSISTENT DATA
@@ -216,12 +218,12 @@ class Land(GeneralProcedure):
             #     turn into the vector
             log.debug('%s INTERCEPTING: md=%s fd=%s' % (pl.icao, l.md, l.fd))
             if pi.navigator.check_overshot(l.mp) == True:
-                self.set_course_towards(l.foot.xy)
+                pi.target_conf.heading = l.foot
                 self.phase = self.MERGING
         if self.phase == self.MERGING:
             log.debug('%s MERGING: head=%s t_head= %s fd=%s' % (pl.icao,
                       pl.heading, pi.target_conf.heading, l.fd))
-            if self.course_towards == None:
+            if pl.heading == pi.target_conf.heading:
                 self.phase = self.MATCHING
         if self.phase == self.MATCHING:
             path_alt = l.path_alt
@@ -240,7 +242,7 @@ class Land(GeneralProcedure):
                 pl.position.z = path_alt
                 self.phase = self.GLIDING
                 l.set_breaking_point()
-                if l.overshot(l.bp):
+                if pi.navigator.check_overshot(l.bp):
                     msg = 'Plane too fast to slow down to landing speed'
                     self._abort_landing(msg)
             # ...otherwise tell it to climb/descend!!
@@ -251,7 +253,7 @@ class Land(GeneralProcedure):
                       % (pl.icao, l.above_foot, pl.speed,
                          pi.target_conf.speed, l.bd, l.fd))
             # Abort if the plane is too fast to slow to landing speed
-            if l.overshot(l.bp):
+            if pi.navigator.check_overshot(l.bp):
                 pi.target_conf.speed = pl.landing_speed
             # Make decision if below minimum altitude
             if not l.taxiing_data and l.above_foot <= DECISION_ALTITUDE:
@@ -265,10 +267,10 @@ class Land(GeneralProcedure):
                 pi.target_conf.speed = l.taxiing_data['speed']
                 if pl.destination == l.port.iata:
                     msg = 'Thank you tower, we\'ve hit home. Over and out!'
-                    self.say(msg, OK_COLOUR)
+                    pi.say(msg, OK_COLOUR)
                 else:
                     msg = 'Well, well... we just landed at the WRONG airport!'
-                    self.say(msg, KO_COLOUR)
+                    pi.say(msg, KO_COLOUR)
         elif self.phase == self.TAXIING:
             log.debug('%s TAXIING: speed=%s fd=%s' % (pl.icao, pl.speed, l.fd))
             l.taxiing_data['timer'] -= PING_IN_SECONDS
@@ -291,7 +293,7 @@ class TakeOff(GeneralProcedure):
     CLIMBING = 1
     HEADING = 2
 
-    def __initiate(self, commands):
+    def _initiate(self, commands):
         '''
         Automatically called by ancestor class upon ``__init__``
         '''
@@ -299,15 +301,16 @@ class TakeOff(GeneralProcedure):
         aspace = pl.aerospace
         r_name = commands['TAKEOFF'][0][0]
         port = aspace.airports[pl.origin]
-        runway = self.port.runways[r_name]
+        runway = port.runways[r_name]
         twin = port.runways[runway['twin']]
-        start_point = runway['location'] + port.location,
-        vector = Vector3(*(-twin['ils']).normalized().xy),
-        self.end_of_runway = twin['location'] + port.location,
+        start_point = runway['location'] + port.location
+        vector = Vector3(*(-twin['ils']).normalized().xy)
+        self.end_of_runway = twin['location'] + port.location
         # SAVE PROCEDURE' PERSISTENT DATA
-        h = commands['HEADING'] if 'HEADING' in commands \
+        h = commands['HEADING'][0][0] if 'HEADING' in commands \
                                 else v3_to_heading(vector)
-        a = commands['ALTITUDE'] if 'ALTITUDE' in commands else pl.max_altitude
+        a = commands['ALTITUDE'][0][0] if 'ALTITUDE' in commands \
+                                else pl.max_altitude
         self.target_heading = h
         self.target_altitude = a
         self.timer = RUNWAY_BUSY_TIME
@@ -320,7 +323,7 @@ class TakeOff(GeneralProcedure):
         self.pilot._set_target_conf_to_current()
         # Set max acceleration
         self.pilot.target_conf.speed = \
-                    commands['SPEED'] if 'SPEED' in commands else pl.max_speed
+            commands['SPEED'][0][0] if 'SPEED' in commands else pl.max_speed
         self.phase = self.ACCELERATING
         # LOG
         log.info('%s is taking off from %s %s' %
@@ -349,8 +352,8 @@ class TakeOff(GeneralProcedure):
                 self.phase = self.HEADING
                 log.info('%s is setting post-lift-off course' % pl.icao)
         if self.timer <= 0 and self.phase == self.HEADING:
-            self.aerospace.runways_manager.release_runway(pl)
+            pl.aerospace.runways_manager.release_runway(pl)
             pl.flags.locked = False
-            pi.status.procedure = None
+            pi.status['procedure'] = None
             log.info('%s has terminated takeoff, runway free' % pl.icao)
         self.timer -= PING_IN_SECONDS

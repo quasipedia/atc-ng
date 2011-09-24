@@ -27,7 +27,7 @@ CONSOLE_FONT_SIZE_RATIO : 0.60    # ratio between the size of the "processed
                                   # lines" (executed orders and responses) and
                                   # the size of the "live line" (where player
                                   # enters commands)
-OUTBOUND_ID         : 'TOWER'     # Radio callsign for the player
+OUTBOUND_ID         : TOWER       # Radio callsign for the player
 PROMPT_SEPARATOR    : '>>>'       # How callsign and messages are separated
 USE_REAL_CALLSIGNS  : True        # True | False - Whether flights should be
                                   # Using real callsign over radio, for example

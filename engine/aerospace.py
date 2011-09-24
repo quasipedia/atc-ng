@@ -188,7 +188,6 @@ class Aerospace(object):
                 crossed.append(gate)
 #            for v in [dist, gate.bottom, gate.top]:
 #                print v, type(v)
-        print crossed
         return crossed
 
     def add_plane(self, plane):
@@ -374,7 +373,7 @@ class Aerospace(object):
         '''
         data = {}
         # Filter out aeroplanes that are on ground
-        planes = [p for p in self.aeroplanes if p.flags.on_ground == False]
+        planes = [p for p in self.aeroplanes if p.flags.on_ground != True]
         for p1, p2 in combinations(planes, 2):
             distance = p1.position - p2.position
             if abs(distance.z) < VERTICAL_CLEARANCE and \

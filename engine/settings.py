@@ -17,7 +17,7 @@ import yaml
 import os
 import sys
 import shutil
-from pkg_resources import resource_filename as fname
+from pkg_resources import resource_filename as fname #@UnresolvedImport
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"

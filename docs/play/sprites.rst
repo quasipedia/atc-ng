@@ -100,8 +100,9 @@ status of the plane, which is associated to the sprite colour.
 |                       | because of a :ref:`fuel emergency<fuel-emergency>`). |
 |                       |                                                      |
 |                       | This status overrides the *white* and *gray* colours |
-|                       | The command ``SHOWQUEUE`` can help to verify if the  |
-|                       | plane is currently processing any order.             |
+|                       | The flight strip of the aeroplane will help you      |
+|                       | understanding if the aircraft is currently           |
+|                       | processing any order or not.                         |
 |                       |                                                      |
 +-----------------------+------------------------------------------------------+
 | *Red*                 | The aeroplane is at danger of collision with another |

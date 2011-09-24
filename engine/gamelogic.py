@@ -22,6 +22,7 @@ import entities.yamlhandlers
 import sprites.guisprites
 import engine.challenge
 from lib.utils import *
+from engine.commander import GAME_COMMANDS
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -156,8 +157,11 @@ class GameCommandsProcessor(object):
         '''
         Execute a game command.
         '''
-        MS_RUN
         cname, args = commandline
+        crecord = GAME_COMMANDS[cname]
+        # Load default arguments if no argument has been passed
+        if not args and 'default' in crecord:
+            args = [crecord['default']]
         if cname == 'QUIT':
             self.gamelogic.machine_state = MS_QUIT
         elif cname == 'PAUSE':

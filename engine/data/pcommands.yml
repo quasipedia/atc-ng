@@ -17,8 +17,8 @@ ABORT:
     An aeroplane that is maneuvering can't execute a new command until the
     maneuver is completed. The ``ABORT`` command makes a plane that is perfoming
     a command to stop its execution (mantaining current heading and speed and
-    flying to the nearest :term:`flight level` and makes it available to
-    receive new commands.
+    flying to the nearest :term:`flight level`. Once the FL is reached, the
+    aeroplane is newly available to receive new commands.
   examples: |
 
     >>> QFA1234 ABORT
@@ -47,7 +47,7 @@ BYE:
   spellings: [BYE, BY, FORGET]
   arguments: 0
   flags: []
-  validator: _validate_clear
+  validator: null
   description: >
     The ``BYE`` command will inform the pilots that they are cleared to leave
     the aerospace without further instruction, the airplane marker on the radar

@@ -146,13 +146,13 @@ class AtomicTest(unittest.TestCase):
             self.plane.velocity = Vector3(0)
             self.pilot.set_course_towards((10000+x, 10000+y))
         perform(10000,10000)
-        self.assertEqual(self.plane.pilot.target_conf['heading'], 45)
+        self.assertEqual(self.plane.pilot.target_conf.heading, 45)
         perform(-10000,-10000)
-        self.assertEqual(self.plane.pilot.target_conf['heading'], 225)
+        self.assertEqual(self.plane.pilot.target_conf.heading, 225)
         perform(0, 10000)
-        self.assertEqual(self.plane.pilot.target_conf['heading'], 0)
+        self.assertEqual(self.plane.pilot.target_conf.heading, 0)
         perform(-5000*3**0.5, 5000)
-        self.assertEqual(self.plane.pilot.target_conf['heading'], 300)
+        self.assertEqual(self.plane.pilot.target_conf.heading, 300)
 
     def testIndependentControls(self):
         '''
@@ -175,16 +175,16 @@ class AtomicTest(unittest.TestCase):
         # Test speed variation
         setup()
         self.plane.max_speed = 1000 / 3.6  #1000 kph
-        self.plane.pilot.target_conf['speed'] = 900
+        self.plane.pilot.target_conf.peed = 900
         self.assertEqual(perform(), set(['speed']))
         # Test altitude variation
         setup()
-        self.plane.pilot.target_conf['altitude'] = 5000
+        self.plane.pilot.target_conf.altitude = 5000
         self.assertEqual(perform(), set(['altitude']))
         # Test heading variation
         setup()
         self.pilot.veering_direction = self.pilot.LEFT
-        self.plane.pilot.target_conf['heading'] = 265
+        self.plane.pilot.target_conf.heading = 265
         self.assertEqual(perform(), set(['heading']))
 
     def testDoNotOscillate(self):

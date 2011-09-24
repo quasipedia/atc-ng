@@ -35,6 +35,7 @@ class Checker(object):
         an error message. ``commands`` is a dictionary in the form:
         {command_name = (args, flags)}. Return True or a message error.
         '''
+        pi = self.pilot
         pl = self.plane
         aspace = self.plane.aerospace
         cnames = set(commands.keys())
@@ -66,7 +67,7 @@ class Checker(object):
             return 'Our speed must be between %d and %d kph!' % (mi, ma)
         # Reject LAND order if unexisting airport or runway
         if 'LAND' in cnames:
-            check = self.navigator.check_existing_runway(*commands['LAND'][0])
+            check = pi.navigator.check_existing_runway(*commands['LAND'][0])
             if check != True:
                 return check
         # Reject TAKEOFF if one of the various no-go conditions is true

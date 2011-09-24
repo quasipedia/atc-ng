@@ -6,12 +6,11 @@ The pilot that is in charge of planes in the ATC-NG game.
 
 from engine.settings import *
 from engine.logger import log
-from entities.aeroplane import Aeroplane
 from lib.utils import *
 from math import sqrt, radians, cos, sin, tan
 from lib.euclid import Vector3
 import checker
-import random
+from random import choice
 import executer
 import navigator
 import procedures
@@ -26,7 +25,7 @@ __email__ = "quasipedia@gmail.com"
 __status__ = "Development"
 
 
-class TargetConfiguration():
+class TargetConfiguration(object):
 
     '''
     This is a container class with a few tweaks:
@@ -107,19 +106,12 @@ class Pilot(object):
     game loops of the pilot configuration.
     '''
 
-    # SHORTHANDS
-    PING_IN_SECONDS = PING_PERIOD / 1000.0
     # RADIO ANSWERS
-    AFFIRMATIVE_EXEC_ANSWERS = ['Roger that. Executing.',
-                                'Affirmative, initiating maneuver now.',
-                                'Roger, we\'re on it.',
-                                'Copy that.',
-                                'Okie dokie artichokie!']
-
-    AFFIRMATIVE_QUEUE_ANSWERS = ['Roger that. Queued.',
-                                 'Affirmative, command queued for execution.',
-                                 'We\'ll do that as soon as possible.',
-                                 'Copy that, command queued']
+    AFFIRMATIVE_ANSWERS = ['Roger that. Executing.',
+                           'Affirmative, initiating maneuver now.',
+                           'Roger, we\'re on it.',
+                           'Copy that.',
+                           'Okie dokie artichokie!']
     # DEFAULT VALUES
     DEFAULT_STATUS = dict(veer_dir = None,
                           procedure = None,
@@ -158,7 +150,7 @@ class Pilot(object):
         '''
         Set the target configuration identical to present aeroplane one.
         '''
-        for k, v in self.plane.get_current_configuration():
+        for k, v in self.plane.get_current_configuration().items():
             setattr(self.target_conf, k, v)
 
     def _adjust_to_valid_FL(self):
@@ -167,37 +159,25 @@ class Pilot(object):
         '''
         min_altitude = self.navigator.get_required_minimum_altitude()
         if self.plane.position.z < min_altitude:
-            self.target_conf['altitude'] = min_altitude
+            self.target_conf.altitude = min_altitude
         else:
             extra = self.plane.position.z % 500
             extra = -extra if extra < 250 else 500-extra
-            self.target_conf['altitude'] = self.plane.position.z + extra
+            self.target_conf.altitude = self.plane.position.z + extra
 
     def _veer(self):
         '''
         Make the plane turn.
         '''
-        # The tightness of the curve is given by the kind of situation the
-        # aeroplane is in.
-        if self.plane.tcas.state == True:
-            veer_type = 'emergency'
-        elif self.status['expedite'] == True:
-            veer_type = 'expedite'
-        else:
-            veer_type = 'normal'
         # Unless already specified, set the veering_direction
         if not self.status['veer_dir']:
             self.status['veer_dir'] = \
-                        self.navigator.shortest_veering_direction()
-
-
-
-
+                        self.navigator.get_shortest_veering_direction()
         type_ = self.status['haste']
         abs_ang_speed = self.navigator.get_veering_angular_velocity(type_)
         angular_speed = abs_ang_speed * -self.status['veer_dir']
         axis = Vector3(0,0,1)
-        amount = angular_speed * self.PING_IN_SECONDS
+        amount = angular_speed * PING_IN_SECONDS
         self.plane.velocity = self.plane.velocity.rotate_around(axis, amount)
 
     def _dampen(self, previous_conf):
@@ -215,7 +195,7 @@ class Pilot(object):
             theta = radians(90-t_head)
             pl.velocity.x = cos(theta)*mag
             pl.velocity.y = sin(theta)*mag
-            self.target_conf['heading'] = pl.heading  #Fixes decimal approx.
+            self.target_conf.heading = pl.heading  #Fixes decimal approx.
         # Speed dampener (act on velocity vector)
         t_speed = self.target_conf.speed
         if in_between((p_speed, pl.speed), t_speed):
@@ -225,7 +205,7 @@ class Pilot(object):
             saved_z = pl.velocity.z
             pl.velocity = Vector3(*pl.velocity.xy).normalized() * t_speed
             pl.velocity.z = saved_z
-            self.target_conf['speed'] = pl.speed  #Fixes decimal approx.
+            self.target_conf.speed = pl.speed  #Fixes decimal approx.
         # Update onboard instruments, as the following dampener will modify
         # the data they would access
         pl.update_instruments()
@@ -237,7 +217,7 @@ class Pilot(object):
         # Actions to be performed if all orders have been executed
         if self.target_conf.is_reached() \
                 and not (self.status['procedure'] or self.status['bye']):
-            pl.flags.reset()
+            pl.flags.busy = False
             self._reset_status()
 
     def _manoeuvre(self):
@@ -248,16 +228,15 @@ class Pilot(object):
         pl = self.plane
         # Store initial values for self._dampen()
         initial_conf = pl.get_current_configuration()
-        if pl.heading != self.target_conf['heading']:
-            self.veer()
-        if pl.altitude != self.target_conf['altitude']:
+        if pl.heading != self.target_conf.heading:
+            self._veer()
+        if pl.altitude != self.target_conf.altitude:
             # Descending or ascending?
-            index = pl.altitude < self.target_conf['altitude']
-            z_acc = pl.climb_rate_accels[index] * self.PING_IN_SECONDS
+            index = pl.altitude < self.target_conf.altitude
+            z_acc = pl.climb_rate_accels[index] * PING_IN_SECONDS
             # Non expedite climbs / takeoffs / landings are limited at 50% of
             # maximum rate.
-            if not (pl.flags.expedite or \
-                    pl.flags.cleared_down or pl.flags.cleared_up):
+            if self.status['haste'] == 'normal':
                 z_acc *= 0.5
             # Acceleration cannot produce a climb rate over or under the limits
             min_, max_ = pl.climb_rate_limits
@@ -266,17 +245,17 @@ class Pilot(object):
             # if out of boundaries, uses min and max
             else:
                 pl.velocity.z = max_ if index else min_
-        if pl.speed != self.target_conf['speed']:
-            index = pl.speed < self.target_conf['speed']
-            gr_acc = pl.ground_accels[index] * self.PING_IN_SECONDS
+        if pl.speed != self.target_conf.speed:
+            index = pl.speed < self.target_conf.speed
+            gr_acc = pl.ground_accels[index] * PING_IN_SECONDS
             # Non expedite accelerations are limited at 50% of maximum accels
-            if not (pl.flags.expedite or \
-                   pl.flags.cleared_down or pl.flags.cleared_up):
+            if self.status['haste'] == 'normal':
                 gr_acc *= 0.5
             norm_velocity = Vector3(*pl.velocity.xy).normalized()
             acc_vector = norm_velocity * gr_acc
             # Acceleration cannot produce a speed over or under the limits
-            if pl.flags.cleared_down:
+            if isinstance(self.status['procedure'],
+                                        (procedures.Land, procedures.TakeOff)):
                 min_, max_ = pl.landing_speed, pl.max_speed
             else:
                 min_, max_ = pl.min_speed, pl.max_speed
@@ -290,7 +269,7 @@ class Pilot(object):
                 pl.velocity = norm_velocity * max_
             else:
                 pl.velocity += acc_vector
-        pl.position += pl.velocity * self.PING_IN_SECONDS
+        pl.position += pl.velocity * PING_IN_SECONDS
         self._dampen(initial_conf)
 
     def do(self, commands):
@@ -305,9 +284,14 @@ class Pilot(object):
         # ...perform validity checks...
         check = self.checker.check(commands)
         if check != True:
-            return False, check
+            log.debug('%s failed to execute %s. Message: %s'
+                      % (self.plane.icao, commands, check))
+            self.say(check, KO_COLOUR)
         # ..and eventually execute the commands!
-        return True, self.executer.execute(commands)
+        else:
+            self.executer.execute(commands)
+            if 'SQUAWK' not in commands:  #already saying something there!
+                self.say(choice(self.AFFIRMATIVE_ANSWERS), OK_COLOUR)
 
     def say(self, what, colour):
         '''

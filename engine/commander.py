@@ -46,6 +46,8 @@ def __command_files_sanity_check():
         sets.append(set_)
     # There are no game and plane commands with the same name
     assert len(sets[0]|sets[1]) == len(sets[0]) + len(sets[1])
+    # Game commands only have maximum one parameter
+    assert max([c['arguments'] for c in GAME_COMMANDS.values()]) == 1
 
 def __attach_combo_info():
     '''
@@ -100,7 +102,6 @@ def get_command_description(cname):
         command = PLANE_COMMANDS[cname]
     elif cname in GAME_COMMANDS.keys():
         command = GAME_COMMANDS[cname]
-    assert command
     res = command.copy()
     # Strips reStructuredText markup
     res['description'] = __rst_to_strip.sub('', res['description'])
@@ -114,7 +115,12 @@ def get_command_description(cname):
 class Parser(object):
 
     '''
-    Parse a command line (validate and execute it).
+    Parse a command line.
+
+    This class does mainly three things:
+    * Parse the command line (= the line must respect the ATC-NG "grammar"
+    * Arguments standardisation (=set defaults, convert aliases, etc...)
+    * Invoke execution
     '''
 
     def __init__(self, aerospace, game_commands_processor):
@@ -134,6 +140,19 @@ class Parser(object):
         self.validated = False
         self.bits = []                   #the sentence, reversed and split
         self.target = None               #plane that should receive order
+
+    def __from_alias_to_command(self, alias):
+        '''
+        Return the "real" command name instead of its alias. For example, passing
+        in the command name ``MAN`` will return ``HELP``, ``H`` will reaturn
+        ``HEADING`` and so on.
+        Return None if the given alias does not match any command.
+        '''
+        for pool in (GAME_COMMANDS, PLANE_COMMANDS):
+            for cname in pool:
+                if alias in pool[cname]['spellings']:
+                    return cname
+        return None
 
     # VALIDATORS These methods provide validation for the arguments of the
     # commands. All arguments are passed-in as strings and are converted to a
@@ -174,7 +193,7 @@ class Parser(object):
             if not arg in self.aerospace.beacons:
                 return False
             else:
-                return [self.aerospace.beacons[arg].location]
+                return [Vector3(*self.aerospace.beacons[arg].location)]
 
     def _validate_altitude(self, alt):
         '''
@@ -235,6 +254,20 @@ class Parser(object):
             return False
         return [runway]
 
+    def _validate_help(self, cname):
+        '''
+        ``cname`` must be a valid alias of an existing command. Set default if
+        needed.
+        '''
+        if not cname:
+            cname = GAME_COMMANDS['HELP']['default']
+            # one could return here, but just as consistency check, we let
+            # the check run even on the default one.
+        cname = self.__from_alias_to_command(cname)
+        return [cname] if cname else False
+
+
+
     def parse(self):
         '''
         Validate/Parse the command line. Returns a list of parsed commands in
@@ -258,7 +291,7 @@ class Parser(object):
             msg = '"%s" is not a valid ICAO reference.' % first
             return msg
 
-    def parse_plane_commands(self, icao, to_queue=False):
+    def parse_plane_commands(self, icao):
         '''
         Parse the command line as aeroplane commands. Return a callable and a
         list of arguments structured as a list of triplets each of them in the
@@ -269,7 +302,6 @@ class Parser(object):
             pilot = self.aerospace.get_plane_by_icao(icao).pilot
         except KeyError:
             return 'Flight %s is not on the radar.' % icao
-        callable_ = pilot.queue_command if to_queue else pilot.execute_command
         while len(self.bits) != 0:
             # The first bit of a command sequence is either the command or
             # the condensed form for heading, altitude and speed (see below)
@@ -336,13 +368,8 @@ class Parser(object):
         # FINAL SEMANTIC CHECKS
         command_list = [el[0] for el in parsed_commands]
         command_set = set(command_list)
-        # If they are to be queued, does it makes sense?
-        if callable_.__name__ == 'queue_command' and \
-                   'abort' in command_list:
-            msg = 'You can\'t queue abortion of a command.'
-            return msg
         # If several commands are issued at once, verify they are compatible
-        elif len(parsed_commands) != 1:
+        if len(parsed_commands) != 1:
             # No duplicates!
             if len(command_list) != len(command_set):
                 msg = 'You can\'t repeat commands in the same radio message.'
@@ -355,7 +382,7 @@ class Parser(object):
             if not valid:
                 msg = 'These commands cannot be performed at the same time.'
                 return msg
-        return (callable_, parsed_commands)
+        return pilot.do, parsed_commands
 
     def parse_game_command(self):
         try:
@@ -363,19 +390,33 @@ class Parser(object):
         except IndexError:  # Empty bits --> No command issued
             msg = 'What is the command?'
             return msg
-        command_name = None
+        cname = None
         command = None
         for k, v in GAME_COMMANDS.items():
             if issued in v['spellings']:
-                command_name = k
+                cname = k
                 command = v
                 break
         if command:
             args = self.bits
+            # Check the amount of parameters is correct
+            if len(args) > command['arguments']:
+                how_many = 'no' if command['arguments'] == 0 \
+                                else 'no more than %s' % command['arguments']
+                return 'Command %s accepts %s arguments' % (cname, how_many)
+            if len(args) and not command['default']:
+                return 'You must provide a parameter for command %s' % cname
+            if command['validator']:
+                validator = getattr(self, command['validator'])
+                args = validator(*args)
+                if not args:
+                    msg = 'Parameters for "%s" command failed validation.' % \
+                            cname
+                    return msg
         else:
             msg = 'Invalid game command! (%s)' % issued
             return msg
-        return (self.game_commands_processor, [command_name, args])
+        return (self.game_commands_processor, [cname, args])
 
 class CommandLine(object):
 
@@ -417,6 +458,21 @@ class CommandLine(object):
             ret.extend(c['spellings'])
         return ret
 
+    def __keep_longest_aliases(self, aliases):
+        '''
+        Return a list in which only the longest alias of a group of aliases
+        sharing the same root is kept. For example if the arguments are
+        ``['H', 'HEAD', 'HEADING']``, ``['HEADING']`` will be returned.
+        '''
+        filtered = []
+        aset = set(aliases)
+        for pool in (GAME_COMMANDS, PLANE_COMMANDS):
+            for values in pool.values():
+                tmp = set(values['spellings']) & aset
+                if tmp:
+                    filtered.append(sorted(list(tmp), key=len).pop())
+        return filtered
+
     def _get_list_of_existing(self, what, context=None):
         '''
         Return a list of existing (=valid) strings representing `what`
@@ -440,6 +496,10 @@ class CommandLine(object):
             return [id for id in self.aerospace.beacons.keys()]
         elif what == 'game_commands':
             return self.__get_all_spellings_all_commands(GAME_COMMANDS)
+        elif what == 'all_commands':
+            r = self.__get_all_spellings_all_commands(GAME_COMMANDS)
+            r.extend(self.__get_all_spellings_all_commands(PLANE_COMMANDS))
+            return r
         else:
             raise BaseException('Unknown type of items: %s!' % what)
 
@@ -457,6 +517,21 @@ class CommandLine(object):
             else:
                 break
         return ''.join(result)
+
+    def _render_console_lines(self):
+        '''
+        Return the image of the rendered multiline text.
+        Lines are passed in the format: [color_of_text, text].
+        '''
+        lines = self.console_lines
+        font_height = self.small_f.get_height()
+        surfaces = [self.small_f.render(txt, True, col) for col, txt in lines]
+        maxwidth = max([s.get_width() for s in surfaces])
+        result = pygame.surface.Surface((maxwidth, len(lines)*font_height),
+                                        SRCALPHA)
+        for i in range(len(lines)):
+            result.blit(surfaces[i], (0,i*font_height))
+        return result
 
     @property
     def text(self):
@@ -493,27 +568,44 @@ class CommandLine(object):
             prepre = splitted[-3]
         # identify what is the context of autocompletion
         if self.chars[0] == '/':
-            what = 'game_commands'
-        elif spl_len == 2 and self.chars[0] == '.' or root == self.text:
-            what = 'planes'
-        elif pre:
-            if self.parser._validate_icao(pre):
-                what = 'plane_commands'
-            # the argument of circling can be 'L' (left) which could be
-            # understood as the shorthand for 'LAND'
-            elif pre in PLANE_COMMANDS['LAND']['spellings'] and \
-                 prepre not in PLANE_COMMANDS['CIRCLE']['spellings']:
-                what = 'airports'
-            elif pre in PLANE_COMMANDS['HEADING']['spellings']:
-                what = 'beacons'
-            elif prepre:
-                if prepre in PLANE_COMMANDS['LAND']['spellings']:
-                    what = 'runaways'
-                    context = pre
-                elif (self.parser._validate_icao(splitted[0]) or \
-                     self.parser._validate_icao(splitted[1])) and \
-                     pre not in PLANE_COMMANDS.keys():
+            splitted = self.text[1:].split()
+            if len(splitted) == 1:  #we are typing a game command
+                what = 'game_commands'
+            elif len(splitted) == 2:  #we are typing an argument
+                if splitted[0] == 'HELP':
+                    what = 'all_commands'
+                elif splitted[0] == 'LIST':
+                    what = None
+                elif splitted[0] == 'LOAD':
+                    what = None
+                elif splitted[0] == 'SCORES':
+                    what = None
+                elif splitted[0] == 'SORT':
+                    what = None
+            elif len(splitted) == 3: #we are typing a flag
+                if splitted[0] == 'LIST':
+                    what = None
+        else:
+            if root == self.text:
+                what = 'planes'
+            elif pre:
+                if self.parser._validate_icao(pre):
                     what = 'plane_commands'
+                # the argument of circling can be 'L' (left) which could be
+                # understood as the shorthand for 'LAND'
+                elif pre in PLANE_COMMANDS['LAND']['spellings'] and \
+                     prepre not in PLANE_COMMANDS['CIRCLE']['spellings']:
+                    what = 'airports'
+                elif pre in PLANE_COMMANDS['HEADING']['spellings']:
+                    what = 'beacons'
+                elif prepre:
+                    if prepre in PLANE_COMMANDS['LAND']['spellings']:
+                        what = 'runaways'
+                        context = pre
+                    elif (self.parser._validate_icao(splitted[0]) or \
+                         self.parser._validate_icao(splitted[1])) and \
+                         pre not in PLANE_COMMANDS.keys():
+                        what = 'plane_commands'
         if not what:
             return
         pool = [el.upper() for el in self._get_list_of_existing(what, context)]
@@ -521,6 +613,7 @@ class CommandLine(object):
         if len(matches) == 1:
             match = matches[0]+' '
         elif len(matches) > 1:
+            matches = self.__keep_longest_aliases(matches)
             match = self._get_common_beginning(matches)
         else:
             return
@@ -544,7 +637,7 @@ class CommandLine(object):
             fname = callable_.__name__
             # Successfully parsed commands get logged on console and inserted
             # into command history
-            if fname == '_execute_command':
+            if fname == 'do':
                 self.msg_append(NEUTRAL_COLOUR,
                                 ' '.join((self.cmd_prefix,self.text)))
                 self.command_history.insert(0, self.text)
@@ -599,21 +692,6 @@ class CommandLine(object):
             # game command modifyer
             if event.unicode == '/':
                 self.chars.append(' ')
-
-    def _render_console_lines(self):
-        '''
-        Return the image of the rendered multiline text.
-        Lines are passed in the format: [color_of_text, text].
-        '''
-        lines = self.console_lines
-        font_height = self.small_f.get_height()
-        surfaces = [self.small_f.render(txt, True, col) for col, txt in lines]
-        maxwidth = max([s.get_width() for s in surfaces])
-        result = pygame.surface.Surface((maxwidth, len(lines)*font_height),
-                                        SRCALPHA)
-        for i in range(len(lines)):
-            result.blit(surfaces[i], (0,i*font_height))
-        return result
 
     def draw(self):
         # Basic blinking of cursor

@@ -4,8 +4,11 @@
 Provide support for pilot's navigation (calculate distances, radii, etc...).
 '''
 
+from math import tan
+
 from lib.utils import *
 from lib.euclid import Vector3
+from engine.logger import log
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright ©2011, Mac Ryan"
@@ -75,8 +78,8 @@ class Lander(object):
         angle = radians((180 - angle) / 2.0)
         dist_from_ip = radius/tan(angle)
         dist_from_plane = abs(self.ip-self.plane.position)-dist_from_ip
-        self.mp = self.pilot.get_point_ahead(dist_from_plane)
-        if self.pilot.navigator.ceck_overshot(self.mp) == True:
+        self.mp = self.pilot.navigator.get_point_ahead(dist_from_plane)
+        if self.pilot.navigator.check_overshot(self.mp) == True:
             self.mp = None
         return self.mp
 
@@ -96,7 +99,7 @@ class Lander(object):
                 break
             speed += pl.ground_accels[0] * PING_IN_SECONDS
         distance = abs(self.foot - self.plane.position) - dist
-        self.bp = self.pilot.get_point_ahead(distance)
+        self.bp = self.pilot.navigator.get_point_ahead(distance)
 
     def make_decision(self):
         '''
@@ -187,9 +190,10 @@ class Navigator(object):
         '''
         Verify that a given port/runway combo actually exist in the aerospace.
         '''
-        if port not in self.aerospace.airports:
+        aspace = self.plane.aerospace
+        if port not in aspace.airports:
             return 'airport %s is not on the map!' % port
-        if runway not in self.aerospace.airports[port].runways:
+        if runway not in aspace.airports[port].runways:
             return 'airport %s does not have runway %s!' % (port, runway)
         return True
 
@@ -207,29 +211,13 @@ class Navigator(object):
         pl = self.plane
         return pl.position + (pl.velocity.normalized() * distance)
 
-    def get_course_towards(self, coords=None):
+    def get_course_towards(self, point):
         '''
-        Set the target heading to a direct intercept towards the given
-        coordinates.
-           There is no guarantee the plane will be capable to
-        navigate towards that point (if the turn radius is too tight it will
-        overshoot the target).
-           The function can be called without arguments if the plane has
-        already been instructed to reach a given point.
+        Get the heading of a direct vector towards a given point.
         '''
-        # No coords only if coords have been passed before!
-        assert not (coords == None and not self.course_towards)
-        if not coords:
-            coords = self.course_towards
-        else:
-            self.course_towards = coords
-        delta = Vector3(*coords) - self.plane.position
-        new_head = v3_to_heading(delta)
-        if new_head != self.plane.heading:
-            self.target_conf['heading'] = new_head
-        else:
-            self.course_towards = None
-            self.veering_direction = None
+        assert isinstance(point, Vector3)
+        delta = point - self.plane.position
+        return v3_to_heading(delta)
 
     def get_aversion_course(self, point):
         '''
@@ -259,9 +247,9 @@ class Navigator(object):
         # SET THE TARGET CONFIGURATION
         tc = pilot.target_conf
         max_up = min(plane.max_altitude, MAX_FLIGHT_LEVEL)
-        tc['altitude'] = max_up if vector.z > 0 else MIN_FLIGHT_LEVEL
-        tc['speed'] = plane.min_speed
-        tc['heading'] = (90-degrees(atan2(vector.y, vector.x)))%360
+        tc.altitude = max_up if vector.z > 0 else MIN_FLIGHT_LEVEL
+        tc.speed = plane.min_speed
+        tc.heading = (90-degrees(atan2(vector.y, vector.x)))%360
         pilot.veering_direction = pilot.shortest_veering_direction()
 
     def get_required_minimum_altitude(self):
@@ -278,8 +266,8 @@ class Navigator(object):
         Return self.LEFT or self.RIGHT according to whatever the shortest
         veering to a certain course is.
         '''
-        theta = (self.plane.heading - self.target_conf['heading']) % 360
-        return self.LEFT if theta < 180 else self.RIGHT
+        theta = (self.plane.heading - self.pilot.target_conf.heading) % 360
+        return LEFT if theta < 180 else RIGHT
 
     def get_intersection_point(self, vector, point):
         '''

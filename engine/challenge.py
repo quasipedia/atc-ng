@@ -30,8 +30,8 @@ class Challenge(object):
     Docstring.
     '''
 
-    DELAY = 5                     # delay before the first plane appears
-    PLANE_NUMBER_START = 2        # begin game with X planes
+    DELAY = 1                     # delay before the first plane appears
+    PLANE_NUMBER_START = 1        # begin game with X planes
     MOD_PERIOD = 60               # modify frequency every X seconds
     FREQ_START = 120              # new plane every X seconds
     FREQ_STEP = -3                # step of frequency modification
