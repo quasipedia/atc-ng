@@ -14,11 +14,11 @@ ABORT:
   flags: []
   validator: null
   description: >
-    An aeroplane that is maneuvering can't execute a new command until the
-    maneuver is completed. The ``ABORT`` command makes a plane that is perfoming
-    a command to stop its execution (mantaining current heading and speed and
-    flying to the nearest :term:`flight level`. Once the FL is reached, the
-    aeroplane is newly available to receive new commands.
+    An aeroplane that is manoeuvring can't execute a new command until the
+    manoeuvre is completed. The ``ABORT`` command makes a plane that is
+    performing a command to stop its execution (maintaining current heading and
+    speed and flying to the nearest :term:`flight level`). Once the FL is
+    reached, the aeroplane is newly available to receive new commands.
   examples: |
 
     >>> QFA1234 ABORT
@@ -37,7 +37,8 @@ ALTITUDE:
     below 10000 metres asl and a multiple of 500.
 
       The ``EXPEDITE`` flag doubles the speed at which an aeroplane climbs or
-      descends.
+      descends, but it will also make the aircraft to consume fuel at double
+      rate.
   examples: |
 
     >>> QFA1234 ALTITUDE 55
@@ -50,7 +51,7 @@ BYE:
   validator: null
   description: >
     The ``BYE`` command will inform the pilots that they are cleared to leave
-    the aerospace without further instruction, the airplane marker on the radar
+    the aerospace without further instruction, the aeroplane marker on the radar
     screen will then show as *busy* until the aircraft leaves the aerospace.
 
       It is however still possible to issue ABORT_ in case it becomes necessary
@@ -63,7 +64,8 @@ BYE:
 CIRCLE:
   spellings: [CIRCLE, CI, HOLD]
   arguments: 1
-  flags: []
+  flags:
+    EXPEDITE: [EXPEDITE, X]
   validator: _validate_circle
   description: >
     The ``CIRCLE`` command will make an aeroplane to fly a circular pattern,
@@ -71,7 +73,12 @@ CIRCLE:
 
       The command takes a single argument which is the direction of the
       circling: clockwise (``CW``, ``RIGHT`` or ``R``) or counter-clockwise
-      (``CCW``, ``LEFT`` or ``L``)
+      (``CCW``, ``LEFT`` or ``L``).
+
+      The ``EXPEDITE`` flag increases the banking angle of the aeroplane,
+      effectively decreasing the time needed for the aeroplane to reach its
+      target heading. However, it will also make the aircraft to consume fuel
+      at double rate.
   examples: |
 
     >>> QFA1234 CIRCLE CCW
@@ -80,13 +87,18 @@ CIRCLE:
 CLEAR:
   spellings: [CLEAR, CL, REACH]
   arguments: 1
-  flags: []
+  flags:
+    EXPEDITE: [EXPEDITE, X]
   validator: _validate_clear
   description: >
-    The ``CLEAR`` command will inform the pilot onboard the aeroplane that they
-    are cleared to reach a given beacon on the map. Upon receiving the command,
-    the pilot will veer towards the beacon and the airplane marker on the radar
-    screen will show as *busy* until the plane fly past that point.
+    The ``CLEAR`` command will inform the pilots on board the aeroplane that
+    they are cleared to reach a given beacon on the map. Upon receiving the
+    command, the pilot will veer towards it and the aeroplane marker on
+    the radar screen will show as *busy* until the plane fly past that point.
+
+      The ``EXPEDITE`` flag increases the rate at which the alignment with the
+      beacon is performed, but it will also make the aircraft to consume fuel
+      at double rate.
   examples: |
 
     >>> QFA1234 CLEAR NDB3
@@ -100,14 +112,15 @@ HEADING:
     LONG: [LONG, L]
   validator: _validate_heading
   description: >
-    The ``HEADING`` command alter the target heading of an aeroplane. The
+    The ``HEADING`` command alters the target heading of an aeroplane. The
     argument of the command can either be a *new degree heading* (expressed as a
-    three-digit figure or the code of a *beacon*, for which the most appropriate
-    heading will be calculated.
+    three-digit figure, or the code of a *beacon*, for which the most
+    appropriate heading will be calculated.
 
-      The ``EXPEDITE`` flag increses the banking angle of the aeroplane,
+      The ``EXPEDITE`` flag increases the banking angle of the aeroplane,
       effectively decreasing the time needed for the aeroplane to reach its
-      target heading.
+      target heading. However, it will also make the aircraft to consume fuel
+      at double rate.
 
       The plane will always perform the turn in the direction that requires less
       time to complete (smaller angle). The ``LONG`` flag - on the other hand -
@@ -122,15 +135,19 @@ HEADING:
 LAND:
   spellings: [LAND, LA, DOWN]
   arguments: 2
-  flags: []
+  flags:
+    EXPEDITE: [EXPEDITE, X]
   validator: _validate_land
   description: >
-    The ``LAND`` command instruct the plane to intercept the descent flight path
-    to the foot of a given runaway, and perform the landing.
+    The ``LAND`` command instructs the plane to intercept the descent flight
+    path to the foot of a given runaway, and perform the landing.
 
       The command takes two arguments: the **IATA code of the airport** and
       the **runaway name**.
 
+      The ``EXPEDITE`` flag increases the rate at which the manoeuvre is
+      performed, but it will also make the aircraft to consume fuel at double
+      rate.
   examples: |
 
     >>> QFA1234 LAND FRA 07R
@@ -147,8 +164,9 @@ SPEED:
     target speed of the aeroplane is expressed in **kph**
     (kilometres per hour).
 
-      The ``EXPEDITE`` flag increses the acceleration/deceleration, making the
-      maneuver to execute faster.
+      The ``EXPEDITE`` flag increases the acceleration/deceleration rates,
+      making the manoeuvre to execute faster, however it will also make the
+      aircraft to consume fuel at double rate.
   examples: |
 
     >>> QFA1234 SPEED 800
@@ -183,18 +201,17 @@ TAKEOFF:
     EXPEDITE: [EXPEDITE, X]
   validator: _validate_takeoff
   description: >
-    The ``TAKEOFF`` command instructs the plane to take off a given runaway.
+    The ``TAKEOFF`` command instructs the plane to take off on a given runaway.
     Once airborne, the plane will keep on climbing until its maximum flight
     altitude and its maximum flight speed, maintaining the heading of the
     runway it departed from. This behaviour can be overridden by issuing the
     command in combination with HEADING_, ALTITUDE_ or SPEED_. Read
     more on the :doc:`specific section<takingoff>` of the manual.
 
-      The ``EXPEDITE`` flag increases the climbing rate, making the maneuver to
-      execute faster.
-
+      The ``EXPEDITE`` flag increases the rate at which the manoeuvre is
+      performed, but it will also make the aircraft to consume fuel at double
+      rate.
   examples: |
 
     >>> QFA1234 TAKEOFF 04L
     >>> DLH5678 UP 01 X
-

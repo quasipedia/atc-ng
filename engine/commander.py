@@ -87,7 +87,8 @@ __rst_to_strip = re.compile(
             r'((\+{1}[-=\+]+\+{1}){1}'    # table upper delimiter
             r'(.|\n)+'                    # anything
             r'(\+{1}[-=\+]+\+{1}){1})|'   # tables lower delimiter
-        r'(_)'                            # hyperlinks
+        r'(_)|'                           # hyperlinks
+        r'(\<.+\>)'                       # target literals
         )
 
 # +------------------+

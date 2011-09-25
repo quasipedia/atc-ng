@@ -78,22 +78,18 @@ status of the plane, which is associated to the sprite colour.
 +=======================+======================================================+
 | *White*               | The aeroplane is ready to accept orders.             |
 |                       |                                                      |
-|                       | All queued orders have already been processed.       |
+|                       | All previously issued orders have been completed.    |
 |                       |                                                      |
 +-----------------------+------------------------------------------------------+
 | *Gray*                | The aeroplane is currently manoeuvring and it is     |
 |                       | unable to perform a new order (albeit it is still    |
 |                       | possible to issue ``ABORT`` or ``SQUAWK`` commands). |
 |                       |                                                      |
-|                       | It is possible to queue orders.                      |
-|                       |                                                      |
 +-----------------------+------------------------------------------------------+
 | *Magenta*             | The aeroplane is "locked" it is not possible to      |
 |                       | perform any operation but ``SQUAWK``. Typically this |
 |                       | is the plane status during the final phases of       |
 |                       | landings and during take off's                       |
-|                       |                                                      |
-|                       | It is **not** possible to queue orders.              |
 |                       |                                                      |
 +-----------------------+------------------------------------------------------+
 | *Yellow*              | The aeroplane needs a priority landing (most likely  |
@@ -109,7 +105,7 @@ status of the plane, which is associated to the sprite colour.
 |                       | aeroplane (:term:`TCAS`) or with the ground.         |
 |                       |                                                      |
 |                       | You can't do anything else than praying, as you      |
-|                       | can't issue or queue orders when the plane is in     |
-|                       | such condition.                                      |
+|                       | can't issue or orders when the plane is in such      |
+|                       | condition.                                           |
 |                       |                                                      |
 +-----------------------+------------------------------------------------------+

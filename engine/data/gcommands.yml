@@ -19,7 +19,8 @@ HELP:
 
       The command ``/HELP`` provides help on game and aeroplane commands (the
       name of the command must be passed as an argument). If issued without
-      arguments, ``/HELP`` display a general help message.
+      arguments, ``/HELP`` displays help on the ``/HELP`` command (this
+      message).
   examples: |
 
     >>> /HELP LAND
@@ -116,7 +117,7 @@ SCORES:
   description: >
     Show ATC-NG scores.
 
-      Issued without arguments, the command display the top scores on the
+      Issued without arguments, the command displays the top scores on the
       system (regardless of which user and what scenario).
 
       If an argument is passed, this must be a string that will be used for
