@@ -50,6 +50,15 @@ class GeneralProcedure(object):
         '''
         self.pilot.executer.process_commands(args)
 
+    def _check_expedite(self, commands):
+        '''
+        Return True if any of the commands have the expedite flag.
+        '''
+        for value in commands.values():
+            if 'EXPEDITE' in value[1]:
+                return True
+        return False
+
     def update(self):
         '''
         Exception-triggering method. Must be overridden in children classes.
@@ -103,6 +112,8 @@ class Circle(GeneralProcedure):
         else:
             msg = 'Unknown parameter for circle command.'
             raise BaseException(msg)
+        if self._check_expedite(commands):
+            st['haste'] = 'expedite'
         log.info('%s is circling %s' % (self.plane.icao, st['veer_dir']))
 
 
@@ -178,14 +189,16 @@ class Land(GeneralProcedure):
             return self._abort_landing(msg)
         # EARLY RETURN - Although the intersection is ahead of the plane,
         # it's too late to merge into the ILS vector
-        # BUG: doesn't work with 'expedite'! :(
-        if l.set_merge_point(pi.navigator.get_veering_radius('normal')) < 0:
+        type_ = pi.status['haste']
+        if l.set_merge_point(pi.navigator.get_veering_radius(type_)) < 0:
             msg = 'We are too close to the ILS to merge into it'
             return self._abort_landing(msg)
         # LANDING IS NOT EXCLUDED A PRIORI...
         log.info('%s started landing procedure, destination: %s %s' %
                                 (self.plane.icao, port_name, rnwy_name))
         # SETTING PERSISTENT DATA
+        if self._check_expedite(commands):
+            pi.status['haste'] = 'expedite'
         self.phase = self.INTERCEPTING
         self.lander = l
 
@@ -328,6 +341,8 @@ class TakeOff(GeneralProcedure):
         # LOG
         log.info('%s is taking off from %s %s' %
                                     (pl.icao, pl.origin, runway['name']))
+        if self._check_expedite(commands):
+            self.pilot.status['haste'] = 'expedite'
 
     def update(self):
         '''

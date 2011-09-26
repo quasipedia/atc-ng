@@ -80,14 +80,16 @@ class ParserTest(unittest.TestCase):
         Automatically test all commands, building possible forms from
         introspectively looking at the YAML definition file.
         '''
-        ARGUMENTS = dict(HEADING = ['135', '000', '090', '360'],
+        ARGUMENTS = dict(ABORT = [],
                          ALTITUDE = ['25', '05'],
+                         BYE = [],
+                         CIRCLE = ['CCW', 'L', 'LEFT', 'RIGHT', 'R', 'CW'],
+                         CLEAR = ['NDB1', 'NDB2'],
+                         HEADING = ['135', '000', '360', '090'],
+                         LAND = ['ARN 01L', 'ARN 19L', 'ARN 08', 'ARN 26'],
                          SPEED = ['450', '525'],
                          SQUAWK = [],
-                         LAND = ['ARN 01L', 'ARN 19L', 'ARN 08', 'ARN 26'],
-                         ABORT = [],
                          TAKEOFF = ['01R', '01L', '08', '26'],
-                         CIRCLE = ['CCW', 'L', 'LEFT', 'RIGHT', 'R', 'CW'],
                          )
         icao = 'ABC1234'
         commands = comm.PLANE_COMMANDS
@@ -104,6 +106,8 @@ class ParserTest(unittest.TestCase):
                     exp_arg = [int(arg)]
                 elif command == 'LAND':
                     exp_arg = arg.split()
+                elif command == 'CLEAR':
+                    exp_arg = ()
                 else:
                     exp_arg  = [arg]
                 for c_spell in c_values['spellings']:
@@ -160,6 +164,22 @@ class ParserTest(unittest.TestCase):
             result = self.parser.parse()
             to_compare = result[1][0]
             self.assertEqual(type(to_compare) == list, expected, result)
+
+    def testRelativeHeading(self):
+        '''
+        Test command ``HEADING`` works fine with relatives entries.
+        '''
+        TO_TEST = [('ABC1234 HEAD +45', True),
+                   ('ABC1234 HEAD -120', True),
+                   ('ABC1234 HEAD -ABC', False),]
+        for line, expected in TO_TEST:
+            self.parser.initialise(line)
+            # discard the callable, and assume only one take the first line
+            # of commands [we never combine commands in this test]
+            result = self.parser.parse()
+            to_compare = result[1][0]
+            self.assertEqual(type(to_compare) == list, expected, result)
+
 
 
 if __name__ == "__main__":

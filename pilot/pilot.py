@@ -134,6 +134,7 @@ class Pilot(object):
         self.checker = checker.Checker(self)
         self.navigator = navigator.Navigator(self)
         self.executer = executer.Executer(self)
+        self.last_radio_hash = None
 
     def _reset_status(self):
         '''
@@ -277,8 +278,9 @@ class Pilot(object):
         Perform an order issued by the player.
         Input is a list of triplets each of them in the format:
         [command, [arg1, arg2, ...], [flag1, flag2, ...]].
-        Return (boolean, message).
+        Return boolean.
         '''
+        radio_last = self.last_radio_hash
         # Transform the commands in a more suitable dictionary form..
         commands = dict([(a, (b, c)) for a, b, c in commands])
         # ...perform validity checks...
@@ -287,16 +289,23 @@ class Pilot(object):
             log.debug('%s failed to execute %s. Message: %s'
                       % (self.plane.icao, commands, check))
             self.say(check, KO_COLOUR)
+            return False
         # ..and eventually execute the commands!
-        else:
-            self.executer.execute(commands)
-            if 'SQUAWK' not in commands:  #already saying something there!
-                self.say(choice(self.AFFIRMATIVE_ANSWERS), OK_COLOUR)
+        self.executer.execute(commands)
+        # If no radio feedback has been provided yet by any of the commands,
+        # provide a generic affirmative answer.
+        if radio_last == self.last_radio_hash:
+            self.say(choice(self.AFFIRMATIVE_ANSWERS), OK_COLOUR)
+        return True
 
     def say(self, what, colour):
         '''
         Output a message on the console.
+        ``self.last_said`` is an hash of the last radio transmission. It can
+        be used to check if a certain piece of code has outputted any radio
+        message.
         '''
+        self.last_radio_hash = id([self.plane.callsign, what, colour])
         self.plane.aerospace.gamelogic.say(self.plane.callsign, what, colour)
 
     def update(self):

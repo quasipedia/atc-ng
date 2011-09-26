@@ -89,8 +89,8 @@ class LanderTest(unittest.TestCase):
         '''
         self.plane.position = Vector3(19000, 0, 0)
         self.plane.velocity = Vector3(0, 500 / 3.6, 0)
-        self.pilot.set_target_conf_to_current()
-        self.pilot.land('ABC', '36')
+        self.pilot._set_target_conf_to_current()
+        self.pilot.do([['LAND', ['ABC', '36'], []]])
         msg = self.gamelogic.last_said
         self.assertGreater(msg.find('abort'), -1)
         print 'PARALLEL: %s' % self.gamelogic.last_said
@@ -101,8 +101,8 @@ class LanderTest(unittest.TestCase):
         '''
         self.plane.position = Vector3(10000, 10000, 0)
         self.plane.velocity = Vector3(500 / 3.6, 0, 0)
-        self.pilot.set_target_conf_to_current()
-        self.pilot.land('ABC', '36')
+        self.pilot._set_target_conf_to_current()
+        self.pilot.do([['LAND', ['ABC', '36'], []]])
         msg = self.gamelogic.last_said
         self.assertGreater(msg.find('abort'), -1)
         print 'OVER 60°: %s' % self.gamelogic.last_said
@@ -113,9 +113,11 @@ class LanderTest(unittest.TestCase):
         '''
         self.plane.position = Vector3(21000, 10000, 0)
         self.plane.velocity = Vector3(200/3.6, 200/3.6, 0)
-        self.pilot.set_target_conf_to_current()
-        self.pilot.land('ABC', '36')
+        self.pilot._set_target_conf_to_current()
+        self.pilot.do([['LAND', ['ABC', '36'], []]])
         msg = self.gamelogic.last_said
+        for i in range(10):
+            self.pilot.update()
         self.assertGreater(msg.find('abort'), -1)
         print 'NO CROSSING: %s' % self.gamelogic.last_said
 
@@ -125,8 +127,8 @@ class LanderTest(unittest.TestCase):
         '''
         self.plane.position = Vector3(18000, 10000, 0)
         self.plane.velocity = Vector3(800/3.6, 800/3.6, 0)
-        self.pilot.set_target_conf_to_current()
-        self.pilot.land('ABC', '36')
+        self.pilot._set_target_conf_to_current()
+        self.pilot.do([['LAND', ['ABC', '36'], []]])
         msg = self.gamelogic.last_said
         self.assertGreater(msg.find('abort'), -1)
         print 'TOO CLOSE: %s' % self.gamelogic.last_said
@@ -137,9 +139,9 @@ class LanderTest(unittest.TestCase):
         '''
         self.plane.position = Vector3(20000, 0, 0)
         self.plane.velocity = Vector3(0, 500 / 3.6, 0)
-        self.pilot.set_target_conf_to_current()
-        self.pilot.land('ABC', '36')
-        self.assertFalse(self.gamelogic.last_said)
+        self.pilot._set_target_conf_to_current()
+        self.pilot.do([['LAND', ['ABC', '36'], []]])
+        self.assertTrue('abort' not in self.gamelogic.last_said)
 
     def testLateAbortTooHigh(self):
         '''
@@ -148,8 +150,8 @@ class LanderTest(unittest.TestCase):
         '''
         self.plane.position = Vector3(18000, 16000, 10000)
         self.plane.velocity = Vector3(200/3.6, 200/3.6, 0)
-        self.pilot.set_target_conf_to_current()
-        self.pilot.land('ABC', '36')
+        self.pilot._set_target_conf_to_current()
+        self.pilot.do([['LAND', ['ABC', '36'], []]])
         for i in range(500):
             self.pilot.update()
         msg = self.gamelogic.last_said
@@ -163,8 +165,8 @@ class LanderTest(unittest.TestCase):
         '''
         self.plane.position = Vector3(16000, 14000, 100)
         self.plane.velocity = Vector3(600/3.6, 600/3.6, 0)
-        self.pilot.set_target_conf_to_current()
-        self.pilot.land('ABC', '36')
+        self.pilot._set_target_conf_to_current()
+        self.pilot.do([['LAND', ['ABC', '36'], []]])
         for i in range(500):
             self.pilot.update()
         msg = self.gamelogic.last_said

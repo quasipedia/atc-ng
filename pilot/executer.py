@@ -88,6 +88,7 @@ class Executer(object):
                               (rint(pl.heading), pl.destination), OK_COLOUR)
             elif cname == 'BYE':
                 pi.status['bye'] = True
+                pi.say('Good-bye tower!')
             else:
                 log.debug('process_commands() ignored: %s' % cname)
             # PROCESS FLAGS

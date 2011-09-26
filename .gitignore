@@ -5,3 +5,4 @@
 *_build*
 docs/*.inc
 count.sh
+git-loc

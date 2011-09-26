@@ -55,7 +55,7 @@ class Checker(object):
             return 'We should probably TAKEOFF first, uh?'
         # Reject orders if they contain an altitude beyond max_altitude
         if 'ALTITUDE' in cnames and \
-                        commands['ALTITUDE'][0][0] >= pl.max_altitude:
+                        commands['ALTITUDE'][0][0] > pl.max_altitude:
             return 'The target altitude is above the maximum one for our ' +\
                    'aircraft.'
         # Reject orders if they contain a speed out of speed limits (min/max)
