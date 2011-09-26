@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8  -*-
 '''
-Test the util heading_in_betweentions for ATC-NG game.
+Test the util U.heading_in_betweentions for ATC-NG game.
 '''
 
 import unittest
-from lib.utils import *
 from random import randint
+
+import lib.utils as U
+from engine.settings import settings as S
 from lib.euclid import Vector3
 
 __author__ = "Mac Ryan"
@@ -22,29 +24,29 @@ __status__ = "Development"
 class Test(unittest.TestCase):
 
     '''
-    Test the utility heading_in_betweentions.
+    Test the utility U.heading_in_betweentions.
     '''
 
     def testRint(self):
         '''
         rint - round to integer and typecast to int
         '''
-        self.assertEqual(rint(0.35), 0)
-        self.assertEqual(rint(0.835), 1)
-        self.assertIsInstance(rint(3465657.4545), int)
+        self.assertEqual(U.rint(0.35), 0)
+        self.assertEqual(U.rint(0.835), 1)
+        self.assertIsInstance(U.rint(3465657.4545), int)
 
     def testSc(self):
         '''
         sc - transform coordinates from "world logic" to radar screen
         '''
         for i in range(100):
-            x = randint(0, 2*RADAR_RANGE)
-            y = randint(0, 2*RADAR_RANGE)
-            x, y = sc((x,y))
+            x = randint(0, 2 * S.RADAR_RANGE)
+            y = randint(0, 2 * S.RADAR_RANGE)
+            x, y = U.sc((x,y))
             self.assertGreaterEqual(x, 0)
-            self.assertLessEqual(x, RADAR_RECT.width)
+            self.assertLessEqual(x, S.RADAR_RECT.width)
             self.assertGreaterEqual(y, 0)
-            self.assertLessEqual(y, RADAR_RECT.height)
+            self.assertLessEqual(y, S.RADAR_RECT.height)
 
     def testVector2Heading(self):
         '''
@@ -57,7 +59,7 @@ class Test(unittest.TestCase):
                   ]
         for vector, result in TOTEST:
             vector = Vector3(*vector)
-            self.assertEqual(v3_to_heading(vector), result)
+            self.assertEqual(U.v3_to_heading(vector), result)
 
     def testHeading2Vector(self):
         '''
@@ -71,7 +73,7 @@ class Test(unittest.TestCase):
                    ( 45, (1/2**0.5, 1/2**0.5, 0))
                    ]
         for heading, xyz in TO_TEST:
-            res = heading_to_v3(heading)
+            res = U.heading_to_v3(heading)
             tuples = zip(res.xyz, xyz)
             for a, b in tuples:
                 self.assertAlmostEqual(a,b)
@@ -89,12 +91,12 @@ class Test(unittest.TestCase):
                      ([(0,0),   (7,7), (0,0),  (7,7) ], (None, 'overlapping')),
                      ([(0,0),   (0,9), (2,0),  (2,9) ], (None, 'parallelism'))]
         for points, result in POSITIVES:
-            res = segment_intersection(*points)
+            res = U.segment_intersection(*points)
             self.assertEqual(res[1], 'intersection')
             self.assertAlmostEqual(res[0][0], result[0], 4)
             self.assertAlmostEqual(res[0][1], result[1], 4)
         for points, result in NEGATIVES:
-            res = segment_intersection(*points)
+            res = U.segment_intersection(*points)
             self.assertEqual(res, result)
 
     def testRectangleIntersection(self):
@@ -109,9 +111,9 @@ class Test(unittest.TestCase):
         NEGATIVES = [[(-1,-1),   (1,1),       (5,5),     (6,6)],
                      [(-8.4,-2), (-7.33,1.3), (2,0.1),   (3,9)]]
         for points in POSITIVES:
-            self.assertTrue(rectangle_intersection(*points))
+            self.assertTrue(U.rectangle_intersection(*points))
         for points in NEGATIVES:
-            self.assertFalse(rectangle_intersection(*points))
+            self.assertFalse(U.rectangle_intersection(*points))
 
     def testGroundDistance(self):
         '''
@@ -123,7 +125,7 @@ class Test(unittest.TestCase):
                    ((0,0,0), (1,1,1),    2**0.5),
                    ((0,0,0), (-1,-1,-1), 2**0.5)]
         for v1, v2, r in TO_TEST:
-            back = ground_distance(Vector3(*v1), Vector3(*v2))
+            back = U.ground_distance(Vector3(*v1), Vector3(*v2))
             self.assertAlmostEqual(back, r, 5)
 
     def testInBetween(self):
@@ -131,61 +133,61 @@ class Test(unittest.TestCase):
         in_between - number comprised between two?
         '''
         # Positive range
-        self.assertTrue(in_between((0, 10), 5))
-        self.assertTrue(in_between((10, 0), 5))
-        self.assertFalse(in_between((0, 10), 15))
-        self.assertFalse(in_between((10, 0), 15))
+        self.assertTrue(U.in_between((0, 10), 5))
+        self.assertTrue(U.in_between((10, 0), 5))
+        self.assertFalse(U.in_between((0, 10), 15))
+        self.assertFalse(U.in_between((10, 0), 15))
         # Negative range
-        self.assertTrue(in_between((0, -10), -5))
-        self.assertTrue(in_between((-10, 0), -5))
-        self.assertFalse(in_between((0, -10), -15))
-        self.assertFalse(in_between((-10, 0), -15))
+        self.assertTrue(U.in_between((0, -10), -5))
+        self.assertTrue(U.in_between((-10, 0), -5))
+        self.assertFalse(U.in_between((0, -10), -15))
+        self.assertFalse(U.in_between((-10, 0), -15))
         # Spanning range
-        self.assertTrue(in_between((10, -10), 5))
-        self.assertTrue(in_between((-10, 10), 5))
-        self.assertTrue(in_between((10, -10), -5))
-        self.assertTrue(in_between((-10, 10), -5))
-        self.assertFalse(in_between((10, -10), 15))
-        self.assertFalse(in_between((-10, 10), 15))
-        self.assertFalse(in_between((10, -10), -15))
-        self.assertFalse(in_between((-10, 10), -15))
+        self.assertTrue(U.in_between((10, -10), 5))
+        self.assertTrue(U.in_between((-10, 10), 5))
+        self.assertTrue(U.in_between((10, -10), -5))
+        self.assertTrue(U.in_between((-10, 10), -5))
+        self.assertFalse(U.in_between((10, -10), 15))
+        self.assertFalse(U.in_between((-10, 10), 15))
+        self.assertFalse(U.in_between((10, -10), -15))
+        self.assertFalse(U.in_between((-10, 10), -15))
         # Edges
-        self.assertTrue(in_between((-10, 10), 10))
-        self.assertTrue(in_between((-10, 10), -10))
+        self.assertTrue(U.in_between((-10, 10), 10))
+        self.assertTrue(U.in_between((-10, 10), -10))
         # Punctiform
-        self.assertTrue(in_between((10, 10), 10))
+        self.assertTrue(U.in_between((10, 10), 10))
 
     def testHeadingInBetween(self):
         '''
-        heading_in_between - heading in the shortest arc between other two
+        U.heading_in_between - heading in the shortest arc between other two
         '''
         # Normalised values
-        self.assertTrue(heading_in_between((0, 90), 45))
-        self.assertTrue(heading_in_between((350, 10), 5))
-        self.assertTrue(heading_in_between((10, 350), 5))
-        self.assertTrue(heading_in_between((350, 10), -5))
-        self.assertTrue(heading_in_between((10, 350), -5))
-        self.assertFalse(heading_in_between((270, 0), 45))
+        self.assertTrue(U.heading_in_between((0, 90), 45))
+        self.assertTrue(U.heading_in_between((350, 10), 5))
+        self.assertTrue(U.heading_in_between((10, 350), 5))
+        self.assertTrue(U.heading_in_between((350, 10), -5))
+        self.assertTrue(U.heading_in_between((10, 350), -5))
+        self.assertFalse(U.heading_in_between((270, 0), 45))
         # Non-normalised values
-        self.assertTrue(heading_in_between((-60, 60), -1))
-        self.assertTrue(heading_in_between((-60, 60), -0))
-        self.assertTrue(heading_in_between((-60, 60), 1))
-        self.assertTrue(heading_in_between((60, -60), -1))
-        self.assertTrue(heading_in_between((60, -60), -0))
-        self.assertTrue(heading_in_between((60, -60), 1))
-        self.assertFalse(heading_in_between((-60, 60), -179))
-        self.assertFalse(heading_in_between((-60, 60), -180))
-        self.assertFalse(heading_in_between((-60, 60), 180))
-        self.assertFalse(heading_in_between((-60, 60), 179))
-        self.assertFalse(heading_in_between((60, -60), -179))
-        self.assertFalse(heading_in_between((60, -60), -180))
-        self.assertFalse(heading_in_between((60, -60), 180))
-        self.assertFalse(heading_in_between((60, -60), 179))
+        self.assertTrue(U.heading_in_between((-60, 60), -1))
+        self.assertTrue(U.heading_in_between((-60, 60), -0))
+        self.assertTrue(U.heading_in_between((-60, 60), 1))
+        self.assertTrue(U.heading_in_between((60, -60), -1))
+        self.assertTrue(U.heading_in_between((60, -60), -0))
+        self.assertTrue(U.heading_in_between((60, -60), 1))
+        self.assertFalse(U.heading_in_between((-60, 60), -179))
+        self.assertFalse(U.heading_in_between((-60, 60), -180))
+        self.assertFalse(U.heading_in_between((-60, 60), 180))
+        self.assertFalse(U.heading_in_between((-60, 60), 179))
+        self.assertFalse(U.heading_in_between((60, -60), -179))
+        self.assertFalse(U.heading_in_between((60, -60), -180))
+        self.assertFalse(U.heading_in_between((60, -60), 180))
+        self.assertFalse(U.heading_in_between((60, -60), 179))
         # Tricky cases
-        self.assertTrue(heading_in_between((-90, 90), 0))
-        self.assertTrue(heading_in_between((-90, 90), 180))
+        self.assertTrue(U.heading_in_between((-90, 90), 0))
+        self.assertTrue(U.heading_in_between((-90, 90), 180))
         # Cases discovered through bugs
-        self.assertTrue(heading_in_between((300, 60), 350))
+        self.assertTrue(U.heading_in_between((300, 60), 350))
 
     def testIsBehind(self):
         '''
@@ -198,7 +200,7 @@ class Test(unittest.TestCase):
                    ]
         for vel, pos, tar, res in TO_TEST:
             vel, pos, tar = [Vector3(*el) for el in (vel, pos, tar)]
-            self.assertEqual(is_behind(vel, pos, tar), res)
+            self.assertEqual(U.is_behind(vel, pos, tar), res)
 
     def testDistancePointLine(self):
         '''
@@ -212,7 +214,7 @@ class Test(unittest.TestCase):
         for point, origin, vector, expected in TO_TEST:
             point, origin, vector = map(lambda x : Vector3(*x),
                                         [point, origin, vector])
-            result = distance_point_line(point, origin, vector)
+            result = U.distance_point_line(point, origin, vector)
             self.assertAlmostEqual(result, expected)
 
     def testXor(self):
@@ -224,7 +226,7 @@ class Test(unittest.TestCase):
                    ((True, True), False),
                    ((False, False), False)]
         for args, expected in TO_TEST:
-            self.assertEqual(logical_xor(*args), expected)
+            self.assertEqual(U.logical_xor(*args), expected)
 
     def testOnlyOne(self):
         '''
@@ -239,7 +241,7 @@ class Test(unittest.TestCase):
                    ((False, False, ['hello', 42]), True),
                    (('hello', 42, False), False)]
         for arg, expected in TO_TEST:
-            self.assertEqual(only_one(arg), expected)
+            self.assertEqual(U.only_one(arg), expected)
 
 
 if __name__ == "__main__":

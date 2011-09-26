@@ -4,11 +4,12 @@
 Provide support for pilot's navigation (calculate distances, radii, etc...).
 '''
 
-from math import tan
+from math import sin, tan, atan2, radians, degrees
 
-from lib.utils import *
-from lib.euclid import Vector3
+import lib.utils as U
+from engine.settings import settings as S
 from engine.logger import log
+from lib.euclid import Vector3
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright ©2011, Mac Ryan"
@@ -45,10 +46,10 @@ class Lander(object):
         '''
         pl = self.plane
         p1 = pl.position.xy
-        p2 = (pl.position + pl.velocity.normalized()*RADAR_RANGE*3).xy
+        p2 = (pl.position + pl.velocity.normalized()*S.RADAR_RANGE*3).xy
         p3 = self.foot.xy
-        p4 = (Vector3(*self.foot) + -self.ils.normalized()*RADAR_RANGE*3).xy
-        self.ip, comment = segment_intersection(p1, p2, p3, p4)
+        p4 = (Vector3(*self.foot) + -self.ils.normalized()*S.RADAR_RANGE*3).xy
+        self.ip, comment = U.segment_intersection(p1, p2, p3, p4)
         # If no point is due to overlapping, set the point as present position
         # of the plane.
         if comment == 'overlapping':
@@ -71,7 +72,7 @@ class Lander(object):
         # target one. Since tan(angle) = opposite/adjacent the we solve for
         # adjacent with = adjacent = opposite/tan(angle)
         h1 = self.plane.heading
-        h2 = v3_to_heading(self.ils)
+        h2 = U.v3_to_heading(self.ils)
         a1 = abs((h1-h2)%360)
         a2 = abs((h2-h1)%360)
         angle = min(a1, a2)
@@ -94,10 +95,10 @@ class Lander(object):
         # To calculate the amount of space, simulate the breaking procedure
         # and measure it. Each loop is equivalent to one radar ping.
         while True:
-            dist += speed * PING_IN_SECONDS
+            dist += speed * S.PING_IN_SECONDS
             if speed <= pl.landing_speed:
                 break
-            speed += pl.ground_accels[0] * PING_IN_SECONDS
+            speed += pl.ground_accels[0] * S.PING_IN_SECONDS
         distance = abs(self.foot - self.plane.position) - dist
         self.bp = self.pilot.navigator.get_point_ahead(distance)
 
@@ -110,10 +111,10 @@ class Lander(object):
         rman = self.plane.aerospace.runways_manager
         if rman.check_runway_free(self.port, self.rnwy):
             rman.use_runway(self.port, self.rnwy, self.plane)
-            full_length_speed = float(self.rnwy['length'])/RUNWAY_BUSY_TIME
+            full_length_speed = float(self.rnwy['length'])/S.RUNWAY_BUSY_TIME
             self.taxiing_data = dict(
                  speed = min(self.plane.landing_speed, full_length_speed),
-                 timer = RUNWAY_BUSY_TIME)
+                 timer = S.RUNWAY_BUSY_TIME)
             log.debug('%s *positive* landing decision on %s %s' %
                       (self.plane.icao, self.port.iata, self.rnwy['name']))
             self.plane.flags.locked = True
@@ -164,7 +165,7 @@ class Lander(object):
         '''
         Altitude of glading path at current distance from runway foot.
         '''
-        return self.fd * sin(radians(SLOPE_ANGLE)) + self.foot.z
+        return self.fd * sin(radians(S.SLOPE_ANGLE)) + self.foot.z
 
 
 class Navigator(object):
@@ -201,7 +202,7 @@ class Navigator(object):
         '''
         Return True if the plane has overshot (i.e. flown past) the ``point``.
         '''
-        return is_behind(self.plane.velocity, self.plane.position, point)
+        return U.is_behind(self.plane.velocity, self.plane.position, point)
 
     def get_point_ahead(self, distance):
         '''
@@ -217,9 +218,9 @@ class Navigator(object):
         '''
         assert isinstance(point, Vector3)
         delta = point - self.plane.position
-        return v3_to_heading(delta)
+        return U.v3_to_heading(delta)
 
-    def get_aversion_course(self, point):
+    def get_aversion_course(self, point, colliding):
         '''
         Calculate the best course to avoid the colliding plane(s).
         This is done by:
@@ -246,8 +247,8 @@ class Navigator(object):
                 break
         # SET THE TARGET CONFIGURATION
         tc = pilot.target_conf
-        max_up = min(plane.max_altitude, MAX_FLIGHT_LEVEL)
-        tc.altitude = max_up if vector.z > 0 else MIN_FLIGHT_LEVEL
+        max_up = min(plane.max_altitude, S.MAX_FLIGHT_LEVEL)
+        tc.altitude = max_up if vector.z > 0 else S.MIN_FLIGHT_LEVEL
         tc.speed = plane.min_speed
         tc.heading = (90-degrees(atan2(vector.y, vector.x)))%360
         pilot.veering_direction = pilot.shortest_veering_direction()
@@ -267,7 +268,7 @@ class Navigator(object):
         veering to a certain course is.
         '''
         theta = (self.plane.heading - self.pilot.target_conf.heading) % 360
-        return LEFT if theta < 180 else RIGHT
+        return S.LEFT if theta < 180 else S.RIGHT
 
     def get_intersection_point(self, vector, point):
         '''
@@ -280,7 +281,7 @@ class Navigator(object):
         p2 = (self.plane.position + self.plane.velocity).xy
         p3 = point.xy
         p4 = (point + vector).xy
-        return line_intersection(p1, p2, p3, p4)
+        return U.line_intersection(p1, p2, p3, p4)
 
     def get_veering_radius(self, veer_type, speed=None):
         '''
@@ -321,6 +322,6 @@ class Navigator(object):
             max_manouvering_g = self.plane.max_g
         else:
             raise BaseException('Unknown veer type')
-        g_to_mks = lambda x : G_GRAVITY * x
+        g_to_mks = lambda x : S.G_GRAVITY * x
         acc_module = (g_to_mks(max_manouvering_g)**2-g_to_mks(1)**2)**0.5
         return acc_module/speed

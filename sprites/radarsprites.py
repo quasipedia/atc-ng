@@ -6,19 +6,20 @@ Provides the sprite classes used in the radar window.
 These are: aeroplanes, trailing dots, labels (tags) and tags connectors.
 '''
 
-from engine.settings import *
-from lib.utils import *
-from pygame.locals import *
+import os
+from math import radians, sin, cos
+
 import pygame.sprite
 import pygame.surfarray
 import pygame.transform
-import pygame.surface
 import pygame.image
 import pygame.font
-import os
-from math import sin, cos, radians
+from pygame.locals import *
+from pkg_resources import resource_stream  #@UnresolvedImport
+
+import lib.utils as U
+from engine.settings import settings as S
 from lib.euclid import Vector2
-from pkg_resources import resource_stream
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -71,10 +72,10 @@ class SuperSprite(pygame.sprite.Sprite):
         of the radar window.
         '''
         sh_size = sheet.get_rect()
-        w, h = sh_size.width/PLANE_STATES_NUM, sh_size.height
+        w, h = sh_size.width / S.PLANE_STATES_NUM, sh_size.height
         sprites = []
-        for i in range(PLANE_STATES_NUM):
-            crop_area = (pygame.rect.Rect((0+i*w, 0), (w, h)))
+        for i in range(S.PLANE_STATES_NUM):
+            crop_area = (pygame.rect.Rect((0 + i * w, 0), (w, h)))
             sprites.append(cls.crop(sheet, crop_area))
         return sprites
 
@@ -169,7 +170,7 @@ class Tag(SuperSprite):
 
     @classmethod
     def initialise(cls):
-        cls.fontobj = pygame.font.Font(MAIN_FONT, HUD_INFO_FONT_SIZE)
+        cls.fontobj = pygame.font.Font(S.MAIN_FONT, S.HUD_INFO_FONT_SIZE)
         cls.default_angle = 45
         cls.default_radius = 50
         cls.initialised = True
@@ -179,7 +180,7 @@ class Tag(SuperSprite):
         Return the image of the rendered multiline text
         '''
         font_height = self.fontobj.get_height()
-        self.color = STATUS_COLORS[self.plane.sprite_index]
+        self.color = S.STATUS_COLORS[self.plane.sprite_index]
         surfaces = [self.fontobj.render(ln, True, self.color) for ln in lines]
         maxwidth = max([s.get_width() for s in surfaces])
         result = pygame.surface.Surface((maxwidth, len(lines)*font_height),
@@ -209,10 +210,10 @@ class Tag(SuperSprite):
         '''
         cx, cy = self.plane.trail[0]
         rad = radians(self.angle)
-        ox = rint(cos(rad) * self.radius)
-        oy = -rint(sin(rad) * self.radius)  #minus because of screen coordinates
+        ox = U.rint(cos(rad) * self.radius)
+        oy = -U.rint(sin(rad) * self.radius)  #minus because of screen coordinates
         x, y = cx + ox, cy + oy
-        self.rect = get_rect_at_centered_pos(self.image, (x, y))
+        self.rect = U.get_rect_at_centered_pos(self.image, (x, y))
         return self.radar_rect.contains(self.rect)
 
     def update(self):
@@ -223,10 +224,10 @@ class Tag(SuperSprite):
         lines.append(pl.icao.upper())
         # LINE 2 = Altitude, speed
         # Remove last digit, add variometer
-        alt = str(rint(pl.altitude/100.0))
+        alt = str(U.rint(pl.altitude/100.0))
         alt += pl.variometer
         # Convert m/s to kph AND remove last digit, add accelerometer
-        spd = str(rint(pl.speed*3.6))
+        spd = str(U.rint(pl.speed*3.6))
         spd += pl.accelerometer
         lines.append('%s%s' % (alt,spd))
         self.image = self.render_lines(lines)
@@ -257,10 +258,10 @@ class TrailingDot(SuperSprite):
         base_sprites = cls.get_sprites_from_sheet(cls.sprite_sheet)
         cls.sprites = []
         # Generate the fading matrix
-        fade_step = int(round(-100.0 / TRAIL_LENGTH))
+        fade_step = int(round(-100.0 / S.TRAIL_LENGTH))
         for opacity_percentage in range(100, 0, fade_step):
             rtsc = cls.rotoscale
-            tmp = [rtsc(img, 0, SPRITE_SCALING, 2) for img in base_sprites]
+            tmp = [rtsc(img, 0, S.SPRITE_SCALING, 2) for img in base_sprites]
             dim = lambda x : int(round(x * opacity_percentage/100))
             for img in tmp:
                 a_values = pygame.surfarray.pixels_alpha(img)
@@ -290,7 +291,7 @@ class TrailingDot(SuperSprite):
         if status != self.last_status:
             self.image = self.sprites[self.time_shift][status]
         rect = self.data_source.trail[self.time_shift]
-        self.rect = get_rect_at_centered_pos(self.image, rect)
+        self.rect = U.get_rect_at_centered_pos(self.image, rect)
 
 
 class AeroplaneIcon(SuperSprite):
@@ -340,10 +341,10 @@ class AeroplaneIcon(SuperSprite):
             # offset is compensated by the orientation of the original sprite
             # (North rather than East).
             heading *= -1
-            self.image = self.rotoscale(img, heading, SPRITE_SCALING,
-                                                      MIN_PLANE_ICON_SIZE)
+            self.image = self.rotoscale(img, heading, S.SPRITE_SCALING,
+                                                      S.MIN_PLANE_ICON_SIZE)
         self.rect = \
-            get_rect_at_centered_pos(self.image, self.data_source.trail[0])
+            U.get_rect_at_centered_pos(self.image, self.data_source.trail[0])
 
 
 # Initialisation of the sprite classes

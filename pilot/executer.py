@@ -6,10 +6,10 @@ The classes needed to process orders.
 
 from time import time
 
-from engine.settings import *
-from engine.logger import log
-from lib.utils import rint
+import lib.utils as U
 import procedures
+from engine.settings import settings as S
+from engine.logger import log
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright ©2011, Mac Ryan"
@@ -82,10 +82,10 @@ class Executer(object):
             elif cname == 'SQUAWK':
                 if pl.flags.on_ground:
                     pi.say('Currently at airport %s, our destination is %s' %
-                              (pl.origin, pl.destination), OK_COLOUR)
+                              (pl.origin, pl.destination), S.OK_COLOUR)
                 else:
                     pi.say('Currently heading %s, our destination is %s' %
-                              (rint(pl.heading), pl.destination), OK_COLOUR)
+                          (U.rint(pl.heading), pl.destination), S.OK_COLOUR)
             elif cname == 'BYE':
                 pi.status['bye'] = True
                 pi.say('Good-bye tower!')
@@ -115,7 +115,7 @@ class Executer(object):
         pl.time_last_cmd = time()
         cnames = set(commands.keys())
         if 'SQUAWK' not in cnames:
-            pi.aerospace.gamelogic.score_event(COMMAND_IS_ISSUED)
+            pi.aerospace.gamelogic.score_event(S.COMMAND_IS_ISSUED)
         # PROCEDURES
         proc_name = cnames & set(self.PROCEDURES.keys())
         if proc_name:

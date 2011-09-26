@@ -6,10 +6,11 @@ Provides the sprite classes used in the radar window.
 These are: flight strips, airport maps,
 '''
 
-from engine.settings import *
-from lib.utils import *
-from pygame.locals import *
 import pygame.sprite
+from pygame.locals import *
+
+import lib.utils as U
+from engine.settings import settings as S
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -28,7 +29,7 @@ class StripsGroup(pygame.sprite.RenderUpdates):
     '''
 
     def update(self, *args):
-        cmp = lambda a,b : rint(b.plane.time_last_cmd - a.plane.time_last_cmd)
+        cmp = lambda a,b : U.rint(b.plane.time_last_cmd - a.plane.time_last_cmd)
         ordered = sorted(self.sprites(), cmp)
         for i, sprite in enumerate(ordered):
             sprite.target_y = i*FlightStrip.strip_h
@@ -53,29 +54,29 @@ class Score(pygame.sprite.Sprite):
     def __init__(self, gamelogic):
         super(Score, self).__init__()
         self.gamelogic = gamelogic
-        self.image = pygame.surface.Surface(SCORE_RECT.size, SRCALPHA)
+        self.image = pygame.surface.Surface(S.SCORE_RECT.size, SRCALPHA)
         self.rect = self.image.get_rect()
         self.score = self.gamelogic.score
-        self.fontobj = pygame.font.Font(MAIN_FONT, rint(self.rect.h * 0.8))
+        self.fontobj = pygame.font.Font(S.MAIN_FONT, U.rint(self.rect.h * 0.8))
 
     def update(self):
-        STEP = rint(PING_PERIOD / 1000.0 + 1)  #arbitrary: ping in sec + 1
-        self.image.fill(BLACK)
-        delta = rint(self.gamelogic.score) - self.score
+        STEP = U.rint(S.PING_PERIOD / 1000.0 + 1)  #arbitrary: ping in sec + 1
+        self.image.fill(S.BLACK)
+        delta = U.rint(self.gamelogic.score) - self.score
         if abs(delta) < STEP:
-            colour = WHITE
+            colour = S.WHITE
             variation = delta
         elif delta > 0:
-            colour = OK_COLOUR
+            colour = S.OK_COLOUR
             variation = STEP
         else:
-            colour = KO_COLOUR
+            colour = S.KO_COLOUR
             variation = -STEP
         self.score += variation
         score = str(self.score).zfill(6)
         score_img = self.fontobj.render(score, True, colour)
         score_img.subsurface(score_img.get_bounding_rect()).copy()
-        pos = get_rect_at_centered_pos(score_img, self.rect.center)
+        pos = U.get_rect_at_centered_pos(score_img, self.rect.center)
         self.image.blit(score_img, pos)
 
 
@@ -96,15 +97,15 @@ class FlightStrip(pygame.sprite.Sprite):
         self.plane = plane
         # Draw fixed part of the strip
         self.image = self.__get_empty(status)
-        self.image.blit(self.render_text('large', BLACK, plane.icao),
+        self.image.blit(self.render_text('large', S.BLACK, plane.icao),
                         (self.offset, self.offset))
         task = '%s ] %s' % (plane.origin, plane.destination)
-        self.image.blit(self.render_text('small', BLACK, task),
-                        (STRIPS_RECT.w*0.60, self.offset))
+        self.image.blit(self.render_text('small', S.BLACK, task),
+                        (S.STRIPS_RECT.w*0.60, self.offset))
         # Save the empty one as bkground
         self.bkground = self.image.copy()
         # Initial position
-        self.rect = pygame.rect.Rect(0, 0, STRIPS_RECT.w, self.strip_h)
+        self.rect = pygame.rect.Rect(0, 0, S.STRIPS_RECT.w, self.strip_h)
 
     @classmethod
     def __get_fontobj(cls, size_str):
@@ -115,16 +116,16 @@ class FlightStrip(pygame.sprite.Sprite):
             # set the big font
             size = 1
             while True:
-                fontobj = pygame.font.Font(MAIN_FONT, size)
-                w,h = fontobj.render('XXX0000', True, WHITE).get_size()
-                if w > STRIPS_RECT.w/2 - cls.offset - cls.margin:
+                fontobj = pygame.font.Font(S.MAIN_FONT, size)
+                w,h = fontobj.render('XXX0000', True, S.WHITE).get_size()
+                if w > S.STRIPS_RECT.w/2 - cls.offset - cls.margin:
                     break
                 last_ok = fontobj
                 size += 1
             cls.font_objects['large'] = last_ok
             # set the small font
-            cls.font_objects['small'] = pygame.font.Font(MAIN_FONT,
-                                                         rint(size/3.0))
+            cls.font_objects['small'] = pygame.font.Font(S.MAIN_FONT,
+                                                         U.rint(size/3.0))
         return cls.font_objects[size_str]
 
     @classmethod
@@ -133,24 +134,25 @@ class FlightStrip(pygame.sprite.Sprite):
         Generate an empty flight-strip.
         Return the pygame.surface object of appropriate colour and dimenstion.
         '''
-        tmp = cls.render_text('large', WHITE, 'XXX0000')
+        tmp = cls.render_text('large', S.WHITE, 'XXX0000')
         cls.strip_h = tmp.get_height() + 2*cls.offset
         if type_ not in cls.empty_sprites.keys():
-            if type_ == OUTBOUND:
-                color = PALE_RED
-            elif type_ == INBOUND:
-                color = PALE_GREEN
+            if type_ == S.OUTBOUND:
+                color = S.PALE_RED
+            elif type_ == S.INBOUND:
+                color = S.PALE_GREEN
             else:
                 raise BaseException('Unknown type of empty strip.')
-            s = pygame.surface.Surface((STRIPS_RECT.w, cls.strip_h), SRCALPHA)
-            for x in (cls.offset, STRIPS_RECT.w-cls.offset):
+            s = pygame.surface.Surface(
+                   (S.STRIPS_RECT.w, cls.strip_h), SRCALPHA)
+            for x in (cls.offset, S.STRIPS_RECT.w-cls.offset):
                 for y in (cls.offset, cls.strip_h-cls.offset):
                     pygame.draw.circle(s, color, (x,y), cls.radius)
             r = pygame.rect.Rect(cls.margin, cls.offset,
-                STRIPS_RECT.w-2*cls.margin, cls.strip_h-2*cls.offset)
+                S.STRIPS_RECT.w-2*cls.margin, cls.strip_h-2*cls.offset)
             pygame.draw.rect(s, color, r)
             r = pygame.rect.Rect(cls.offset, cls.margin,
-                STRIPS_RECT.w-2*cls.offset, cls.strip_h-2*cls.margin)
+                S.STRIPS_RECT.w-2*cls.offset, cls.strip_h-2*cls.margin)
             pygame.draw.rect(s, color, r)
             cls.empty_sprites[type_] = s
         return cls.empty_sprites[type_].copy()
@@ -164,12 +166,12 @@ class FlightStrip(pygame.sprite.Sprite):
         img = fo.render(text, True, color)
         return img.subsurface(img.get_bounding_rect()).copy()
 
-    def update(self, *args):
+    def update(self):
         self.image = self.bkground.copy()
-        fuel_msg = 'FUEL: %s' % str(rint(self.plane.fuel)).zfill(3)
-        color = DARK_GREEN if self.plane.fuel > 100 else KO_COLOUR
+        fuel_msg = 'FUEL: %s' % str(U.rint(self.plane.fuel)).zfill(3)
+        color = S.DARK_GREEN if self.plane.fuel > 100 else S.KO_COLOUR
         img = self.render_text('small', color, fuel_msg)
-        self.image.blit(img, (STRIPS_RECT.w*0.60,
+        self.image.blit(img, (S.STRIPS_RECT.w*0.60,
                               self.strip_h-self.offset-img.get_height()))
         self.rect.y += cmp(self.target_y, self.rect.y) * \
                        min(3, abs(self.rect.y - self.target_y))

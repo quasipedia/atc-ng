@@ -4,12 +4,13 @@
 A small library with useful functions for ATC-NG.
 '''
 
-import yaml
-from engine.settings import *
-from euclid import Vector2, Vector3
 from math import cos, sin, radians, degrees, atan2
-from random import randint
+
+import pygame.surface
 from pygame.locals import *
+
+from engine.settings import settings as S
+from lib.euclid import Vector2, Vector3
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -34,8 +35,8 @@ def sc(vector):
     - Translated (to below x axis)
     - With the y sign reversed (y are positive under x, on screen)
     '''
-    x, y = [int(round(c/METRES_PER_PIXEL)) for c in vector]
-    return (x, -(y-RADAR_RECT.height))
+    x, y = [int(round(c / S.METRES_PER_PIXEL)) for c in vector]
+    return (x, -(y - S.RADAR_RECT.height))
 
 def render_lines(fontobj, lines, colour):
     '''
@@ -68,9 +69,9 @@ def get_fontobj_by_text_width(font, text, max_size):
     while True:
         fontobj = pygame.font.Font(font, size)
         if isinstance(text, list):
-            img = render_lines(fontobj, text, WHITE)
+            img = render_lines(fontobj, text, S.WHITE)
         else:
-            img = fontobj.render(text, True, WHITE)
+            img = fontobj.render(text, True, S.WHITE)
         w,h = img.get_size()
         if w > max_w or h > max_h:
             break

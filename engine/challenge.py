@@ -4,14 +4,15 @@
 Provide the logic for the playing mode of ATC-NG.
 '''
 
-import entities.yamlhandlers as ymlhand
 import random
-from engine.settings import *
+from time import time
+
+import lib.utils as U
+import entities.yamlhandlers as ymlhand
+from engine.settings import settings as S
 from engine.logger import log
 from entities.aeroplane import Aeroplane
 from lib.euclid import Vector3
-from time import time
-from lib.utils import *
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -47,7 +48,7 @@ class Challenge(object):
         self.model_handler = ymlhand.PlaneModelHandler()
         self.__init_scenario()
         self.__init_entry_data()
-        self.fuel_per_metre = 1000/(RADAR_RANGE*11.3936)  #4 times diagonal
+        self.fuel_per_metre = 1000 / (S.RADAR_RANGE*11.3936)  #4 times diagonal
         # PLANE ENTRY VARIABLES
         self.plane_counter = 0
         self.frequency = self.FREQ_START
@@ -71,7 +72,7 @@ class Challenge(object):
         gates_data = []
         for gate in self.scenario.gates:
             position = Vector3(*gate.location)
-            velocity = heading_to_v3((gate.heading + 180)%360)
+            velocity = U.heading_to_v3((gate.heading + 180)%360)
             levels = range(gate.top, gate.bottom-500, -500)
             levels = [l for l in levels if l%1000 == 500]
             gates_data.append((gate.name, position, velocity, levels))
@@ -123,7 +124,7 @@ class Challenge(object):
                         vel = vel.copy()
                         tmp = random.choice(self.scenario.airports)
                         dest = tmp.iata
-                        fuel = rint(ground_distance(pos, tmp.location)*
+                        fuel = U.rint(U.ground_distance(pos, tmp.location)*
                                     4*self.fuel_per_metre)
                         return dict(origin=orig, position=pos, velocity=vel,
                                     destination=dest, fuel=fuel,
@@ -135,7 +136,7 @@ class Challenge(object):
             vel = vel.copy()
             tmp = random.choice(self.scenario.gates)
             dest = tmp.name
-            fuel = rint(ground_distance(pos, Vector3(*tmp.location))*
+            fuel = U.rint(U.ground_distance(pos, Vector3(*tmp.location))*
                                 4*self.fuel_per_metre)
             return dict(origin=orig, position=pos, velocity=vel,
                         destination=dest, fuel=fuel,

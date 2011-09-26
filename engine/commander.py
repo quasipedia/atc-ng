@@ -4,18 +4,21 @@
 Provide functionality for entering commands and processing them.
 '''
 
-from engine.settings import *
-from engine.logger import log
-from lib.utils import *
-from pygame.locals import *
-from collections import deque
-from copy import copy
-from pkg_resources import resource_stream
-import pygame.font
 import re
 import time
-import yaml
 import os.path as path
+from collections import deque
+from copy import copy
+
+import yaml
+import pygame.font
+from pygame.locals import *
+from pkg_resources import resource_stream  #@UnresolvedImport
+
+import lib.utils as U
+from engine.settings import settings as S
+from engine.logger import log
+from lib.euclid import Vector3
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -206,8 +209,8 @@ class Parser(object):
             num_a = int(alt)
         except ValueError:
             return False
-        min_ = MIN_FLIGHT_LEVEL/100
-        max_ = MAX_FLIGHT_LEVEL/100
+        min_ = S.MIN_FLIGHT_LEVEL/100
+        max_ = S.MAX_FLIGHT_LEVEL/100
         if not (min_<= num_a <= max_ and len(alt) == 2 and num_a % 5 == 0):
             return False
         return [num_a * 100]  #return in metres
@@ -432,20 +435,20 @@ class CommandLine(object):
         # Properties for handling multiline console and history browsing
         self.command_history = []
         self.history_ptr = 0
-        self.console_lines = deque(maxlen=CONSOLE_LINES_NUM)
+        self.console_lines = deque(maxlen=S.CONSOLE_LINES_NUM)
         self.console_image = pygame.surface.Surface((0,0))
         self.last_console_snapshot = copy(self.console_lines)
-        self.cmd_prefix = ' '.join((OUTBOUND_ID, PROMPT_SEPARATOR))
+        self.cmd_prefix = ' '.join((S.OUTBOUND_ID, S.PROMPT_SEPARATOR))
         # Pygame font initialisation
         if not pygame.font.get_init():
             pygame.font.init()
         # Font size calculations
-        small_size = CLI_RECT.h * 0.9 / \
-                     (CONSOLE_LINES_NUM + 1.0/CONSOLE_FONT_SIZE_RATIO)
-        large_size = rint(small_size / CONSOLE_FONT_SIZE_RATIO)
-        small_size = rint(small_size)
-        self.large_f = pygame.font.Font(MAIN_FONT, large_size)
-        self.small_f = pygame.font.Font(MAIN_FONT, small_size)
+        small_size = S.CLI_RECT.h * 0.9 / \
+                     (S.CONSOLE_LINES_NUM + 1.0 / S.CONSOLE_FONT_SIZE_RATIO)
+        large_size = U.rint(small_size / S.CONSOLE_FONT_SIZE_RATIO)
+        small_size = U.rint(small_size)
+        self.large_f = pygame.font.Font(S.MAIN_FONT, large_size)
+        self.small_f = pygame.font.Font(S.MAIN_FONT, small_size)
         self.gcomm_processor = game_commands_processor
         self.parser = Parser(aerospace, game_commands_processor)
 
@@ -632,14 +635,14 @@ class CommandLine(object):
         # Parsing outcome: an iterable if successful OR a string if failure
         if type(parsed) in (unicode, str):
             answer_prefix = 'ERROR: '
-            self.msg_append(KO_COLOUR, answer_prefix+parsed)
+            self.msg_append(S.KO_COLOUR, answer_prefix+parsed)
         else:
             callable_, args = parsed
             fname = callable_.__name__
             # Successfully parsed commands get logged on console and inserted
             # into command history
             if fname == 'do':
-                self.msg_append(NEUTRAL_COLOUR,
+                self.msg_append(S.NEUTRAL_COLOUR,
                                 ' '.join((self.cmd_prefix,self.text)))
                 self.command_history.insert(0, self.text)
             # ...and executed
@@ -679,7 +682,7 @@ class CommandLine(object):
             elif self.history_ptr == 1:
                 self.chars = []
                 self.history_ptr = 0
-        elif event.unicode in VALID_CHARS:
+        elif event.unicode in S.VALID_CHARS:
             character = event.unicode.upper()
             # No unintentional spaces (issued by appending empty chars due
             # to modifiers keys)
@@ -702,17 +705,17 @@ class CommandLine(object):
         if self.last_console_snapshot != self.console_lines:
             self.last_console_snapshot = copy(self.console_lines)
             self.console_image = self._render_console_lines()
-        image = self.large_f.render(self.text + cursor, True, WHITE, BLACK)
+        image = self.large_f.render(self.text + cursor, True, S.WHITE, S.BLACK)
         sw, sh = self.surface.get_size()
         x = sw*0.01
         y = sh*0.03
-        self.surface.fill(BLACK)
+        self.surface.fill(S.BLACK)
         self.surface.blit(self.console_image, (x,y))
-        self.surface.blit(image,
-                          (x, 2*y+self.small_f.get_height()*CONSOLE_LINES_NUM))
+        self.surface.blit(
+          image, (x, 2 * y + self.small_f.get_height() * S.CONSOLE_LINES_NUM))
 
     def say(self, who, what, colour):
         '''
         Output a message on the console.
         '''
-        self.msg_append(colour, ' '.join([who, PROMPT_SEPARATOR, what]))
+        self.msg_append(colour, ' '.join([who, S.PROMPT_SEPARATOR, what]))

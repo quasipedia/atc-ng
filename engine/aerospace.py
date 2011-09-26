@@ -7,15 +7,16 @@ World modelling and representation for the ATC game.
 - Represent the radar.
 '''
 
-from engine.settings import *
-from engine.logger import log
-from lib.utils import *
 from itertools import combinations
-from lib.euclid import Vector3
+
 import pygame.sprite
-import entities.aeroplane
+
+import lib.utils as U
 import sprites.radarsprites
 import pilot.pilot
+from engine.settings import settings as S
+from engine.logger import log
+from lib.euclid import Vector3
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -117,41 +118,41 @@ class Aerospace(object):
         '''
         Draw the radar aid.
         '''
-        if not RADAR_AID:
+        if not S.RADAR_AID:
             return
-        centre = sc((RADAR_RANGE, RADAR_RANGE))
+        centre = U.sc((S.RADAR_RANGE, S.RADAR_RANGE))
         # Find how many metres a step consist of, making sure the final value
         # is sensible (not 12735.5, for example...)
         sensibles = [n*1000 for n in (1, 5, 10, 20, 25, 50, 100)]
-        attempts = [RADAR_RANGE*2/n for n in sensibles]
-        closest = min(attempts, key = lambda x : abs(x-RADAR_AID_STEPS))
+        attempts = [S.RADAR_RANGE * 2 / n for n in sensibles]
+        closest = min(attempts, key = lambda x : abs(x-S.RADAR_AID_STEPS))
         metres_per_step = sensibles[attempts.index(closest)]
-        if RADAR_AID == 'circles':
-            step_range = range(metres_per_step, rint(RADAR_RANGE*2**0.5),
+        if S.RADAR_AID == 'circles':
+            step_range = range(metres_per_step, U.rint(S.RADAR_RANGE*2**0.5),
                                metres_per_step)
             for radius in step_range:
-                pygame.draw.circle(self.surface, RADAR_AID_COLOUR, centre,
-                                   rint(radius/METRES_PER_PIXEL), 1)
-        elif RADAR_AID in ('grid', 'crosses', 'dots'):
+                pygame.draw.circle(self.surface, S.RADAR_AID_COLOUR, centre,
+                                   U.rint(radius/S.METRES_PER_PIXEL), 1)
+        elif S.RADAR_AID in ('grid', 'crosses', 'dots'):
             # In the following line: since division is integer division, this
             # will ensure that on marking will pass from the radar position
-            first = RADAR_RANGE - RADAR_RANGE/metres_per_step*metres_per_step
-            step_range = range(first, RADAR_RANGE*2+metres_per_step,
+            first = S.RADAR_RANGE - S.RADAR_RANGE/metres_per_step*metres_per_step
+            step_range = range(first, S.RADAR_RANGE * 2 + metres_per_step,
                                metres_per_step)
             draw = lambda fm, to : pygame.draw.aaline(self.surface,
-                                          RADAR_AID_COLOUR, sc(fm), sc(to))
+                                      S.RADAR_AID_COLOUR, U.sc(fm), U.sc(to))
             for step in step_range:
-                if RADAR_AID == 'grid':
-                    draw((step, 0), (step, RADAR_RANGE*2))
-                    draw((0, step), (RADAR_RANGE*2, step))
-                elif RADAR_AID in ('dots', 'crosses'):
+                if S.RADAR_AID == 'grid':
+                    draw((step, 0), (step, S.RADAR_RANGE*2))
+                    draw((0, step), (S.RADAR_RANGE*2, step))
+                elif S.RADAR_AID in ('dots', 'crosses'):
                     for step2 in step_range:
-                        if RADAR_AID == 'dots':
-                            pygame.draw.circle(self.surface, RADAR_AID_COLOUR,
-                                               sc((step, step2)), 2)
-                        elif RADAR_AID == 'crosses':
+                        if S.RADAR_AID == 'dots':
+                            pygame.draw.circle(self.surface, S.RADAR_AID_COLOUR,
+                                               U.sc((step, step2)), 2)
+                        elif S.RADAR_AID == 'crosses':
                             x, y = step, step2
-                            offset = rint(metres_per_step / 16.0)
+                            offset = U.rint(metres_per_step / 16.0)
                             draw((x-offset, y), (x+offset, y))
                             draw((x, y-offset), (x, y+offset))
         else:
@@ -175,15 +176,15 @@ class Aerospace(object):
         the aerospace corresponds to.
         '''
         crossed = []
-        origin = Vector3(RADAR_RANGE, RADAR_RANGE)
+        origin = Vector3(S.RADAR_RANGE, S.RADAR_RANGE)
         point = plane.position
         for gate in self.gates.values():
-            vector = heading_to_v3(gate.radial)
-            dist = distance_point_line(point, origin, vector)
-            boundaries = ((plane.heading - GATE_TOLERANCE) % 360,
-                          (plane.heading + GATE_TOLERANCE) % 360)
+            vector = U.heading_to_v3(gate.radial)
+            dist = U.distance_point_line(point, origin, vector)
+            boundaries = ((plane.heading - S.GATE_TOLERANCE) % 360,
+                          (plane.heading + S.GATE_TOLERANCE) % 360)
             if dist <= gate.width / 2 and \
-               heading_in_between(boundaries, gate.radial) and \
+               U.heading_in_between(boundaries, gate.radial) and \
                gate.bottom <= plane.altitude <= gate.top:
                 crossed.append(gate)
 #            for v in [dist, gate.bottom, gate.top]:
@@ -202,7 +203,7 @@ class Aerospace(object):
         self.top_layer.add(icon)
         record['sprites'].append(icon)
         # Trail dots sprites
-        for time_shift in range(1, TRAIL_LENGTH):
+        for time_shift in range(1, S.TRAIL_LENGTH):
             dot = sprites.radarsprites.TrailingDot(plane, time_shift)
             self.flying_sprites.add(dot, layer=time_shift)
             record['sprites'].append(dot)
@@ -220,7 +221,7 @@ class Aerospace(object):
         self.__planes[plane.icao] = record
         return plane
 
-    def remove_plane(self, plane, event):
+    def remove_plane(self, plane):
         '''
         Remove aeroplanes from the aerospace.
         '''
@@ -233,16 +234,16 @@ class Aerospace(object):
         Add an airport to the aerospace.
         '''
         self.__airports[a_port.iata] = a_port
-        a_image = a_port.get_image(scale=1.0/METRES_PER_PIXEL,
+        a_image = a_port.get_image(scale=1.0/S.METRES_PER_PIXEL,
                                    with_labels=False)
         # Place airport on radar
         offset = Vector3(-a_image.get_width()/2, -a_image.get_height()/2).xy
-        centre = sc(a_port.location.xy)
+        centre = U.sc(a_port.location.xy)
         pos = (centre[0]+offset[0], centre[1]+offset[1])
         self.surface.blit(a_image, pos)
         # Draw IATA name
-        fontobj = pygame.font.Font(MAIN_FONT, HUD_INFO_FONT_SIZE)
-        label = fontobj.render(a_port.iata, True, GREEN)
+        fontobj = pygame.font.Font(S.MAIN_FONT, S.HUD_INFO_FONT_SIZE)
+        label = fontobj.render(a_port.iata, True, S.GREEN)
         pos = centre[0]-label.get_width()/2, centre[1]-label.get_height()/2
         self.surface.blit(label, pos)
         # Draw RNWY feet and PORT centre (debugging purposes)
@@ -274,7 +275,7 @@ class Aerospace(object):
         for value in self.__planes.values():
             ppos = value['sprites'][0].position
             tpos = value['sprites'][-1].position
-            pygame.draw.aaline(self.surface, WHITE, ppos, tpos)
+            pygame.draw.aaline(self.surface, S.WHITE, ppos, tpos)
 
     def place_tags(self):
         '''
@@ -299,22 +300,22 @@ class Aerospace(object):
         '''
         Kill all sprites related to a plane that left the aerospace.
         '''
-        for icao, plane in self.__planes.items():
+        for plane in self.__planes.values():
             s = self.surface.get_rect()
             x, y = plane['sprites'][0].position
             if x < 0 or x > s.width or y < 0 or y > s.height:
                 msg = 'Tower? ... Tower? ... Aaaaahhhh!'
-                event = PLANE_LEAVES_RANDOM  #bakup result
-                colour = KO_COLOUR
+                event = S.PLANE_LEAVES_RANDOM  #bakup result
+                colour = S.KO_COLOUR
                 crossed = self.__get_crossed_gates(plane['plane'])
                 for gate in crossed:
                     msg = 'Tower? It doesn\'t seem we are where we should...'
-                    event = PLANE_LEAVES_WRONG_GATE  #little better!
+                    event = S.PLANE_LEAVES_WRONG_GATE  #little better!
                     if gate.name == plane['plane'].destination and \
                        plane['plane'].altitude % 1000 == 0:
                         msg = 'Thank you tower, and good bye!'
-                        colour = OK_COLOUR
-                        event = PLANE_LEAVES_CORRECT_GATE  #yay! :)
+                        colour = S.OK_COLOUR
+                        event = S.PLANE_LEAVES_CORRECT_GATE  #yay! :)
                 plane['plane'].pilot.say(msg, colour)
                 self.gamelogic.remove_plane(plane['plane'], event)
                 log.info('%s left aerospace under event %s' %
@@ -361,8 +362,8 @@ class Aerospace(object):
         '''
         for plane in self.aeroplanes:
             distance = point - plane.position
-            if abs(distance.z) < VERTICAL_CLEARANCE and \
-               distance.x**2 + distance.y**2 < HORIZONTAL_CLEARANCE**2:
+            if abs(distance.z) < S.VERTICAL_CLEARANCE and \
+               distance.x**2 + distance.y**2 < S.HORIZONTAL_CLEARANCE**2:
                 return True
         return False
 
@@ -376,8 +377,8 @@ class Aerospace(object):
         planes = [p for p in self.aeroplanes if p.flags.on_ground != True]
         for p1, p2 in combinations(planes, 2):
             distance = p1.position - p2.position
-            if abs(distance.z) < VERTICAL_CLEARANCE and \
-               distance.x**2 + distance.y**2 < HORIZONTAL_CLEARANCE**2:
+            if abs(distance.z) < S.VERTICAL_CLEARANCE and \
+               distance.x**2 + distance.y**2 < S.HORIZONTAL_CLEARANCE**2:
                 try:
                     data[p1.icao].append(p2)
                 except KeyError:

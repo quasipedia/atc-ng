@@ -4,12 +4,13 @@
 Code for the ATC-NG waypoints (entry/exit gates and beacons)
 '''
 
-from engine.settings import *
-from lib.utils import *
-from math import sin, cos, radians
-from pygame.locals import *
 import pygame.draw
 import pygame.transform
+from pygame.locals import *
+from math import radians, sin, cos
+
+import lib.utils as U
+from engine.settings import settings as S
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -50,7 +51,7 @@ class Gate(object):
         ss, cs = cmp(s, 0), cmp(c, 0)
         sa, ca = abs(s), abs(c)
         side = cmp(sa, ca)  #-1 for sides, 0 for corner, 1 or top or bottom
-        rr = RADAR_RANGE
+        rr = S.RADAR_RANGE
         x = cs * (rr if side <= 0 else rr/sa * ca) + rr
         y = ss * (rr if side >= 0 else rr/ca * sa) + rr
         self.location = (x, y)
@@ -62,31 +63,32 @@ class Gate(object):
         '''
         Blit self on radar surface.
         '''
-        x, y = sc(self.location)
+        x, y = U.sc(self.location)
         # GATE
         # In order to facilitate blitting information on the orientation of the
         # gate, we create the image already rotated 90° clockwise by swapping
         # width and height...
-        gate_width_px = rint(self.width/METRES_PER_PIXEL)
-        gate_length_px = RADAR_RECT.h/4
+        gate_width_px = U.rint(self.width / S.METRES_PER_PIXEL)
+        gate_length_px = S.RADAR_RECT.h / 4
         aaf = 5  #anti-alias factor
         g_img = pygame.surface.Surface((gate_length_px*aaf,
                                         gate_width_px*aaf), SRCALPHA)
         # BOUNDARIES OF THE GATE
-        pygame.draw.line(g_img, GRAY, (0, aaf),
-                              (gate_length_px*aaf, aaf), aaf)
-        pygame.draw.line(g_img, GRAY, (0, gate_width_px*aaf-aaf),
-                              (gate_length_px*aaf, gate_width_px*aaf-aaf), aaf)
+        pygame.draw.line(
+             g_img, S.GRAY, (0, aaf), (gate_length_px*aaf, aaf), aaf)
+        pygame.draw.line(
+             g_img, S.GRAY, (0, gate_width_px*aaf-aaf),
+             (gate_length_px*aaf, gate_width_px*aaf-aaf), aaf)
         # INFO ON ORIENTATION and FLIGHT LEVELS
         fl = lambda x : str(x/100).zfill(2)
         lines = ['H:' + str(self.heading).zfill(3),
                  'B:' + fl(self.bottom),
                  'T:' + fl(self.top)]
-        fontobj = pygame.font.Font(MAIN_FONT, HUD_INFO_FONT_SIZE*aaf)
-        label = render_lines(fontobj, lines, GRAY)
+        fontobj = pygame.font.Font(S.MAIN_FONT, S.HUD_INFO_FONT_SIZE * aaf)
+        label = U.render_lines(fontobj, lines, S.GRAY)
         label = label.subsurface(label.get_bounding_rect())
         w, h = label.get_size()
-        ypsilon = rint(gate_width_px*aaf/2.0-h/2)
+        ypsilon = U.rint(gate_width_px*aaf/2.0-h/2)
         g_img.blit(label, (0, ypsilon))
         g_img.blit(label, (gate_length_px*aaf-w, ypsilon))
         # tranformation and blitting
@@ -94,13 +96,13 @@ class Gate(object):
         g_img = pygame.transform.rotate(g_img, rotang-self.heading)
         g_img = g_img.subsurface(g_img.get_bounding_rect()).copy()
         r = g_img.get_rect()
-        g_img = pygame.transform.smoothscale(g_img, (rint(r.w*1.0/aaf),
-                                                     rint(r.h*1.0/aaf)))
+        g_img = pygame.transform.smoothscale(g_img, (U.rint(r.w*1.0/aaf),
+                                                     U.rint(r.h*1.0/aaf)))
         g_rect = g_img.get_rect()
         surface.blit(g_img, (x-g_rect.centerx, y-g_rect.centery))
         # LABEL
-        fontobj = pygame.font.Font(MAIN_FONT, HUD_INFO_FONT_SIZE)
-        label = fontobj.render(self.name, True, RED)
+        fontobj = pygame.font.Font(S.MAIN_FONT, S.HUD_INFO_FONT_SIZE)
+        label = fontobj.render(self.name, True, S.RED)
         w, h = label.get_size()
         signed_offset = lambda n : cmp(1,n)*w
         x += (signed_offset(x) if self.side <=0 else 0) - w/2
@@ -120,18 +122,18 @@ class Beacon(object):
         self.location = location
 
     def draw(self, surface):
-        pos = sc(self.location)
-        pygame.draw.circle(surface, GRAY, pos, 2)
-        pygame.draw.circle(surface, GRAY, pos, 6, 1)
-        fontobj = pygame.font.Font(MAIN_FONT, HUD_INFO_FONT_SIZE)
-        label = fontobj.render(self.id, True, BLUE)
+        pos = U.sc(self.location)
+        pygame.draw.circle(surface, S.GRAY, pos, 2)
+        pygame.draw.circle(surface, S.GRAY, pos, 6, 1)
+        fontobj = pygame.font.Font(S.MAIN_FONT, S.HUD_INFO_FONT_SIZE)
+        label = fontobj.render(self.id, True, S.BLUE)
         label = label.subsurface(label.get_bounding_rect()).copy()
         w, h = label.get_size()
         x, y = pos
         # In order to keep the crammed central space free, beacons labels are
         # always placed towards the edges of the radar screen, if possible.
-        offsets = [rint(6+w/3), -rint(6+w/3)-w]
-        index = x < RADAR_RECT.w/2
-        if not (0 < x+offsets[index] and x+offsets[index]+w < RADAR_RECT.w):
+        offsets = [U.rint(6+w/3), -U.rint(6+w/3)-w]
+        index = x < S.RADAR_RECT.w/2
+        if not (0 < x+offsets[index] and x+offsets[index]+w < S.RADAR_RECT.w):
             index = not index
         surface.blit(label, (x+offsets[index], y-h/2))

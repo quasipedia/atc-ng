@@ -4,7 +4,7 @@
 Verify if a given order can be performed.
 '''
 
-from lib.utils import rint
+import lib.utils as U
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright ©2011, Mac Ryan"
@@ -15,6 +15,7 @@ __license__ = "GPL v3"
 __maintainer__ = "Mac Ryan"
 __email__ = "quasipedia@gmail.com"
 __status__ = "Development"
+
 
 class Checker(object):
 
@@ -62,8 +63,8 @@ class Checker(object):
         if 'SPEED' in cnames and \
                         not self.plane.min_speed <= commands['SPEED'][0][0] \
                                                  <= self.plane.max_speed:
-            mi = rint(self.plane.min_speed * 3.6)
-            ma = rint(self.plane.max_speed * 3.6)
+            mi = U.rint(self.plane.min_speed * 3.6)
+            ma = U.rint(self.plane.max_speed * 3.6)
             return 'Our speed must be between %d and %d kph!' % (mi, ma)
         # Reject LAND order if unexisting airport or runway
         if 'LAND' in cnames:

@@ -5,11 +5,13 @@ Testing suite for various miscellaneous stuff in the pilot package.
 '''
 
 import unittest
+
+import lib.utils as U
 import entities.aeroplane as aero
 import pilot.pilot as pilo
 import engine.commander
+from engine.settings import settings as S
 from lib.euclid import Vector3
-from lib.utils import *
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -154,7 +156,7 @@ class MiscellaneousTest(unittest.TestCase):
         self.assertEqual(perform(), set(['altitude']))
         # Test heading variation
         setup()
-        self.pilot.veering_direction = LEFT
+        self.pilot.veering_direction = S.LEFT
         self.plane.pilot.target_conf.heading = 265
         self.assertEqual(perform(), set(['heading']))
 
@@ -181,12 +183,12 @@ class MiscellaneousTest(unittest.TestCase):
         self.assertTrue(perform())
         # Test heading variation (left)
         setup()
-        self.pilot.veering_direction = LEFT
+        self.pilot.veering_direction = S.LEFT
         self.plane.pilot.target_conf.heading = 265
         self.assertTrue(perform())
         # Test heading variation (right)
         setup()
-        self.pilot.veering_direction = RIGHT
+        self.pilot.veering_direction = S.RIGHT
         self.plane.pilot.target_conf.heading = 87
         self.assertTrue(perform())
         # Test speed variation
@@ -196,7 +198,7 @@ class MiscellaneousTest(unittest.TestCase):
         self.assertTrue(perform())
         # Test combined variation
         setup()
-        self.pilot.veering_direction = LEFT
+        self.pilot.veering_direction = S.LEFT
         self.plane.max_speed = 1000
         self.plane.pilot.target_conf.heading = 123
         self.plane.pilot.target_conf.altitude = 3543
@@ -231,10 +233,10 @@ class MiscellaneousTest(unittest.TestCase):
         '''
         Test that the plane execute veering in the right direction.
         '''
-        self.plane.velocity = heading_to_v3(90).normalized() * 300 / 3.6
+        self.plane.velocity = U.heading_to_v3(90).normalized() * 300 / 3.6
         self.pilot.do([('HEADING', [180], ['LONG'])])
         self.plane.update(5)
-        self.assertFalse(heading_in_between([90,180], self.plane.heading))
+        self.assertFalse(U.heading_in_between([90,180], self.plane.heading))
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']

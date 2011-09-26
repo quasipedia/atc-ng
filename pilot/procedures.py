@@ -7,10 +7,10 @@ A procedure in ATC-NG is defined as an order that requires the pilot to perform
 different actions at different stages of it.
 '''
 
+import lib.utils as U
 from lib.euclid import Vector3
-from lib.utils import v3_to_heading, heading_in_between
 from engine.logger import log
-from engine.settings import *
+from engine.settings import settings as S
 from navigator import Lander
 
 __author__ = "Mac Ryan"
@@ -106,9 +106,9 @@ class Circle(GeneralProcedure):
         st = self.pilot.status
         param = commands['CIRCLE'][0][0]
         if param in ('L', 'LEFT', 'CCW'):
-            st['veer_dir'] = LEFT
+            st['veer_dir'] = S.LEFT
         elif param in ('R', 'RIGHT', 'CW'):
-            st['veer_dir'] = RIGHT
+            st['veer_dir'] = S.RIGHT
         else:
             msg = 'Unknown parameter for circle command.'
             raise BaseException(msg)
@@ -122,10 +122,10 @@ class Circle(GeneralProcedure):
         Does nothing, as the circling must be explicitly interrupted with an
         ABORT command
         '''
-        assert self.pilot.status['veer_dir'] in (LEFT, RIGHT)
-        if self.pilot.status['veer_dir'] == LEFT:
+        assert self.pilot.status['veer_dir'] in (S.LEFT, S.RIGHT)
+        if self.pilot.status['veer_dir'] == S.LEFT:
             target = (self.plane.heading - 179) % 360
-        elif self.pilot.status['veer_dir'] == RIGHT:
+        elif self.pilot.status['veer_dir'] == S.RIGHT:
             target = (self.plane.heading + 179) % 360
         self.pilot.target_conf.heading = target
 
@@ -175,12 +175,12 @@ class Land(GeneralProcedure):
         self.lander = Lander(self.pilot, port_name, rnwy_name)
         l = self.lander
         # EARLY RETURN - Maximum incidence angle into the ILS is 60°
-        ils_heading = v3_to_heading(l.ils)
-        boundaries = [(ils_heading-ILS_TOLERANCE)%360,
-                      (ils_heading+ILS_TOLERANCE)%360]
-        if not heading_in_between(boundaries, pl.heading):
+        ils_heading = U.v3_to_heading(l.ils)
+        boundaries = [(ils_heading - S.ILS_TOLERANCE)%360,
+                      (ils_heading + S.ILS_TOLERANCE)%360]
+        if not U.heading_in_between(boundaries, pl.heading):
             msg = 'ILS heading must be within %s degrees ' \
-                  'from current heading' % ILS_TOLERANCE
+                  'from current heading' % S.ILS_TOLERANCE
             return self._abort_landing(msg)
         # EARLY RETURN - No possible intersection (the RADAR_RANGE*3
         # ensures that the segments to test for intersection are long enough.
@@ -209,7 +209,7 @@ class Land(GeneralProcedure):
         '''
         # TODO: Introducing abort codes would simplify testing!
         log.info('%s aborts: %s' % (self.plane.icao, msg))
-        self.pilot.say('Aborting landing: %s' % msg, ALERT_COLOUR)
+        self.pilot.say('Aborting landing: %s' % msg, S.ALERT_COLOUR)
         # Marked runway as free
         if self.lander and self.lander.taxiing_data:
             self.pilot.aerospace.runways_manger.release_runway(self.plane)
@@ -269,9 +269,9 @@ class Land(GeneralProcedure):
             if pi.navigator.check_overshot(l.bp):
                 pi.target_conf.speed = pl.landing_speed
             # Make decision if below minimum altitude
-            if not l.taxiing_data and l.above_foot <= DECISION_ALTITUDE:
+            if not l.taxiing_data and l.above_foot <= S.DECISION_ALTITUDE:
                 l.make_decision()
-            ticks = 1.0 * l.fd / pi.target_conf.speed / PING_IN_SECONDS
+            ticks = 1.0 * l.fd / pi.target_conf.speed / S.PING_IN_SECONDS
             z_step = 1.0 * l.above_foot / ticks
             pi.target_conf.altitude -= z_step
             if pl.position.z <= l.foot.z:
@@ -280,18 +280,18 @@ class Land(GeneralProcedure):
                 pi.target_conf.speed = l.taxiing_data['speed']
                 if pl.destination == l.port.iata:
                     msg = 'Thank you tower, we\'ve hit home. Over and out!'
-                    pi.say(msg, OK_COLOUR)
+                    pi.say(msg, S.OK_COLOUR)
                 else:
                     msg = 'Well, well... we just landed at the WRONG airport!'
-                    pi.say(msg, KO_COLOUR)
+                    pi.say(msg, S.KO_COLOUR)
         elif self.phase == self.TAXIING:
             log.debug('%s TAXIING: speed=%s fd=%s' % (pl.icao, pl.speed, l.fd))
-            l.taxiing_data['timer'] -= PING_IN_SECONDS
+            l.taxiing_data['timer'] -= S.PING_IN_SECONDS
             if l.taxiing_data['timer'] <= 0:
                 if pl.destination == l.port.iata:
-                    pl.terminate(PLANE_LANDS_CORRECT_PORT)
+                    pl.terminate(S.PLANE_LANDS_CORRECT_PORT)
                 else:
-                    pl.terminate(PLANE_LANDS_WRONG_PORT)
+                    pl.terminate(S.PLANE_LANDS_WRONG_PORT)
         return self.phase
 
 
@@ -321,12 +321,12 @@ class TakeOff(GeneralProcedure):
         self.end_of_runway = twin['location'] + port.location
         # SAVE PROCEDURE' PERSISTENT DATA
         h = commands['HEADING'][0][0] if 'HEADING' in commands \
-                                else v3_to_heading(vector)
+                                else U.v3_to_heading(vector)
         a = commands['ALTITUDE'][0][0] if 'ALTITUDE' in commands \
                                 else pl.max_altitude
         self.target_heading = h
         self.target_altitude = a
-        self.timer = RUNWAY_BUSY_TIME
+        self.timer = S.RUNWAY_BUSY_TIME
         # LET'S ROLL!!
         pl.position = start_point.copy()
         aspace.runways_manager.use_runway(port, twin, pl)
@@ -360,7 +360,7 @@ class TakeOff(GeneralProcedure):
             else:
                 if pi.navigator.check_overshot(self.end_of_runway):
                     log.info('%s crashed due to too short runway' % pl.icao)
-                    pl.terminate(PLANE_CRASHES)
+                    pl.terminate(S.PLANE_CRASHES)
         if self.phase == self.CLIMBING:
             if pi.navigator.check_overshot(self.end_of_runway):
                 pi.target_conf.heading = self.target_heading
@@ -371,4 +371,4 @@ class TakeOff(GeneralProcedure):
             pl.flags.locked = False
             pi.status['procedure'] = None
             log.info('%s has terminated takeoff, runway free' % pl.icao)
-        self.timer -= PING_IN_SECONDS
+        self.timer -= S.PING_IN_SECONDS

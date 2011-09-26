@@ -5,6 +5,7 @@ Testing suite for the pilot.navigator module.
 '''
 
 import unittest
+
 import entities.aeroplane as aero
 import pilot.pilot as pilo
 from lib.euclid import Vector3

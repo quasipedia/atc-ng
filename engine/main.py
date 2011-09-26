@@ -9,15 +9,17 @@ there". It's implemented in python (with pygame).
 This module sole purpose is to initialise and manage the pygame environment.
 '''
 
-from engine.settings import *
-from engine.logger import log
-from pygame.locals import *
-from logger import log
-import engine.settings
+import os
+import sys
+
 import pygame.display
 import pygame.image
 import traceback
+from pygame.locals import *
 from pkg_resources import resource_filename #@UnresolvedImport
+
+from engine.settings import settings as S
+from engine.logger import log
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -41,13 +43,13 @@ class MainWindow(object):
         fn = resource_filename(__name__, os.path.join('data', 'icon.png'))
         icon = pygame.image.load(fn)
         pygame.display.set_icon(icon)
-        if USE_FULLSCREEN:
-            self.screen = pygame.display.set_mode(WINDOW_SIZE,
+        if S.USE_FULLSCREEN:
+            self.screen = pygame.display.set_mode(S.WINDOW_SIZE,
                                                   pygame.FULLSCREEN)
             pygame.display.toggle_fullscreen()
         else:
-            self.screen = pygame.display.set_mode(WINDOW_SIZE)
-        self.screen.fill(BLACK)
+            self.screen = pygame.display.set_mode(S.WINDOW_SIZE)
+        self.screen.fill(S.BLACK)
         pygame.display.flip()
         # Create timer
         self.clock = pygame.time.Clock() #to track FPS
@@ -65,7 +67,7 @@ class MainWindow(object):
         '''
         for event in pygame.event.get():
             if event.type == QUIT:
-                self.game_logic.machine_state = MS_QUIT
+                self.game_logic.machine_state = S.MS_QUIT
             elif event.type == KEYDOWN:
                 self.game_logic.key_pressed(event)
 
@@ -75,17 +77,17 @@ class MainWindow(object):
         The mainloop is active until the machine state "running" is set to
         False.
         '''
-        while self.game_logic.machine_state != MS_QUIT:
+        while self.game_logic.machine_state != S.MS_QUIT:
             capt = "Air Traffic Controller - NG     (FPS: %i)"
             pygame.display.set_caption(capt % self.clock.get_fps())
             self.handle_events()
             self.game_logic.update(self.clock.get_time())
             pygame.display.flip()
-            self.clock.tick(MAX_FRAMERATE)
+            self.clock.tick(S.MAX_FRAMERATE)
 
 def main():
     try:
-        version = __version__  #this is normallly set when package is buit
+        version = __version__  #set when package is buit @UndefinedVariable
     except NameError:
         version = '<unknown>'
     try:

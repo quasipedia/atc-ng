@@ -4,12 +4,13 @@
 Aeroplanes modelling of the ATC simulation game.
 '''
 
-import pilot.pilot
-from engine.settings import *
-from lib.utils import *
-from math import sqrt
+from math import sqrt, degrees, atan2
 from collections import deque
 from time import time
+
+import lib.utils as U
+import pilot.pilot
+from engine.settings import settings as S
 
 
 __author__ = "Mac Ryan"
@@ -85,8 +86,8 @@ class Tcas(object):
                 break
         # SET THE TARGET CONFIGURATION
         tc = pilot.target_conf
-        max_up = min(plane.max_altitude, MAX_FLIGHT_LEVEL)
-        tc.altitude = max_up if vector.z > 0 else MIN_FLIGHT_LEVEL
+        max_up = min(plane.max_altitude, S.MAX_FLIGHT_LEVEL)
+        tc.altitude = max_up if vector.z > 0 else S.MIN_FLIGHT_LEVEL
         tc.speed = plane.min_speed
         tc.heading = (90-degrees(atan2(vector.y, vector.x)))%360
         pilot.veering_direction = pilot.get_shortest_veering_direction()
@@ -100,7 +101,7 @@ class Tcas(object):
             colliding = self.plane.aerospace.tcas_data[self.plane.icao]
             self.plane.flags.reset()
             if self.state == False:
-                self.plane.aerospace.gamelogic.score_event(EMERGENCY_TCAS)
+                self.plane.aerospace.gamelogic.score_event(S.EMERGENCY_TCAS)
             self.state = True
             self.set_aversion_course(colliding)
         except KeyError:
@@ -160,7 +161,8 @@ class Aeroplane(object):
         if self.origin in aerospace.airports:
             self.flags.on_ground = True
         self.time_last_cmd = time()
-        self.trail = deque([sc(self.position.xy)] * TRAIL_LENGTH, TRAIL_LENGTH)
+        self.trail = deque(
+               [U.sc(self.position.xy)] * S.TRAIL_LENGTH, S.TRAIL_LENGTH)
         self.colliding_planes = []
         self.__accelerometer = ' '
         self.__variometer = ' '
@@ -169,7 +171,7 @@ class Aeroplane(object):
     @property
     def heading(self):
         '''Current heading [CW degrees from North]'''
-        return v3_to_heading(self.velocity)
+        return U.v3_to_heading(self.velocity)
 
     @property
     def speed(self):
@@ -203,18 +205,18 @@ class Aeroplane(object):
         # climb.
         indicator = ' '
         if self.velocity.z > 0:
-            indicator = CHAR_UP
+            indicator = S.CHAR_UP
         elif self.velocity.z < 0:
-            indicator = CHAR_DOWN
+            indicator = S.CHAR_DOWN
         self.__variometer = indicator
         # SPEEDOMETER
         # TODO: Decouple from pilot and use acceleration?
         t_speed = self.pilot.target_conf.speed
         indicator = ' '
         if t_speed > self.speed:
-            indicator = CHAR_UP
+            indicator = S.CHAR_UP
         elif t_speed < self.speed:
-            indicator = CHAR_DOWN
+            indicator = S.CHAR_DOWN
         self.__accelerometer = indicator
 
     @property
@@ -237,16 +239,16 @@ class Aeroplane(object):
         Return a sprite index value (for selecting the correct sprite in the
         sprite sheets). Highest priority statuses override lower priority ones.
         '''
-        value = CONTROLLED
+        value = S.CONTROLLED
         fl = self.flags
         if fl.busy:
-            value = INSTRUCTED
+            value = S.INSTRUCTED
         if fl.priority:
-            value = PRIORITIZED
+            value = S.PRIORITIZED
         if self.tcas.state:
-            value = COLLISION
+            value = S.COLLISION
         if fl.locked:  #take_offs and landings
-            value = NON_CONTROLLED
+            value = S.NON_CONTROLLED
         return value
 
     def terminate(self, event):
@@ -268,16 +270,16 @@ class Aeroplane(object):
         # Compute waiting time score if not airborne
         # FIXME: distinguish between just landed and waiting to takeoff
         if self.flags.on_ground:
-            mult = pings * PING_IN_SECONDS
-            self.aerospace.gamelogic.score_event(PLANE_WAITS_ONE_SECOND,
+            mult = pings * S.PING_IN_SECONDS
+            self.aerospace.gamelogic.score_event(S.PLANE_WAITS_ONE_SECOND,
                                                  multiplier=mult)
         # Decrease fuel amount if airborne
         else:
-            dist = ground_distance(initial, self.position)
+            dist = U.ground_distance(initial, self.position)
             burnt = burning_speed * dist * self.fuel_efficiency
             self.fuel -= burnt
-            self.aerospace.gamelogic.score_event(PLANE_BURNS_FUEL_UNIT,
+            self.aerospace.gamelogic.score_event(S.PLANE_BURNS_FUEL_UNIT,
                                                  multiplier=burnt)
         # Update sprite
-        self.rect = sc(self.position.xy)
-        self.trail.appendleft(sc(self.position.xy))
+        self.rect = U.sc(self.position.xy)
+        self.trail.appendleft(U.sc(self.position.xy))

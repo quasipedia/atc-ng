@@ -4,16 +4,17 @@
 The pilot that is in charge of planes in the ATC-NG game.
 '''
 
-from engine.settings import *
-from engine.logger import log
-from lib.utils import *
-from math import sqrt, radians, cos, sin, tan
-from lib.euclid import Vector3
-import checker
 from random import choice
+from math import radians, cos, sin
+
+import lib.utils as U
+from lib.euclid import Vector3, Vector2
+import checker
 import executer
 import navigator
 import procedures
+from engine.settings import settings as S
+from engine.logger import log
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -178,7 +179,7 @@ class Pilot(object):
         abs_ang_speed = self.navigator.get_veering_angular_velocity(type_)
         angular_speed = abs_ang_speed * -self.status['veer_dir']
         axis = Vector3(0,0,1)
-        amount = angular_speed * PING_IN_SECONDS
+        amount = angular_speed * S.PING_IN_SECONDS
         self.plane.velocity = self.plane.velocity.rotate_around(axis, amount)
 
     def _dampen(self, previous_conf):
@@ -191,7 +192,7 @@ class Pilot(object):
         p_speed = previous_conf['speed']
         # Heading dampener (act on velocity vector)
         t_head = self.target_conf.heading
-        if heading_in_between((p_head, pl.heading), t_head):
+        if U.heading_in_between((p_head, pl.heading), t_head):
             mag = abs(Vector2(*pl.velocity.xy))
             theta = radians(90-t_head)
             pl.velocity.x = cos(theta)*mag
@@ -199,7 +200,7 @@ class Pilot(object):
             self.target_conf.heading = pl.heading  #Fixes decimal approx.
         # Speed dampener (act on velocity vector)
         t_speed = self.target_conf.speed
-        if in_between((p_speed, pl.speed), t_speed):
+        if U.in_between((p_speed, pl.speed), t_speed):
             mag = t_speed
             # this is ground speed, so we want to normalise that without
             # affecting the z component...
@@ -212,7 +213,7 @@ class Pilot(object):
         pl.update_instruments()
         # Altitude dampener (act on position vector)
         t_alt = self.target_conf.altitude
-        if in_between((p_alt, pl.altitude), t_alt):
+        if U.in_between((p_alt, pl.altitude), t_alt):
             pl.position.z = t_alt
             pl.velocity.z = 0
         # Actions to be performed if all orders have been executed
@@ -234,7 +235,7 @@ class Pilot(object):
         if pl.altitude != self.target_conf.altitude:
             # Descending or ascending?
             index = pl.altitude < self.target_conf.altitude
-            z_acc = pl.climb_rate_accels[index] * PING_IN_SECONDS
+            z_acc = pl.climb_rate_accels[index] * S.PING_IN_SECONDS
             # Non expedite climbs / takeoffs / landings are limited at 50% of
             # maximum rate.
             if self.status['haste'] == 'normal':
@@ -248,15 +249,16 @@ class Pilot(object):
                 pl.velocity.z = max_ if index else min_
         if pl.speed != self.target_conf.speed:
             index = pl.speed < self.target_conf.speed
-            gr_acc = pl.ground_accels[index] * PING_IN_SECONDS
+            gr_acc = pl.ground_accels[index] * S.PING_IN_SECONDS
             # Non expedite accelerations are limited at 50% of maximum accels
             if self.status['haste'] == 'normal':
                 gr_acc *= 0.5
             norm_velocity = Vector3(*pl.velocity.xy).normalized()
             acc_vector = norm_velocity * gr_acc
             # Acceleration cannot produce a speed over or under the limits
-            if isinstance(self.status['procedure'],
-                                        (procedures.Land, procedures.TakeOff)):
+            if isinstance(
+                          self.status['procedure'],
+                          (procedures.Land, procedures.TakeOff)):
                 min_, max_ = pl.landing_speed, pl.max_speed
             else:
                 min_, max_ = pl.min_speed, pl.max_speed
@@ -270,7 +272,7 @@ class Pilot(object):
                 pl.velocity = norm_velocity * max_
             else:
                 pl.velocity += acc_vector
-        pl.position += pl.velocity * PING_IN_SECONDS
+        pl.position += pl.velocity * S.PING_IN_SECONDS
         self._dampen(initial_conf)
 
     def do(self, commands):
@@ -288,14 +290,14 @@ class Pilot(object):
         if check != True:
             log.debug('%s failed to execute %s. Message: %s'
                       % (self.plane.icao, commands, check))
-            self.say(check, KO_COLOUR)
+            self.say(check, S.KO_COLOUR)
             return False
         # ..and eventually execute the commands!
         self.executer.execute(commands)
         # If no radio feedback has been provided yet by any of the commands,
         # provide a generic affirmative answer.
         if radio_last == self.last_radio_hash:
-            self.say(choice(self.AFFIRMATIVE_ANSWERS), OK_COLOUR)
+            self.say(choice(self.AFFIRMATIVE_ANSWERS), S.OK_COLOUR)
         return True
 
     def say(self, what, colour):

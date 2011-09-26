@@ -10,20 +10,19 @@ Aeroplanes, airports and Scenarios are also built through classes of this
 module.
 '''
 
-# Regular imports
 import random
 import re
-import entities.airport
-import entities.waypoints
 import os.path as path
-from os import listdir
-from pkg_resources import resource_stream, resource_listdir
-# Yaml imports. It tries to use the faster C version of the loader.
+
+from pkg_resources import resource_stream, resource_listdir  #@UnresolvedImport
 from yaml import load
 try:
     from yaml import CLoader as Loader
 except ImportError:
     from yaml import Loader
+
+import entities.airport
+import entities.waypoints
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"

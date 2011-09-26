@@ -9,20 +9,20 @@ Amongst others:
     - invokes AI support for planes in emergency
 '''
 
-from engine.settings import *
-from engine.logger import log
-from pygame.locals import *
 import textwrap
+
 import pygame.draw
 import pygame.surface
 import pygame.font
-import aerospace
-import commander
-import entities.yamlhandlers
+from pygame.locals import *
+
+import lib.utils as U
+import engine.aerospace
+import engine.commander
 import sprites.guisprites
 import engine.challenge
-from lib.utils import *
-from engine.commander import GAME_COMMANDS
+from engine.settings import settings as S
+from engine.logger import log
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -45,7 +45,7 @@ class GameCommandsProcessor(object):
     def __init__(self, gamelogic):
         self.gamelogic = gamelogic
         rs = gamelogic.radar_surface
-        self.fontobj = get_fontobj_by_text_width(MAIN_FONT, 'X' *
+        self.fontobj = U.get_fontobj_by_text_width(S.MAIN_FONT, 'X' *
                                              (self.TEXT_W + 1), rs.get_size())
 #        tmp = rint(rs.get_width()/(self.TEXT_W + 2))
         tmp = (rs.get_width() - self.fontobj.size('X' * self.TEXT_W)[0]) / 2
@@ -63,7 +63,7 @@ class GameCommandsProcessor(object):
             self.good_radar_image = orig.copy()
         else:
             orig = self.good_radar_image.copy()
-        self.gamelogic.radar_surface.blit(blur_image(orig, 5), (0, 0))
+        self.gamelogic.radar_surface.blit(U.blur_image(orig, 5), (0, 0))
 
     def __restore_radar(self):
         '''
@@ -76,18 +76,19 @@ class GameCommandsProcessor(object):
     def __display_paused_message(self):
         dest = self.gamelogic.radar_surface
         font_size = dest.get_rect().height / 16
-        fontobj = pygame.font.Font(MAIN_FONT, font_size)
+        fontobj = pygame.font.Font(S.MAIN_FONT, font_size)
         lines = ['GAME IS PAUSED']
-        source = render_lines(fontobj, lines, RED)
-        blit_dead_centre(dest, source)
+        source = U.render_lines(fontobj, lines, S.RED)
+        U.blit_dead_centre(dest, source)
 
     def _toggle_paused(self):
         '''
         Toggle the paused machine state.
         '''
         gl = self.gamelogic
-        gl.machine_state = [MS_RUN, MS_PAUSED][gl.machine_state == MS_RUN]
-        if gl.machine_state == MS_PAUSED:
+        gl.machine_state = \
+            [S.MS_RUN, S.MS_PAUSED][gl.machine_state == S.MS_RUN]
+        if gl.machine_state == S.MS_PAUSED:
             self.__blur_radar()
             log.debug('### GAME PAUSED ###')
         else:
@@ -99,14 +100,13 @@ class GameCommandsProcessor(object):
         Provide help on a given command.
         '''
         INDENT = 2
-        NORMAL = PALE_GRAY
-        EMPHASIS = WHITE
-        data = commander.get_command_description(cname)
+        NORMAL = S.PALE_GRAY
+        EMPHASIS = S.WHITE
+        data = engine.commander.get_command_description(cname)
         lines = []
         a = lambda x : lines.append((str(x), NORMAL))
         ia = lambda x : lines.append((' '*INDENT + str(x), NORMAL))
         ea = lambda x : lines.append((str(x), EMPHASIS))
-        eia = lambda x : lines.append((' '*INDENT + str(x), EMPHASIS))
         ea('+' + '-'*(self.TEXT_W-2) + '+')
         tmp = 'Help on command %s' % cname
         tmp2 = (self.TEXT_W - len(tmp) - 2)
@@ -146,11 +146,11 @@ class GameCommandsProcessor(object):
         Display some text on the radar screen, pausing the game if necessary.
         ``lines`` is a list of tuples in the form (text, colour).
         '''
-        if self.gamelogic.machine_state == MS_RUN:
+        if self.gamelogic.machine_state == S.MS_RUN:
             self._toggle_paused()
         else:
             self.__blur_radar()
-        img = render_colour_lines(self.fontobj, lines)
+        img = U.render_colour_lines(self.fontobj, lines)
         self.gamelogic.radar_surface.blit(img, self.text_blit_position)
 
     def process_command(self, commandline):
@@ -158,15 +158,15 @@ class GameCommandsProcessor(object):
         Execute a game command.
         '''
         cname, args = commandline
-        crecord = GAME_COMMANDS[cname]
+        crecord = S.GAME_COMMANDS[cname]
         # Load default arguments if no argument has been passed
         if not args and 'default' in crecord:
             args = [crecord['default']]
         if cname == 'QUIT':
-            self.gamelogic.machine_state = MS_QUIT
+            self.gamelogic.machine_state = S.MS_QUIT
         elif cname == 'PAUSE':
             self._toggle_paused()
-            if self.gamelogic.machine_state == MS_PAUSED:
+            if self.gamelogic.machine_state == S.MS_PAUSED:
                 self.__display_paused_message()
         elif cname == 'HELP':
             self._give_help_on(args[0])
@@ -187,26 +187,27 @@ class GameLogic(object):
     '''
 
     def __init__(self, surface):
-        self.machine_state = MS_RUN
+        self.machine_state = S.MS_RUN
         # Surfaces
         self.global_surface = surface
-        self.radar_surface = surface.subsurface(RADAR_RECT)
-        self.cli_surface = surface.subsurface(CLI_RECT)
-        self.strips_surface = surface.subsurface(STRIPS_RECT)
-        self.score_surface = surface.subsurface(SCORE_RECT)
+        self.radar_surface = surface.subsurface(S.RADAR_RECT)
+        self.cli_surface = surface.subsurface(S.CLI_RECT)
+        self.strips_surface = surface.subsurface(S.STRIPS_RECT)
+        self.score_surface = surface.subsurface(S.SCORE_RECT)
         self.strips_bkground = self.strips_surface.copy()
-        self.maps_surface = surface.subsurface(MAPS_RECT)
-        x, y, w, h = RADAR_RECT
-        pygame.draw.line(surface, WHITE, (x-1, y), (x-1, WINDOW_SIZE[1]))
-        pygame.draw.line(surface, WHITE, (x+w, y), (x+w, WINDOW_SIZE[1]))
-        pygame.draw.line(surface, WHITE, (x-1, y+h), (x+w, y+h))
-        pygame.draw.line(surface, WHITE, (SCORE_RECT.x, SCORE_RECT.y-1),
-                             (SCORE_RECT.x + SCORE_RECT.w, SCORE_RECT.y-1))
-        self.aerospace = aerospace.Aerospace(self, self.radar_surface)
+        self.maps_surface = surface.subsurface(S.MAPS_RECT)
+        x, y, w, h = S.RADAR_RECT
+        pygame.draw.line(surface, S.WHITE, (x-1, y), (x-1, S.WINDOW_SIZE[1]))
+        pygame.draw.line(surface, S.WHITE, (x+w, y), (x+w, S.WINDOW_SIZE[1]))
+        pygame.draw.line(surface, S.WHITE, (x-1, y+h), (x+w, y+h))
+        pygame.draw.line(surface, S.WHITE, (S.SCORE_RECT.x, S.SCORE_RECT.y-1),
+                         (S.SCORE_RECT.x + S.SCORE_RECT.w, S.SCORE_RECT.y-1))
+        self.aerospace = engine.aerospace.Aerospace(self, self.radar_surface)
         self.game_commander = GameCommandsProcessor(self)
-        self.cli = commander.CommandLine(self.cli_surface, self.aerospace,
-                                         self.game_commander.process_command)
-        self.ms_from_last_ping = PING_PERIOD+1  #force update on first run
+        self.cli = engine.commander.CommandLine(
+            self.cli_surface, self.aerospace,
+            self.game_commander.process_command)
+        self.ms_from_last_ping = S.PING_PERIOD + 1  #force update on first run
         self.strips = sprites.guisprites.StripsGroup()
         self.maps = []
         # Scoring
@@ -223,29 +224,31 @@ class GameLogic(object):
         Add an airport map to the map collection.
         '''
         margin = 7
-        a_map = pygame.surface.Surface((MAPS_RECT.w, MAPS_RECT.h), SRCALPHA)
+        a_map = pygame.surface.Surface(
+               (S.MAPS_RECT.w, S.MAPS_RECT.h), SRCALPHA)
         # Prepare the label and get its size
-        fontobj = pygame.font.Font(MAIN_FONT, margin*2)
+        fontobj = pygame.font.Font(S.MAIN_FONT, margin*2)
         text = '%s ] %s' % (port.iata, port.name)
         ellipsis = ''
         while True:
-            label = fontobj.render(text+ellipsis, True, WHITE)
+            label = fontobj.render(text+ellipsis, True, S.WHITE)
             w, h = label.get_width(), label.get_height()
-            if w < MAPS_RECT.w - 2*margin:
+            if w < S.MAPS_RECT.w - 2*margin:
                 break
             text = text[:-1]
             ellipsis = '...'
         # Blit frame
-        r = pygame.rect.Rect(1,1,MAPS_RECT.w-2,MAPS_RECT.w+2*margin+h-2)
-        pygame.draw.rect(a_map, WHITE, r, 1)
+        r = pygame.rect.Rect(
+             1,1,S.MAPS_RECT.w-2,S .MAPS_RECT.w + 2 * margin + h - 2)
+        pygame.draw.rect(a_map, S.WHITE, r, 1)
         # Blit Banner for highlighting the label
-        r = pygame.rect.Rect(2,2,MAPS_RECT.w-4,2*margin+h)
-        pygame.draw.rect(a_map, GRAY, r)
+        r = pygame.rect.Rect(2, 2, S.MAPS_RECT.w - 4, 2 * margin + h)
+        pygame.draw.rect(a_map, S.GRAY, r)
         # Blit label
         a_map.blit(label, (margin, margin+2))
         # Blit map
-        a_map.blit(port.get_image(square_side=MAPS_RECT.w-4*margin,
-                   with_labels=True), (2*margin,4*margin+h))
+        a_map.blit(port.get_image(square_side=S.MAPS_RECT.w - 4 * margin,
+                   with_labels=True), (2 * margin, 4 * margin + h))
         a_map = a_map.subsurface(a_map.get_bounding_rect()).copy()
         self.maps.append(a_map)
 
@@ -275,15 +278,15 @@ class GameLogic(object):
         planes = self.aerospace.aeroplanes
         ports = self.aerospace.airports
         self.aerospace.add_plane(plane)
-        status = INBOUND if plane.destination in ports.keys() else OUTBOUND
+        status = S.INBOUND if plane.destination in ports.keys() else S.OUTBOUND
         self.strips.add(sprites.guisprites.FlightStrip(plane, status))
         plane.pilot.say('Hello tower, we are ready to copy instructions!',
-                        ALERT_COLOUR)
+                        S.ALERT_COLOUR)
         # Only airborne planes impact on proficiency score
         if plane.position.z > 0:
             already_there = len([p for p in planes if p.position.z > 0]) - 1
             if already_there > 0:
-                self.score_event(PLANE_ENTERS, multiplier=already_there)
+                self.score_event(S.PLANE_ENTERS, multiplier=already_there)
 
     def remove_plane(self, plane, event):
         '''
@@ -293,7 +296,7 @@ class GameLogic(object):
         self.score_event(event, plane=plane)
         self.aerospace.remove_plane(plane, event)
         self.strips.remove_strip(plane)
-        if event in (PLANE_CRASHES, PLANE_LEAVES_RANDOM):
+        if event in (S.PLANE_CRASHES, S.PLANE_LEAVES_RANDOM):
             self.fatalities += 1
 
     def draw_maps(self):
@@ -324,24 +327,25 @@ class GameLogic(object):
         # The second element of an event is the amount of points
         score = event[1]
         # If it's a aeroplane end-of-life event, compute the fuel effect.
-        if event in (PLANE_LANDS_CORRECT_PORT, PLANE_LANDS_WRONG_PORT,
-                     PLANE_LEAVES_CORRECT_GATE, PLANE_LEAVES_WRONG_GATE,
-                     PLANE_LEAVES_RANDOM, PLANE_CRASHES):
+        if event in (S.PLANE_LANDS_CORRECT_PORT, S.PLANE_LANDS_WRONG_PORT,
+                     S.PLANE_LEAVES_CORRECT_GATE, S.PLANE_LEAVES_WRONG_GATE,
+                     S.PLANE_LEAVES_RANDOM, S.PLANE_CRASHES):
             assert plane
-            fuel = plane.fuel * FUEL_SCORE_WEIGHT
+            fuel = plane.fuel * S.FUEL_SCORE_WEIGHT
             score += fuel if score > 0 else -fuel
         # if the event score needs a multiplier, use it
-        elif event in (PLANE_ENTERS, PLANE_BURNS_FUEL_UNIT,
-                       PLANE_WAITS_ONE_SECOND):
+        elif event in (S.PLANE_ENTERS, S.PLANE_BURNS_FUEL_UNIT,
+                       S.PLANE_WAITS_ONE_SECOND):
             assert multiplier != None
             score *= multiplier
         # otherwise... vanilla!
         else:
-            assert event in (COMMAND_IS_ISSUED, EMERGENCY_FUEL, EMERGENCY_TCAS)
+            assert event in (S.COMMAND_IS_ISSUED, S.EMERGENCY_FUEL,
+                             S.EMERGENCY_TCAS)
         self.score += score
 
     def update(self, milliseconds):
-        if self.machine_state == MS_RUN:
+        if self.machine_state == S.MS_RUN:
             self.ms_from_last_ping += milliseconds
             self.challenge.update()
             self.strips.update()
@@ -349,11 +353,11 @@ class GameLogic(object):
             self.strips.draw(self.strips_surface)
             self.fixed_sprites.update()
             self.fixed_sprites.draw(self.score_surface)
-            if self.ms_from_last_ping > PING_PERIOD:
-                pings = self.ms_from_last_ping / PING_PERIOD
-                self.ms_from_last_ping %= PING_PERIOD
+            if self.ms_from_last_ping > S.PING_PERIOD:
+                pings = self.ms_from_last_ping / S.PING_PERIOD
+                self.ms_from_last_ping %= S.PING_PERIOD
                 self.aerospace.update(pings)
                 self.aerospace.draw()
-        elif self.machine_state == MS_PAUSED:
+        elif self.machine_state == S.MS_PAUSED:
             pass
         self.cli.draw()

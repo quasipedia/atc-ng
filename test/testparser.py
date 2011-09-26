@@ -5,11 +5,11 @@ Testing suite for commandline parser.
 '''
 
 import unittest
+
 import entities.aeroplane as aero
 import pilot.pilot as pilo
 import engine.commander as comm
 from lib.euclid import Vector3
-from lib.utils import *
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"

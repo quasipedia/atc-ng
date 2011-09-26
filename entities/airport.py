@@ -4,15 +4,16 @@
 airports modelling of the ATC simulation game.
 '''
 
-from engine.settings import *
-from lib.utils import *
-from lib.euclid import Vector3
 from math import radians, sin
+
 import pygame.font
-from pygame.locals import *
 import pygame.surface
 import pygame.transform
-import yaml
+from pygame.locals import *
+
+import lib.utils as U
+from engine.settings import settings as S
+from lib.euclid import Vector3
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -136,7 +137,7 @@ class airport(object):
                 tmp['length'] = strip.length
                 tmp['location'] = strip.centre_pos + offset
                 tmp['centre'] = strip.centre_pos.copy()
-                ils.z = abs(ils)*sin(radians(SLOPE_ANGLE))  #gliding slope = 3°
+                ils.z = abs(ils)*sin(radians(S.SLOPE_ANGLE))  #gliding slope 3°
                 tmp['ils'] = -ils.normalized()
                 if rot == 0:
                     rot = 360  #runways oriented north are conventionally '36'
@@ -207,7 +208,7 @@ class airport(object):
         # master images already partially scaled down. Here's the helper func
         # [note that it convert scalars, iterables, and a series of values]
         def r(*args):
-            tmp = lambda n : rint(n/AIRPORT_MASTER_IMG_SCALING)
+            tmp = lambda n : U.rint(n / S.AIRPORT_MASTER_IMG_SCALING)
             ret = []
             for arg in args:
                 if type(arg) in (tuple, list):
@@ -234,7 +235,7 @@ class airport(object):
             for strip in strips:
                 size = (strip.width, strip.length)
                 image = pygame.surface.Surface(r(size), SRCALPHA)  #r
-                image.fill(GRAY)
+                image.fill(S.GRAY)
                 image = pygame.transform.rotate(image, -strip.orientation)
                 my_blit(a_canvas, image, r((strip.centre_pos+trasl).xy))  #r
             # Store the label-less image
@@ -242,13 +243,13 @@ class airport(object):
                                  a_canvas.get_bounding_rect()).copy()
             # Add the the labels
             pi = self.__plain_image
-            font_size = rint(max(pi.get_width(), pi.get_height()) / 16.0)
-            fontobj = pygame.font.Font(MAIN_FONT, font_size)
+            font_size = U.rint(max(pi.get_width(), pi.get_height()) / 16.0)
+            fontobj = pygame.font.Font(S.MAIN_FONT, font_size)
             for k, v in self.runways.items():
-                label = fontobj.render(k, True, WHITE)
+                label = fontobj.render(k, True, S.WHITE)
                 loc = v['location'] + trasl + \
                       -v['ils'].normalized() * font_size * \
-                      AIRPORT_MASTER_IMG_SCALING * 1.2
+                      S.AIRPORT_MASTER_IMG_SCALING * 1.2
                 my_blit(a_canvas, label, r(loc.xy))  #r
             self.__labelled_image = a_canvas.subsurface(
                                     a_canvas.get_bounding_rect()).copy()
@@ -259,15 +260,15 @@ class airport(object):
         if square_side:
             ratio = float(square_side)/max(w,h)
             tmp = pygame.transform.smoothscale(img,
-                                               (rint(w*ratio), rint(h*ratio)))
+                                       (U.rint(w*ratio), U.rint(h*ratio)))
             w, h = tmp.get_width(), tmp.get_height()
             pos = ((square_side-w)/2, (square_side-h)/2, )
             img = pygame.surface.Surface((square_side, square_side), SRCALPHA)
             img.blit(tmp, pos)
         if scale:
-            scale *= AIRPORT_MASTER_IMG_SCALING
+            scale *= S.AIRPORT_MASTER_IMG_SCALING
             img = pygame.transform.smoothscale(img,
-                                               (rint(w*scale), rint(h*scale)))
+                                       (U.rint(w*scale), U.rint(h*scale)))
         return img
 
     def del_cached_images(self):

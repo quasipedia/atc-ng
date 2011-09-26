@@ -4,18 +4,20 @@
 Testing suite for the Lander class.
 '''
 
+import unittest
+
 import pygame
+# PyGame initialisation must occur here as subsequent imports need pygame
+# set up an running.
 pygame.init()
 pygame.display.set_mode((64,48))
 
-import unittest
 import entities.aeroplane
 import pilot.pilot
 import entities.airport
 import engine.aerospace
-import engine.commander
 from lib.euclid import Vector3
-from lib.utils import *
+
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"

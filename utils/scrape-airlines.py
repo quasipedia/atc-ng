@@ -6,13 +6,15 @@ This utility scrapes the wikipedia entry for airline ICAO codes.
 Source: http://en.wikipedia.org/wiki/Airline_codes-All
 '''
 
-from BeautifulSoup import BeautifulSoup as Soup
-from collections import OrderedDict
+import re
 from textwrap import dedent
 from datetime import datetime as dt
-import openanything
+from collections import OrderedDict
+
 import yaml
-import re
+from BeautifulSoup import BeautifulSoup as Soup
+
+import lib.openanything
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
