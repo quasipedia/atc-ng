@@ -148,12 +148,15 @@ def v3_to_heading(vector):
 
 def is_behind(velocity, position, target):
     '''
-    Return True if target is behind (relative to velocity) of position.
-    The function operates on a 2D projection
+    Return True if target is behind a point at ``position`` travelling with
+    ``velocity``. The function operates on a 2D projection. Behind is defined
+    as over 90° from the velocity vector. from the
     '''
     tuple_ = (velocity, position, target)
     velocity, position, target = [Vector3(*el.xy) for el in tuple_]
-    return velocity.angle(target-position) >= 1.57  #90° in radians
+    if position == target:
+        return False
+    return velocity.angle(target-position) >= 1.5708  #90° in radians
 
 def heading_to_v3(heading):
     '''

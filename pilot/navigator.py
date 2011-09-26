@@ -9,7 +9,7 @@ from math import sin, tan, atan2, radians, degrees
 import lib.utils as U
 from engine.settings import settings as S
 from engine.logger import log
-from lib.euclid import Vector3
+from lib.euclid import Vector3, Vector2
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright ©2011, Mac Ryan"
@@ -204,6 +204,29 @@ class Navigator(object):
         '''
         return U.is_behind(self.plane.velocity, self.plane.position, point)
 
+    def check_reachable(self, point):
+        '''
+        Return True if the plane can adjust his heading in time to fly over
+        point ``point``. Assumes the speed will keep constant during the
+        veering.
+        '''
+        # If we connect the plane to the destination point by a veering tangent
+        # to the plane velocity (i.e. if we draw the longest possible veering
+        # to reach the point, we will discover that the distance between the
+        # plane an the target point is D = 2*r*sin(alpha), where r is the
+        # veering radius and alpha is the angle between the present velocity
+        # vector and the vector to ``point``. This means that for any shorter
+        # radius it will be possible to reach the point. So the formula
+        # translates in: r < distance / (2*sin(alpha))
+        distance = float(abs(point - self.plane.position))
+        velocity = Vector2(*self.plane.velocity.xy)
+        to_target = Vector2(*(point - self.plane.position).xy)
+        alpha = velocity.angle(to_target)
+        min_radius = distance / (sin(alpha) * 2)
+        veer_type = self.pilot.status['haste']
+        actual_radius = self.get_veering_radius(veer_type, self.plane.speed)
+        return actual_radius <= min_radius
+
     def get_point_ahead(self, distance):
         '''
         Return the coordinates of a point which is X metres ahead of current
@@ -219,39 +242,6 @@ class Navigator(object):
         assert isinstance(point, Vector3)
         delta = point - self.plane.position
         return U.v3_to_heading(delta)
-
-    def get_aversion_course(self, point, colliding):
-        '''
-        Calculate the best course to avoid the colliding plane(s).
-        This is done by:
-        - Reducing speed to the minimum for increased manoeuvrability
-        - Calculating opposite vectors to colliding planes and assigning to
-          them a magnitude which is proportional to their distance.
-        - Setting the course for the resulting vector.
-        '''
-        plane = self.plane
-        pilot = self.pilot
-        # CALCULATE THE AVOIDANCE VECTOR
-        # Prevents unresolved cases but altering slighly the plane position if
-        # two planes are stacked one on top of the other or fly at the same
-        # level.
-        while True:
-            vectors = [plane.position - p.position for p in colliding]
-            vectors = [v.normalized()/abs(v) for v in vectors]
-            vector = reduce(lambda x,y : x+y, vectors)
-            if vector.z == 0:
-                plane.position.z += 0.01
-            elif vector.x == vector.y == 0:
-                plane.position.x += 0.01
-            else:
-                break
-        # SET THE TARGET CONFIGURATION
-        tc = pilot.target_conf
-        max_up = min(plane.max_altitude, S.MAX_FLIGHT_LEVEL)
-        tc.altitude = max_up if vector.z > 0 else S.MIN_FLIGHT_LEVEL
-        tc.speed = plane.min_speed
-        tc.heading = (90-degrees(atan2(vector.y, vector.x)))%360
-        pilot.veering_direction = pilot.shortest_veering_direction()
 
     def get_required_minimum_altitude(self):
         '''
@@ -315,9 +305,9 @@ class Navigator(object):
         if speed == None:
             speed = self.plane.speed
         if veer_type == 'normal':
-            max_manouvering_g = 1.15
+            max_manouvering_g = 1.1547
         elif veer_type == 'expedite':
-            max_manouvering_g = 1.41
+            max_manouvering_g = 1.4142
         elif veer_type == 'emergency':
             max_manouvering_g = self.plane.max_g
         else:

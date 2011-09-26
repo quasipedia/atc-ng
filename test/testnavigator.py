@@ -9,6 +9,7 @@ import unittest
 import entities.aeroplane as aero
 import pilot.pilot as pilo
 from lib.euclid import Vector3
+from engine.settings import settings as S
 
 __author__ = "Mac Ryan"
 __copyright__ = "Copyright 2011, Mac Ryan"
@@ -26,11 +27,16 @@ class MockGameLogic(object):
         pass
     def say(self, *args, **kwargs):
         pass
+class MockAirport(object):
+    def __init__(self):
+        self.runways = ['01', '10L', '20C', '36']
 class MockAerospace(object):
     def __init__(self):
         self.tcas_data = {}
         self.gamelogic = MockGameLogic()
-        self.airports = []
+        self.airports = {}
+        for icao in ('ABC', 'XYZ', 'NNO'):
+            self.airports[icao] = MockAirport()
 
 
 class NavigatorTest(unittest.TestCase):
@@ -64,27 +70,73 @@ class NavigatorTest(unittest.TestCase):
 
     def testRunwayExists(self):
         '''
-        check_existing_runway
+        check_existing_runway - Runway exists on map.
         '''
-        pass
+        n = self.pilot.navigator
+        self.assertTrue(n.check_existing_runway('ABC', '36'))
+        self.assertTrue(n.check_existing_runway('XYZ', '20C'))
+        self.assertTrue(n.check_existing_runway('MNO', '10L'))
+        self.assertNotEqual(n.check_existing_runway('ABC', '18'), True)
+        self.assertNotEqual(n.check_existing_runway('EFG', '36'), True)
 
     def testOvershot(self):
         '''
-        check_overshot
+        check_overshot - Plane has flown past a point.
         '''
-        pass
+        f = self.pilot.navigator.check_overshot
+        TO_TEST = [((100, 0, 5), (0, 0, 0), False),  #on the point!
+                   ((100, 0, 5), (50, 0, 0), False),
+                   ((100, 0, 5), (200, 0, 0), False),
+                   ((100, 0, 5), (110, 300, 0), False),
+                   ((100, 100, 5), (0, -1, 0), True),
+                   ]
+        for velocity, point, result in TO_TEST:
+            self.plane.velocity = Vector3(*velocity)
+            self.assertEqual(f(Vector3(*point)), result)
 
-    def testTooClose(self):
+    def testReachable(self):
         '''
-        check_too_close
+        check_reachable - Plane can fly over a given point.
         '''
-        pass
+        # According to http://www.csgnetwork.com/aircraftturninfocalc.html,
+        # 100 m/s would result in veering radii of:
+        # normal, 30° --> 1 774.57608 metres
+        # expedite, 45° --> 1 024.7376 metres
+        # emergency, 60° -->  591.89112 metres
+        f = self.pilot.navigator.check_reachable
+        self.plane.velocity = Vector3(100, 0, 0)
+        TO_TEST = [('normal', (1800, 1800, 0), True),
+                   ('expedite', (1800, 1800, 0), True),
+                   ('emergency', (1800, 1800, 0), True),
+                   ('normal', (1100, 1100, 0), False),
+                   ('expedite', (1100, 1100, 0), True),
+                   ('emergency', (1100, 1100, 0), True),
+                   ('normal', (600, 600, 0), False),
+                   ('expedite', (600, 600, 0), False),
+                   ('emergency', (600, 600, 0), True),
+                   ('normal', (550, 550, 0), False),
+                   ('expedite', (550, 550, 0), False),
+                   ('emergency', (550, 550, 0), False),
+                   ]
+        for haste, point, result in TO_TEST:
+            self.pilot.status['haste'] = haste
+            self.assertEqual(f(Vector3(*point)), result)
 
     def testPointAhead(self):
         '''
-        get_point_ahead
+        get_point_ahead - Returns co-ordinates of a point X metres ahead.
         '''
-        pass
+        f = self.pilot.navigator.get_point_ahead
+        self.plane.velocity = Vector3(100, 0, 0)
+        TO_TEST = [((100, 100, 0), (100, 0, 0), 100, (200, 100, 0)),
+                   ((-100, 0, 0), (100, 100, 0), 100*2**0.5, (0, 100, 0)),
+                   ((150, 150, 0), (0, -100, 0), 150, (150, 0, 0)),
+                   ]
+        for position, velocity, distance, expected in TO_TEST:
+            self.plane.position = Vector3(*position)
+            self.plane.velocity = Vector3(*velocity)
+            self.assertAlmostEqual(f(distance), Vector3(*expected), delta=1)
+
 
     def testCourseTowards(self):
         '''
@@ -105,30 +157,41 @@ class NavigatorTest(unittest.TestCase):
         perform(-5000*3**0.5, 5000)
         self.assertEqual(self.plane.pilot.target_conf.heading, 300)
 
-    def testAversionCourse(self):
-        '''
-        get_aversion_course
-        '''
-        pass
-
     def testMinimumAltitude(self):
         '''
-        get_required_minimum_altitude
+        get_required_minimum_altitude - detects no-fly zones and ground
         '''
         #TODO: When mimimum altitudes will be implemented!
         pass
 
     def testShortestVeeringDirection(self):
         '''
-        get_shortest_veering_direction
+        get_shortest_veering_direction - which way to veer?
         '''
-        pass
+        f = self.pilot.navigator.get_shortest_veering_direction
+        self.plane.velocity = Vector3(100, 0, 0)
+        TO_TEST = [(0, S.LEFT),
+                   (180, S.RIGHT),
+                   (Vector3(-100, 1), S.LEFT),
+                   (Vector3(-100, -1), S.RIGHT),
+                   ]
+        for heading, expected in TO_TEST:
+            self.pilot.target_conf.heading = heading
+            self.assertEqual(f(), expected)
 
     def testIntersectionPoint(self):
         '''
-        get_intersection_point
+        get_intersection_point - where is the plane intercepting a given line?
         '''
-        pass
+        f = self.pilot.navigator.get_intersection_point
+        self.plane.velocity = Vector3(100, 0, 0)
+        TO_TEST = [((1, 1, 0), (0, -3, 0), (3, 0)),
+                   ((0, 1, 0), (-5, -3, 0), (-5, 0)),
+                   ]
+        for vector, point, expected in TO_TEST:
+            result = f(Vector3(*vector), Vector3(*point))
+            expected = (expected, 'intersection')
+            self.assertEqual(result, expected)
 
     def testVeeringRadius(self):
         '''

@@ -25,7 +25,6 @@ __status__ = "Development"
 
 class Challenge(object):
 #BUG: remove RADAR_RANGE from conf e make it load here
-#TODO: Space out imports according to PEP8
 
     '''
     Docstring.
