@@ -62,6 +62,7 @@ class Executer(object):
         '''
         pi = self.pilot
         pl = self.plane
+        tc = self.pilot.target_conf
         for cname, (args, flags) in commands.items():
             log.info('%s executes: %s' %
                      (pl.icao, ' '.join((cname, repr(args), repr(flags)))))
@@ -71,13 +72,13 @@ class Executer(object):
             # them separately.
             if cname == 'HEADING':
                 assert len(args) == 1
-                pi.target_conf.heading = args[0]
+                tc.heading = args[0]
                 pi.status['veer_dir'] = \
                                 pi.navigator.get_shortest_veering_direction()
             elif cname == 'ALTITUDE':
-                pi.target_conf.altitude = args[0]
+                tc.altitude = args[0]
             elif cname == 'SPEED':
-                pi.target_conf.speed = args[0]
+                tc.speed = args[0]
             elif cname == 'ABORT':
                 self.abort()
             elif cname == 'SQUAWK':

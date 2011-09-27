@@ -63,7 +63,7 @@ def __attach_combo_info():
             try:
                 dict_[command].extend(combo)
             except KeyError:
-                dict_[command] = combo
+                dict_[command] = combo[:]
     # Eliminates redoundancies and self and attach on target dictionary
     for k, v in dict_.items():
         PLANE_COMMANDS[k]['combos'] = list(set(v) - set([k]))
@@ -181,16 +181,16 @@ class Parser(object):
         - a signed integer like -15 or +180 (heading delta)
         - a beacon name (target point)
 
-        The first two will convert in validation to a numeric heading in
-        degrees. The latter in a ``euclid.Vector3()`` instance.
+        The first will convert in validation to a numeric heading, the latter
+        in a ``euclid.Vector3()`` instance, while the second one will be
+        returned as a string (as validation knows nothing about current plane
+        heading, and calculations need to be performed by a Pilot() instance.
         '''
-        sign = arg[0] if arg[0] in '+-' else None
+        if re.match(r'(\+|-)\d+$', arg):
+            return [arg.strip()]
         try:  #argument is a numerical heading
             num_h = int(arg)
-            if sign:  #it's a variation
-                #FIXME: implement heading variation
-                raise BaseException('Heading variation not yet implemented!')
-            elif not (0 <= num_h <= 360 and len(arg) == 3):
+            if not (0 <= num_h <= 360 and len(arg) == 3):
                 return False
             return [num_h]
         except ValueError:  #argument is a beacon id
@@ -378,12 +378,12 @@ class Parser(object):
             if len(command_list) != len(command_set):
                 msg = 'You can\'t repeat commands in the same radio message.'
                 return msg
-            valid = False
             # Can be logically mixed
+            valid_combo = False
             for combo in VALID_PLANE_COMMANDS_COMBOS:
                 if command_set <= set(combo):
-                    valid = True
-            if not valid:
+                    valid_combo = True
+            if not valid_combo:
                 msg = 'These commands cannot be performed at the same time.'
                 return msg
         return pilot.do, parsed_commands

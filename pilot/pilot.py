@@ -42,6 +42,7 @@ class TargetConfiguration(object):
 
     def __init__(self, pilot):
         self.pilot = pilot
+        self.plane = pilot.plane
         # These two properties are "vanilla"...
         self.speed = None
         self.altitude = None
@@ -60,8 +61,11 @@ class TargetConfiguration(object):
 
     @heading.setter
     def heading(self, value):
-        assert type(value) in (int, float, Vector3)
-        self.__heading = value
+        assert type(value) in (int, float, Vector3, str, unicode)
+        if type(value) in (str, unicode):  #it's a signed variation
+            self.__heading = (self.plane.heading + int(value)) % 360
+        else:  #absolute heading or map point
+            self.__heading = value
 
     def is_reached(self):
         '''

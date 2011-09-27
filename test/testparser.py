@@ -180,7 +180,16 @@ class ParserTest(unittest.TestCase):
             to_compare = result[1][0]
             self.assertEqual(type(to_compare) == list, expected, result)
 
-
+    def testRebutWrongCombos(self):
+        '''
+        Tests that the parser refuses wrong combinations of commands.
+        '''
+        TO_TEST = [('ABC1234 CIRCLE CCW HEADING +45'),
+                   ('ABC1234 LAND NAD 01L CIRCLE R'),
+                   ('ABC1234 LAND MAC 18 CLEAR NDB1')]
+        for line in TO_TEST:
+            self.parser.initialise(line)
+            self.assertIsInstance(self.parser.parse(), str)
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
