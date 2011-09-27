@@ -300,6 +300,7 @@ class Pilot(object):
         # provide a generic affirmative answer.
         if radio_last == self.last_radio_hash:
             self.say(choice(self.AFFIRMATIVE_ANSWERS), S.OK_COLOUR)
+        self.say('This is just to piss myself off my own pants and check chunk! Nevertheless it is interesting to test multiline capabilities in sdfafd adfaf adf afd ad fadfadsf', S.ALERT_COLOUR)
         return True
 
     def say(self, what, colour):

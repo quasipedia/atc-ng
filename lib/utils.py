@@ -38,6 +38,12 @@ def sc(vector):
     x, y = [int(round(c / S.METRES_PER_PIXEL)) for c in vector]
     return (x, -(y - S.RADAR_RECT.height))
 
+def chunks(iterable, size):
+    '''
+    return ``iterable`` (list or string) sliced in chunks of size ``size``.
+    '''
+    return [iterable[i:i+size] for i in range(0, len(iterable), size)]
+
 def render_lines(fontobj, lines, colour):
     '''
     Return the image of the rendered multiline text.

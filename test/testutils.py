@@ -243,6 +243,19 @@ class Test(unittest.TestCase):
         for arg, expected in TO_TEST:
             self.assertEqual(U.only_one(arg), expected)
 
+    def testChunks(self):
+        '''
+        chunks - split an iterable in chunks of given size
+        '''
+        TO_TEST = [('My beautiful tortoise', 5,
+                    ['My be', 'autif', 'ul to', 'rtois', 'e']),
+                   (['a', 'ab', 'abc', 'abcd'], 2,
+                    [['a', 'ab'], ['abc', 'abcd']])]
+        for iterable, size, expected in TO_TEST:
+            self.assertEqual(U.chunks(iterable, size), expected)
+        # Doesn't work with dicts
+        self.assertRaises(TypeError, U.chunks, dict(a=1, b=2), 2)
+
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']

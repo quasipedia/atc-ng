@@ -27,9 +27,11 @@ CONSOLE_FONT_SIZE_RATIO : 0.60    # ratio between the size of the "processed
                                   # lines" (executed orders and responses) and
                                   # the size of the "live line" (where player
                                   # enters commands)
-OUTBOUND_ID         : TOWER       # Radio callsign for the player
-PROMPT_SEPARATOR    : '>>>'       # How callsign and messages are separated
-USE_REAL_CALLSIGNS  : True        # True | False - Whether flights should be
+CONSOLE_INDENTATION     : 5       # Number of leading spaces on lines after the
+                                  # first one in multiline messages.
+OUTBOUND_ID             : TOWER   # Radio callsign for the player
+PROMPT_SEPARATOR        : '>>>'   # How callsign and messages are separated
+USE_REAL_CALLSIGNS      : True    # True | False - Whether flights should be
                                   # Using real callsign over radio, for example
                                   # flight BAW1234 (Britsih Airways) would use
                                   # "Speedbird 1234".

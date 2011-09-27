@@ -6,6 +6,7 @@ Provide functionality for entering commands and processing them.
 
 import re
 import time
+import textwrap
 import os.path as path
 from collections import deque
 from copy import copy
@@ -449,8 +450,24 @@ class CommandLine(object):
         small_size = U.rint(small_size)
         self.large_f = pygame.font.Font(S.MAIN_FONT, large_size)
         self.small_f = pygame.font.Font(S.MAIN_FONT, small_size)
+        self.max_large_line_length = self.__get_max_line_length(self.large_f)
+        self.max_small_line_length = self.__get_max_line_length(self.small_f)
+        # Parser and processors
         self.gcomm_processor = game_commands_processor
         self.parser = Parser(aerospace, game_commands_processor)
+
+    def __get_max_line_length(self, fontobj):
+        '''
+        Return the maximum number of characters that can fit on a line of the
+        console.
+        '''
+        chars_number = 2
+        while True:
+            chars_number += 1
+            lines = ['-' * chars_number]
+            width = U.render_lines(fontobj, lines, S.WHITE).get_width()
+            if width > S.CLI_RECT.width:
+                return chars_number - 2  #always leave some space to the right
 
     def __get_all_spellings_all_commands(self, commands):
         '''
@@ -548,11 +565,14 @@ class CommandLine(object):
 
     def msg_append(self, colour, text):
         '''
-        Append a message to the console. This is a separated method in order
-        to make easier to log events.
+        Append a message to the console.
         '''
         log.debug(text)
-        self.console_lines.append((colour, text))
+        wrapped = textwrap.wrap(text,
+                                width=self.max_small_line_length,
+                                subsequent_indent=' ' * S.CONSOLE_INDENTATION)
+        for line in wrapped:
+            self.console_lines.append((colour, line))
 
     def autocomplete(self):
         '''
