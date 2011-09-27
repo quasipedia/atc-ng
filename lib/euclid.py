@@ -292,7 +292,10 @@ class Vector2:
 
     def angle(self, other):
         """Return the angle to the vector other"""
-        return math.acos(self.dot(other) / (self.magnitude()*other.magnitude()))
+        # 27/09/2011 - added round() as for very little angles the fraction
+        # could return 1.0000000000001 and trig a "math domain error"
+        return math.acos(round(self.dot(other)
+                               / (self.magnitude()*other.magnitude())))
 
     def project(self, other):
         """Return one vector projected on the vector other"""

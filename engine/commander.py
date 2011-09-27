@@ -194,10 +194,7 @@ class Parser(object):
                 return False
             return [num_h]
         except ValueError:  #argument is a beacon id
-            if not arg in self.aerospace.beacons:
-                return False
-            else:
-                return [Vector3(*self.aerospace.beacons[arg].location)]
+            return self._validate_clear(arg)
 
     def _validate_altitude(self, alt):
         '''
@@ -243,12 +240,15 @@ class Parser(object):
             return False
         return [direction]
 
-    def _validate_clear(self, marker):
+    def _validate_clear(self, beacon):
         '''
         Marker must be an existing beacon, if given.
         '''
-        #FIXME: CLEAR command valiation is missing
-        pass
+        if not beacon in self.aerospace.beacons:
+            return False
+        else:
+            return [Vector3(*self.aerospace.beacons[beacon].location)]
+
 
     def _validate_takeoff(self, runway):
         '''
@@ -258,7 +258,7 @@ class Parser(object):
             return False
         return [runway]
 
-    def _validate_help(self, cname):
+    def _validate_help(self, cname=None):
         '''
         ``cname`` must be a valid alias of an existing command. Set default if
         needed.
@@ -513,6 +513,8 @@ class CommandLine(object):
         the strings list.
         '''
         result = []
+        if not strings:
+            return result
         limit = min([len(s) for s in strings])
         for i in range(limit):
             chs = set([s[i] for s in strings])
@@ -600,7 +602,8 @@ class CommandLine(object):
                 elif pre in PLANE_COMMANDS['LAND']['spellings'] and \
                      prepre not in PLANE_COMMANDS['CIRCLE']['spellings']:
                     what = 'airports'
-                elif pre in PLANE_COMMANDS['HEADING']['spellings']:
+                elif pre in PLANE_COMMANDS['HEADING']['spellings'] or \
+                     pre in PLANE_COMMANDS['CLEAR']['spellings']:
                     what = 'beacons'
                 elif prepre:
                     if prepre in PLANE_COMMANDS['LAND']['spellings']:
@@ -614,10 +617,11 @@ class CommandLine(object):
             return
         pool = [el.upper() for el in self._get_list_of_existing(what, context)]
         matches = [i for i in pool if i.find(root)==0]
+        if what in ('plane_commands', 'game_commands', 'all_commands'):
+            matches = self.__keep_longest_aliases(matches)
         if len(matches) == 1:
             match = matches[0]+' '
         elif len(matches) > 1:
-            matches = self.__keep_longest_aliases(matches)
             match = self._get_common_beginning(matches)
         else:
             return

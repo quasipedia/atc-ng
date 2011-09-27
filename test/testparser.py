@@ -84,7 +84,7 @@ class ParserTest(unittest.TestCase):
                          ALTITUDE = ['25', '05'],
                          BYE = [],
                          CIRCLE = ['CCW', 'L', 'LEFT', 'RIGHT', 'R', 'CW'],
-                         CLEAR = ['NDB1', 'NDB2'],
+                         CLEAR = ['NDB1'],
                          HEADING = ['135', '000', '360', '090'],
                          LAND = ['ARN 01L', 'ARN 19L', 'ARN 08', 'ARN 26'],
                          SPEED = ['450', '525'],
@@ -107,7 +107,7 @@ class ParserTest(unittest.TestCase):
                 elif command == 'LAND':
                     exp_arg = arg.split()
                 elif command == 'CLEAR':
-                    exp_arg = ()
+                    exp_arg = [Vector3(10, 10, 10)]
                 else:
                     exp_arg  = [arg]
                 for c_spell in c_values['spellings']:

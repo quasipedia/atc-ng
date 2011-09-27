@@ -4,7 +4,7 @@
 Provide support for pilot's navigation (calculate distances, radii, etc...).
 '''
 
-from math import sin, tan, atan2, radians, degrees
+from math import sin, tan, radians
 
 import lib.utils as U
 from engine.settings import settings as S
@@ -204,11 +204,13 @@ class Navigator(object):
         '''
         return U.is_behind(self.plane.velocity, self.plane.position, point)
 
-    def check_reachable(self, point):
+    def check_reachable(self, point, veer_type=None):
         '''
         Return True if the plane can adjust his heading in time to fly over
         point ``point``. Assumes the speed will keep constant during the
         veering.
+
+        If ``veer_type`` is not given, it will default to pilot's haste.
         '''
         # If we connect the plane to the destination point by a veering tangent
         # to the plane velocity (i.e. if we draw the longest possible veering
@@ -222,10 +224,25 @@ class Navigator(object):
         velocity = Vector2(*self.plane.velocity.xy)
         to_target = Vector2(*(point - self.plane.position).xy)
         alpha = velocity.angle(to_target)
+        # Eary retrun in case of the plane is already aligned
+        if alpha == 0:
+            return True
         min_radius = distance / (sin(alpha) * 2)
-        veer_type = self.pilot.status['haste']
+        if veer_type is None:
+            veer_type = self.pilot.status['haste']
         actual_radius = self.get_veering_radius(veer_type, self.plane.speed)
         return actual_radius <= min_radius
+
+    def check_maybe_reachable(self, point):
+        '''
+        This is a super-method of ``check_reachable``. It will return True if
+        the point is reachable or if speed is decreasing (and therefore it
+        might become reachable at a later stage).
+        '''
+        if self.check_reachable(point) or \
+           self.pilot.target_conf.speed < self.plane.speed:
+            return True
+        return False
 
     def get_point_ahead(self, distance):
         '''

@@ -158,7 +158,7 @@ class GameCommandsProcessor(object):
         Execute a game command.
         '''
         cname, args = commandline
-        crecord = S.GAME_COMMANDS[cname]
+        crecord = engine.commander.GAME_COMMANDS[cname]
         # Load default arguments if no argument has been passed
         if not args and 'default' in crecord:
             args = [crecord['default']]
@@ -294,7 +294,7 @@ class GameLogic(object):
         '''
         log.info('%s removed, event is %s' % (plane.icao, event))
         self.score_event(event, plane=plane)
-        self.aerospace.remove_plane(plane, event)
+        self.aerospace.remove_plane(plane)
         self.strips.remove_strip(plane)
         if event in (S.PLANE_CRASHES, S.PLANE_LEAVES_RANDOM):
             self.fatalities += 1

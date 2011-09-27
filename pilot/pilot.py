@@ -116,8 +116,7 @@ class Pilot(object):
     # DEFAULT VALUES
     DEFAULT_STATUS = dict(veer_dir = None,
                           procedure = None,
-                          haste = 'normal',
-                          bye = False)
+                          haste = 'normal')
 
     @classmethod
     def set_aerospace(cls, aerospace):
@@ -217,8 +216,7 @@ class Pilot(object):
             pl.position.z = t_alt
             pl.velocity.z = 0
         # Actions to be performed if all orders have been executed
-        if self.target_conf.is_reached() \
-                and not (self.status['procedure'] or self.status['bye']):
+        if self.target_conf.is_reached() and not self.status['procedure']:
             pl.flags.busy = False
             self._reset_status()
 

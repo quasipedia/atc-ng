@@ -84,6 +84,5 @@ class Checker(object):
             twin = port.runways[runway['twin']]
             if not aspace.runways_manager.check_runway_free(port, twin):
                 return 'Negative, that runway is currently in use.'
-        # TODO: check for overshooting CLEAR.
         # If nothing else have stopped us...
         return True

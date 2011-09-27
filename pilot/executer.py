@@ -28,7 +28,8 @@ class Executer(object):
     Docstring.
     '''
 
-    PROCEDURES = dict(CIRCLE = procedures.Circle,
+    PROCEDURES = dict(BYE = procedures.Bye,
+                      CIRCLE = procedures.Circle,
                       CLEAR = procedures.Clear,
                       LAND = procedures.Land,
                       TAKEOFF = procedures.TakeOff)
@@ -86,9 +87,6 @@ class Executer(object):
                 else:
                     pi.say('Currently heading %s, our destination is %s' %
                           (U.rint(pl.heading), pl.destination), S.OK_COLOUR)
-            elif cname == 'BYE':
-                pi.status['bye'] = True
-                pi.say('Good-bye tower!')
             else:
                 log.debug('process_commands() ignored: %s' % cname)
             # PROCESS FLAGS

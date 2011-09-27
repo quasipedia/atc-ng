@@ -8,9 +8,9 @@ different actions at different stages of it.
 '''
 
 import lib.utils as U
+from engine.settings import settings as S
 from lib.euclid import Vector3
 from engine.logger import log
-from engine.settings import settings as S
 from navigator import Lander
 
 __author__ = "Mac Ryan"
@@ -27,9 +27,11 @@ __status__ = "Development"
 class GeneralProcedure(object):
 
     '''
-    Virtual class to serve as ancestor for the various procedures. Provide a
-    sensible default ``_initiate method``, that works for the majority of the
-    procedures, but the ``update()`` one must be overridden.
+    Virtual class to serve as ancestor for the various procedures.
+
+    The following methods must be implemented in childred classes:
+    * ``_initiate`` - called at object creation
+    * ``_update`` - called at any radar ping
     '''
 
     def __init__(self, pilot, *args):
@@ -44,12 +46,6 @@ class GeneralProcedure(object):
         pilot.status['procedure'] = self
         self._initiate(*args)
 
-    def _initiate(self, args):
-        '''
-        This is the general case for most of the procedures.
-        '''
-        self.pilot.executer.process_commands(args)
-
     def _check_expedite(self, commands):
         '''
         Return True if any of the commands have the expedite flag.
@@ -58,14 +54,6 @@ class GeneralProcedure(object):
             if 'EXPEDITE' in value[1]:
                 return True
         return False
-
-    def update(self):
-        '''
-        Exception-triggering method. Must be overridden in children classes.
-        '''
-        msg = 'GeneralProcedure is a virtual class. Do not instantiate:' \
-              'subclass it instead!'
-        raise BaseException(msg)
 
 
 class Avert(GeneralProcedure):
@@ -79,17 +67,36 @@ class Avert(GeneralProcedure):
         '''
         Automatically called by ancestor class upon ``__init__``
         '''
-        assert isinstance(point, Vector3)
-        for k, v in self.pilot.navigator.get_aversion_course(point):
-            setattr(self.pilot.target_conf, k, v)
-        log.info('%s is averting point %s' % (self.plane.icao, point.xyz))
+#        assert isinstance(point, Vector3)
+#        for k, v in self.pilot.navigator.get_aversion_course(point):
+#            setattr(self.pilot.target_conf, k, v)
+#        log.info('%s is averting point %s' % (self.plane.icao, point.xyz))
 
     def update(self):
         '''
         The procedure will terminate when the TCAS will be off.
         '''
-        if self.plane.tcas.state == False:
-            self.pilot.status['procedure'] = None
+#        if self.plane.tcas.state == False:
+#            self.pilot.status['procedure'] = None
+
+
+class Bye(GeneralProcedure):
+    '''
+    Procedure whose only purpose is to keep the radar target displayed as busy.
+    '''
+
+    def _initiate(self, commands):
+        '''
+        Automatically called by ancestor class upon ``__init__``
+        '''
+        self.pilot.executer.process_commands(commands)
+        self.pilot.say('Good-bye tower!', S.OK_COLOUR)
+
+    def update(self):
+        '''
+        The procedure will terminate only upon an ``ABORT`` command.
+        '''
+        pass
 
 
 class Circle(GeneralProcedure):
@@ -140,16 +147,48 @@ class Clear(GeneralProcedure):
         '''
         Automatically called by ancestor class upon ``__init__``
         '''
-        beacon_name = commands['CLEAR'][0][0]
-        log.info('%s is clearing towards %s' % (self.plane.icao, beacon_name))
+        # Preliminary check: is the beacon in range?
+        point = commands['CLEAR'][0][0]
+        veer_type = 'expedite' if 'EXPEDITE' in commands['CLEAR'][1] else None
+        if not self.pilot.navigator.check_reachable(point, veer_type) \
+           and 'SPEED' not in commands \
+           or ('SPEED' in commands \
+               and commands['SPEED'][0][0] > self.plane.speed):
+            msg = 'The target waypoint is too close for us to fly over it!'
+            return self._abort_clear(msg)
+        # Head towards the point
+        commands['HEADING'] = commands['CLEAR']
+        self.pilot.executer.process_commands(commands)
+        self.target = point
+        log.info('%s is clearing towards %s' % (self.plane.icao, point))
 
+    def _abort_clear(self, msg):
+        '''
+        Abort clear, generating all events of the case and resetting relevant
+        variables.
+        '''
+        log.info('%s aborts: %s' % (self.plane.icao, msg))
+        self.pilot.say('Aborting clear command: %s' % msg, S.ALERT_COLOUR)
+        self.pilot.status['procedure'] = None
+        self.pilot._set_target_conf_to_current()
+        self.pilot._adjust_to_valid_FL()
 
     def update(self):
         '''
         Operations that must be performed when the radar pings.
         '''
-        pass
-
+        # If the plane has reached it's target...
+        if self.pilot.target_conf.heading == self.plane.heading \
+            and self.pilot.navigator.check_overshot(self.target):
+                msg = 'We just flown over the beacon, awiting new orders!'
+                self.pilot.say(msg, S.ALERT_COLOUR)
+                self.pilot.status['procedure'] = None
+        # If the plane is now in a configuration that doesn't allow it to
+        # reach the target point...
+        if not self.pilot.navigator.check_maybe_reachable(self.target):
+            msg = 'We are flying too fast to veer in time!'
+            self._abort_clear(msg)
+        # ...otherwise do absolutely nothing!
 
 class Land(GeneralProcedure):
 
@@ -214,6 +253,7 @@ class Land(GeneralProcedure):
         if self.lander and self.lander.taxiing_data:
             self.pilot.aerospace.runways_manger.release_runway(self.plane)
         self.pilot.status['procedure'] = None
+        self.pilot._set_target_conf_to_current()
         self.pilot._adjust_to_valid_FL()
 
     def update(self):
