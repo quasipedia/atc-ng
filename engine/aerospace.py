@@ -127,6 +127,7 @@ class Aerospace(object):
         attempts = [S.RADAR_RANGE * 2 / n for n in sensibles]
         closest = min(attempts, key = lambda x : abs(x-S.RADAR_AID_STEPS))
         metres_per_step = sensibles[attempts.index(closest)]
+        print "Radar step: %s" % metres_per_step
         if S.RADAR_AID == 'circles':
             step_range = range(metres_per_step, U.rint(S.RADAR_RANGE*2**0.5),
                                metres_per_step)
@@ -177,7 +178,7 @@ class Aerospace(object):
         '''
         crossed = []
         origin = Vector3(S.RADAR_RANGE, S.RADAR_RANGE)
-        point = plane.position
+        point = Vector3(*plane.position.xy)
         for gate in self.gates.values():
             vector = U.heading_to_v3(gate.radial)
             dist = U.distance_point_line(point, origin, vector)
@@ -187,8 +188,6 @@ class Aerospace(object):
                U.heading_in_between(boundaries, gate.radial) and \
                gate.bottom <= plane.altitude <= gate.top:
                 crossed.append(gate)
-#            for v in [dist, gate.bottom, gate.top]:
-#                print v, type(v)
         return crossed
 
     def add_plane(self, plane):
@@ -304,10 +303,12 @@ class Aerospace(object):
             s = self.surface.get_rect()
             x, y = plane['sprites'][0].position
             if x < 0 or x > s.width or y < 0 or y > s.height:
+                # This is the worst scenario
                 msg = 'Tower? ... Tower? ... Aaaaahhhh!'
-                event = S.PLANE_LEAVES_RANDOM  #bakup result
+                event = S.PLANE_LEAVES_RANDOM
                 colour = S.KO_COLOUR
                 crossed = self.__get_crossed_gates(plane['plane'])
+                # This might be better
                 for gate in crossed:
                     msg = 'Tower? It doesn\'t seem we are where we should...'
                     event = S.PLANE_LEAVES_WRONG_GATE  #little better!

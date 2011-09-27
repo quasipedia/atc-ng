@@ -170,8 +170,8 @@ class Clear(GeneralProcedure):
         log.info('%s aborts: %s' % (self.plane.icao, msg))
         self.pilot.say('Aborting clear command: %s' % msg, S.ALERT_COLOUR)
         self.pilot.status['procedure'] = None
-        self.pilot._set_target_conf_to_current()
-        self.pilot._adjust_to_valid_FL()
+        self.pilot.set_target_conf_to_current()
+        self.pilot.adjust_to_valid_FL()
 
     def update(self):
         '''
@@ -253,8 +253,8 @@ class Land(GeneralProcedure):
         if self.lander and self.lander.taxiing_data:
             self.pilot.aerospace.runways_manger.release_runway(self.plane)
         self.pilot.status['procedure'] = None
-        self.pilot._set_target_conf_to_current()
-        self.pilot._adjust_to_valid_FL()
+        self.pilot.set_target_conf_to_current()
+        self.pilot.adjust_to_valid_FL()
 
     def update(self):
         '''
@@ -373,7 +373,7 @@ class TakeOff(GeneralProcedure):
         pl.flags.locked = True
         # Give 1 m/s speed and update target to set the heading/sprite icon
         pl.velocity = vector.copy()
-        self.pilot._set_target_conf_to_current()
+        self.pilot.set_target_conf_to_current()
         # Set max acceleration
         self.pilot.target_conf.speed = \
             commands['SPEED'][0][0] if 'SPEED' in commands else pl.max_speed

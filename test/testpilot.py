@@ -132,7 +132,7 @@ class MiscellaneousTest(unittest.TestCase):
         def setup():
             self.plane.position = Vector3(10000,10000,0)
             self.plane.velocity = Vector3(150, 0, 0)  #~500kpm eastbound
-            self.plane.pilot._set_target_conf_to_current()
+            self.plane.pilot.set_target_conf_to_current()
         def perform():
             pi = self.plane.pilot
             pl = self.plane
@@ -167,7 +167,7 @@ class MiscellaneousTest(unittest.TestCase):
         def setup():
             self.plane.position = Vector3(10000,10000,0)
             self.plane.velocity = Vector3(150, 0, 0)  #~500kpm eastbound
-            self.plane.pilot._set_target_conf_to_current()
+            self.plane.pilot.set_target_conf_to_current()
         def perform():
             previous = None
             for i in range(500):  #arbitrary but reasonable limit...

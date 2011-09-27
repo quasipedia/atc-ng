@@ -43,9 +43,9 @@ class Executer(object):
         Abort execution of a command / procedure.
         '''
         self.pilot._reset_status()
-        self.pilot._set_target_conf_to_current()
+        self.pilot.set_target_conf_to_current()
         self.plane.flags.reset()
-        self.pilot._adjust_to_valid_FL()
+        self.pilot.adjust_to_valid_FL()
 
     def process_commands(self, commands):
         '''

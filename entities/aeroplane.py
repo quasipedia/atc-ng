@@ -90,7 +90,8 @@ class Tcas(object):
         tc.altitude = max_up if vector.z > 0 else S.MIN_FLIGHT_LEVEL
         tc.speed = plane.min_speed
         tc.heading = (90-degrees(atan2(vector.y, vector.x)))%360
-        pilot.veering_direction = pilot.get_shortest_veering_direction()
+        pilot.status['veer_dir'] = \
+                pilot.navigator.get_shortest_veering_direction()
 
     def update(self):
         '''

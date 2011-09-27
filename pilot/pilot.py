@@ -134,7 +134,7 @@ class Pilot(object):
         self.plane = plane
         self.target_conf = TargetConfiguration(self)
         self._reset_status()
-        self._set_target_conf_to_current()
+        self.set_target_conf_to_current()
         self.checker = checker.Checker(self)
         self.navigator = navigator.Navigator(self)
         self.executer = executer.Executer(self)
@@ -151,14 +151,7 @@ class Pilot(object):
         except AttributeError:  #not created yet
             self.status = self.DEFAULT_STATUS.copy()
 
-    def _set_target_conf_to_current(self):
-        '''
-        Set the target configuration identical to present aeroplane one.
-        '''
-        for k, v in self.plane.get_current_configuration().items():
-            setattr(self.target_conf, k, v)
-
-    def _adjust_to_valid_FL(self):
+    def adjust_to_valid_FL(self):
         '''
         Adjust altitude to match a valid flight level.
         '''
@@ -277,6 +270,13 @@ class Pilot(object):
         pl.position += pl.velocity * S.PING_IN_SECONDS
         self._dampen(initial_conf)
 
+    def set_target_conf_to_current(self):
+        '''
+        Set the target configuration identical to present aeroplane one.
+        '''
+        for k, v in self.plane.get_current_configuration().items():
+            setattr(self.target_conf, k, v)
+
     def do(self, commands):
         '''
         Perform an order issued by the player.
@@ -300,7 +300,6 @@ class Pilot(object):
         # provide a generic affirmative answer.
         if radio_last == self.last_radio_hash:
             self.say(choice(self.AFFIRMATIVE_ANSWERS), S.OK_COLOUR)
-        self.say('This is just to piss myself off my own pants and check chunk! Nevertheless it is interesting to test multiline capabilities in sdfafd adfaf adf afd ad fadfadsf', S.ALERT_COLOUR)
         return True
 
     def say(self, what, colour):
