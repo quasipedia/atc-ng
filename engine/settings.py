@@ -3,7 +3,7 @@
 '''
 Globals variables and helper functions for the ATC game.
 
-This module also provide "settings initilisation", meaning that it will scan
+This module also provide "settings initialisation", meaning that it will scan
 the user directory for a ``.atc-ng`` entry and either create it and populate it
 with standard files, either load the custom files into the program.
 
@@ -84,15 +84,19 @@ class Settings(object):
         self.MAIN_FONT = fname(
               __name__, os.path.join('data', 'ex_modenine.ttf'))
         self.WINDOW_SIZE = self.__get_ratioed_max_size(self.ASPECT_RATIO)
+        radarside = self.WINDOW_SIZE[1] * (1 - self.CONSOLE_HEIGHT) * \
+                    (1 - self.STATUSBAR_HEIGHT)
         self.RADAR_RECT = pygame.rect.Rect(
-              (self.WINDOW_SIZE[0] - self.WINDOW_SIZE[1] * \
-              (1 - self.CONSOLE_HEIGHT)) / 2, 0,
-              self.WINDOW_SIZE[1] * (1-self.CONSOLE_HEIGHT),
-              self.WINDOW_SIZE[1] * (1-self.CONSOLE_HEIGHT))
+              (self.WINDOW_SIZE[0] - radarside) / 2, 0,
+              radarside, radarside)
         self.METRES_PER_PIXEL = self.RADAR_RANGE * 2.0 / self.RADAR_RECT.width
+        self.STATUSBAR_RECT = pygame.rect.Rect(
+              self.RADAR_RECT.x, self.RADAR_RECT.h + 1,
+              self.RADAR_RECT.w, int(radarside * self.STATUSBAR_HEIGHT))
         self.CLI_RECT = pygame.rect.Rect(
-              self.RADAR_RECT.x, self.RADAR_RECT.h+2,
-              self.RADAR_RECT.w, self.WINDOW_SIZE[1] - self.RADAR_RECT.h-2)
+              self.RADAR_RECT.x, self.RADAR_RECT.h + self.STATUSBAR_RECT.h + 2,
+              self.RADAR_RECT.w, self.WINDOW_SIZE[1] -
+              (self.STATUSBAR_RECT.h + self.RADAR_RECT.h + 2))
         self.SCORE_RECT = pygame.rect.Rect(
               0, self.WINDOW_SIZE[1] - self.CLI_RECT.h / 2,
               # -2 for the lines separating GUI elements

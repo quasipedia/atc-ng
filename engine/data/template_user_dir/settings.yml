@@ -22,6 +22,7 @@ MAX_WINDOW_SIZE  : [1280, 720]    # When playing in windowed mode, these is the
 
 # TEXT CONSOLE ################################################################
 CONSOLE_HEIGHT          : 0.14    # As a percentage of the main window height
+STATUSBAR_HEIGHT        : 0.025   # As a percentage of radar screen height
 CONSOLE_LINES_NUM       : 5       # Number of lines in the console
 CONSOLE_FONT_SIZE_RATIO : 0.60    # ratio between the size of the "processed
                                   # lines" (executed orders and responses) and
@@ -33,11 +34,11 @@ OUTBOUND_ID             : TOWER   # Radio callsign for the player
 PROMPT_SEPARATOR        : '>>>'   # How callsign and messages are separated
 USE_REAL_CALLSIGNS      : True    # True | False - Whether flights should be
                                   # Using real callsign over radio, for example
-                                  # flight BAW1234 (Britsih Airways) would use
+                                  # flight BAW1234 (British Airways) would use
                                   # "Speedbird 1234".
 
 # CONSOLE COLOURS #############################################################
-OK_COLOUR        : [0,255,0]      # for affermative responses / aknowledgements
+OK_COLOUR        : [0,255,0]      # for affirmative responses / aknowledgements
 KO_COLOUR        : [255,0,0]      # for negative responses / error messages
 ALERT_COLOUR     : [255,255,0]    # for messages that should attract attention
 EMERGENCY_COLOUR : [255,0,0]      # for emergency messages
@@ -45,7 +46,7 @@ NEUTRAL_COLOUR   : [255,255,255]  # for logged commands / unimportant events
 
 # SPRITES #####################################################################
 TRAIL_LENGTH        : 15          # number of dots in the trail of a plane
-MIN_PLANE_ICON_SIZE : 10          # minimum size of aeroplan icons in pixels
+MIN_PLANE_ICON_SIZE : 10          # minimum size of aeroplane icons in pixels
 HUD_INFO_FONT_SIZE  : 12          # Font size for textual info on radar screen
 
 # RADAR AID ###################################################################

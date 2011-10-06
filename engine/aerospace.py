@@ -127,7 +127,6 @@ class Aerospace(object):
         attempts = [S.RADAR_RANGE * 2 / n for n in sensibles]
         closest = min(attempts, key = lambda x : abs(x-S.RADAR_AID_STEPS))
         metres_per_step = sensibles[attempts.index(closest)]
-        print "Radar step: %s" % metres_per_step
         if S.RADAR_AID == 'circles':
             step_range = range(metres_per_step, U.rint(S.RADAR_RANGE*2**0.5),
                                metres_per_step)
@@ -159,6 +158,7 @@ class Aerospace(object):
         else:
                 msg = 'Wrong value of `RADAR_AID` in config file!'
                 raise BaseException(msg)
+        S.RADAR_MARKING = metres_per_step
 
     def __filter_self_collisions(self, sprite, collisions):
         '''

@@ -195,11 +195,20 @@ class GameLogic(object):
         self.strips_surface = surface.subsurface(S.STRIPS_RECT)
         self.score_surface = surface.subsurface(S.SCORE_RECT)
         self.strips_bkground = self.strips_surface.copy()
+        self.statusbar_surface = surface.subsurface(S.STATUSBAR_RECT)
+        self.statusbar_bkground = self.statusbar_surface.copy()
         self.maps_surface = surface.subsurface(S.MAPS_RECT)
         x, y, w, h = S.RADAR_RECT
+        # Vertical between strips and rest
         pygame.draw.line(surface, S.WHITE, (x-1, y), (x-1, S.WINDOW_SIZE[1]))
+        # Vertical between aeroport maps and rest
         pygame.draw.line(surface, S.WHITE, (x+w, y), (x+w, S.WINDOW_SIZE[1]))
+        # Bottom edge of radar screen
         pygame.draw.line(surface, S.WHITE, (x-1, y+h), (x+w, y+h))
+        # Separation statusbar / cli
+        pygame.draw.line(surface, S.WHITE, (x-1, y+h+S.STATUSBAR_RECT.h+1),
+                                           (x+w, y+h+S.STATUSBAR_RECT.h+1))
+        # Score divider
         pygame.draw.line(surface, S.WHITE, (S.SCORE_RECT.x, S.SCORE_RECT.y-1),
                          (S.SCORE_RECT.x + S.SCORE_RECT.w, S.SCORE_RECT.y-1))
         self.aerospace = engine.aerospace.Aerospace(self, self.radar_surface)
@@ -218,6 +227,19 @@ class GameLogic(object):
         self.fixed_sprites.add(sprites.guisprites.Score(self))
         self.challenge = engine.challenge.Challenge(self)
         self.parse_scenario(self.challenge.scenario)
+        self.__init_statusbar()
+
+    def __init_statusbar(self):
+        self.statusbar_surface.fill(S.GRAY)
+        bits = []
+        bits.append(" Radar range: %sm" % S.RADAR_RANGE)
+        bits.append("Radar markings: %sm " % S.RADAR_MARKING)
+        text = '     '.join(bits)
+        fontobj = U.get_fontobj_by_text_width(S.MAIN_FONT, text,
+                  (S.STATUSBAR_RECT.w, S.STATUSBAR_RECT.h-2))
+        text = fontobj.render(text, True, S.WHITE)
+        self.statusbar_surface.blit(text, (0,
+                            S.STATUSBAR_RECT.h - fontobj.get_height() - 1))
 
     def __add_airport_map(self, port):
         '''
