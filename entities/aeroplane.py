@@ -11,6 +11,8 @@ from time import time
 import lib.utils as U
 import pilot.pilot
 from engine.settings import settings as S
+from lib.euclid import Vector3
+from engine.logger import log
 
 
 __author__ = "Mac Ryan"
@@ -44,7 +46,12 @@ class Flags(object):
         self.locked = False            # The plane is under computer control
         self.busy = False              # The plane is executing a command
         self.on_ground = False         # The plane is not flying
-
+        try:
+            self.fuel_emergency = self.fuel_emergency
+        except AttributeError:
+            self.fuel_emergency = False
+        if self.fuel_emergency:
+            self.priority = True
 
 class Tcas(object):
 
@@ -244,7 +251,7 @@ class Aeroplane(object):
         fl = self.flags
         if fl.busy:
             value = S.INSTRUCTED
-        if fl.priority:
+        if fl.priority or fl.fuel_emergency:
             value = S.PRIORITIZED
         if self.tcas.state:
             value = S.COLLISION
@@ -275,12 +282,38 @@ class Aeroplane(object):
             self.aerospace.gamelogic.score_event(S.PLANE_WAITS_ONE_SECOND,
                                                  multiplier=mult)
         # Decrease fuel amount if airborne
-        else:
+        elif self.fuel > 0:
             dist = U.ground_distance(initial, self.position)
             burnt = burning_speed * dist * self.fuel_efficiency
             self.fuel -= burnt
             self.aerospace.gamelogic.score_event(S.PLANE_BURNS_FUEL_UNIT,
                                                  multiplier=burnt)
+        # Check if a fuel emergency has to be triggered.
+        if not self.flags.fuel_emergency:
+            # FIXME: this is goo reason to use objects intstead of IATA/NAME
+            try:
+                dest_point = self.aerospace.airports[self.destination].location
+            except KeyError:
+                tmp = self.aerospace.gates[self.destination].location
+                dest_point = Vector3(tmp[0], tmp[1], self.altitude)
+            dist = U.ground_distance(dest_point, self.position)
+            if self.fuel < (2 * dist * self.fuel_efficiency):
+                log.info('%s is declaring fuel emergency' % self.icao)
+                msg = 'Pan-Pan, Pan-Pan, Pan-Pan... We are low on fuel, ' \
+                      'requesting priority landing!'
+                self.pilot.say(msg, S.KO_COLOUR)
+                self.aerospace.gamelogic.score_event(S.EMERGENCY_FUEL)
+                self.flags.fuel_emergency = True
+        # Fuel has ran out
+        if self.fuel < 0:
+            msg = 'Mayday! Mayday! Mayday! All engines have flamed out, we ' \
+                  'are going down!'
+            self.pilot.say(msg, S.KO_COLOUR)
+            log.info('%s has ran out of fuel' % self.icao)
+            self.fuel = 0
+            self.max_speed = self.min_speed * 2
+            max_down = self.climb_rate_limits[0]
+            self.climb_rate_limits = [max_down, max_down / 2.0]
         # Update sprite
         self.rect = U.sc(self.position.xy)
         self.trail.appendleft(U.sc(self.position.xy))

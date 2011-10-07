@@ -39,7 +39,7 @@ performed quicker).
 
 Fuel emergency
 --------------
-A plane declares **fuel emergency** when its fuel will be twice (or less) the
+A plane declares **fuel emergency** when its fuel will be less than twice the
 amount needed to fly the [1]_ distance between the current aeroplane position
 and its destination.
 

@@ -196,7 +196,7 @@ class Pilot(object):
             self.target_conf.heading = pl.heading  #Fixes decimal approx.
         # Speed dampener (act on velocity vector)
         t_speed = self.target_conf.speed
-        if U.in_between((p_speed, pl.speed), t_speed):
+        if U.in_between((p_speed, pl.speed), t_speed) and pl.fuel:
             mag = t_speed
             # this is ground speed, so we want to normalise that without
             # affecting the z component...
@@ -209,7 +209,7 @@ class Pilot(object):
         pl.update_instruments()
         # Altitude dampener (act on position vector)
         t_alt = self.target_conf.altitude
-        if U.in_between((p_alt, pl.altitude), t_alt):
+        if U.in_between((p_alt, pl.altitude), t_alt) and pl.fuel:
             pl.position.z = t_alt
             pl.velocity.z = 0
         # Actions to be performed if all orders have been executed
@@ -220,9 +220,17 @@ class Pilot(object):
     def _manoeuvre(self):
         '''
         Manoeuvre the aircraft in order to reach the desired target
-        configuration.
+        configuration. Also takes care of planes without fuel having to always
+        glide.
         '''
         pl = self.plane
+        # No fuel glide
+        if pl.fuel == 0:
+            down = pl.climb_rate_limits[0]
+            if self.target_conf.altitude > pl.altitude + down:
+                self.target_conf.altitude = pl.altitude + down - 1
+            if self.target_conf.speed > pl.max_speed:
+                self.target_conf.speed = pl.max_speed
         # Store initial values for self._dampen()
         initial_conf = pl.get_current_configuration()
         if pl.heading != self.target_conf.heading:
@@ -324,3 +332,8 @@ class Pilot(object):
         if st['procedure']:
             st['procedure'].update()
         self._manoeuvre()
+        if not self.plane.flags.on_ground and \
+               self.plane.altitude <= self.navigator.get_ground_level():
+            msg = 'Noooooooooo! Aaaarrghh!... <click>'
+            self.say(msg, S.KO_COLOUR)
+            self.plane.terminate(S.PLANE_CRASHES)

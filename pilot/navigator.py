@@ -260,13 +260,25 @@ class Navigator(object):
         delta = point - self.plane.position
         return U.v3_to_heading(delta)
 
-    def get_required_minimum_altitude(self):
+    def get_ground_level(self, point=None):
+        '''
+        Return the ground level u
+        '''
+        # This method is for the future, when scenarios with varying ground
+        # levels will be implemented
+        if not point:
+            point = self.plane.position
+        return 0
+
+    def get_required_minimum_altitude(self, point=None):
         '''
         Return the minimum altitude a plane is required to fly at on a given
         ground point.
         '''
         # This method is for the future, when scenarios with minimum flight
         # altitudes will be implemented.
+        if not point:
+            point = self.plane.position
         return 500
 
     def get_shortest_veering_direction(self):
