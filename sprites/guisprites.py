@@ -6,8 +6,11 @@ Provides the sprite classes used in the radar window.
 These are: flight strips, airport maps,
 '''
 
+import os.path as path
+
 import pygame.sprite
 from pygame.locals import *
+from pkg_resources import resource_stream  #@UnresolvedImport
 
 import lib.utils as U
 from engine.settings import settings as S
@@ -102,10 +105,56 @@ class FlightStrip(pygame.sprite.Sprite):
         task = '%s ] %s' % (plane.origin, plane.destination)
         self.image.blit(self.render_text('small', S.BLACK, task),
                         (S.STRIPS_RECT.w*0.60, self.offset))
+        self.image.blit(self.render_text('small', S.BLACK, plane.callsign),
+                        self.callsign_position)
         # Save the empty one as bkground
         self.bkground = self.image.copy()
         # Initial position
         self.rect = pygame.rect.Rect(0, 0, S.STRIPS_RECT.w, self.strip_h)
+
+    @classmethod
+    def initialise(cls):
+        '''
+        Initialisation method, called at import time.
+        '''
+        tmp = cls.__get_fontobj('large')
+        l_height = tmp.render('M', True, S.WHITE).get_bounding_rect().h
+        tmp = cls.__get_fontobj('small')
+        s_height = tmp.render('M', True, S.WHITE).get_bounding_rect().h
+        cls.strip_h = 2 * l_height + 3 * cls.offset
+        for fname in ('drop-black.png', 'drop-green.png',
+                      'drop-red.png', 'drop-yellow.png',
+                      'master-alarm-off.png', 'master-alarm-on.png',
+                      'expedite-off.png', 'expedite-on.png'):
+            data = resource_stream(__name__, path.join('data', fname))
+            image = pygame.image.load(data)
+            if 'drop' in fname or 'alarm' in fname:
+                height = float(l_height)
+            else:
+                height = float(s_height)
+            new_size = (int(height / image.get_height() * image.get_width()),
+                        int(height))
+            image = pygame.transform.smoothscale(image, new_size)
+            name = fname.split('.')[0].replace('-', '_')
+            setattr(cls, name, image)
+        cls.drop_position = (
+            S.STRIPS_RECT.w * 0.55 - cls.drop_red.get_width() / 2,
+            cls.offset)
+        cls.expedite_position = (
+            S.STRIPS_RECT.w - cls.offset - cls.expedite_on.get_width(),
+            cls.offset)
+        cls.fuel_data_position = (
+            S.STRIPS_RECT.w * 0.60,
+            cls.offset + l_height - s_height)
+        cls.callsign_position = (
+            cls.offset,
+            cls.offset + l_height + cls.offset)
+        cls.order_being_processed_position = (
+            cls.offset,
+            cls.strip_h - cls.offset - s_height)
+        cls.master_alarm_position = (
+            S.STRIPS_RECT.w - cls.offset - cls.master_alarm_on.get_width(),
+            cls.offset + l_height + cls.offset)
 
     @classmethod
     def __get_fontobj(cls, size_str):
@@ -134,19 +183,17 @@ class FlightStrip(pygame.sprite.Sprite):
         Generate an empty flight-strip.
         Return the pygame.surface object of appropriate colour and dimenstion.
         '''
-        tmp = cls.render_text('large', S.WHITE, 'XXX0000')
-        cls.strip_h = tmp.get_height() + 2*cls.offset
         if type_ not in cls.empty_sprites.keys():
             if type_ == S.OUTBOUND:
                 color = S.PALE_RED
             elif type_ == S.INBOUND:
                 color = S.PALE_GREEN
             else:
-                raise BaseException('Unknown type of empty strip.')
+                raise RuntimeError('Unknown type of empty strip.')
             s = pygame.surface.Surface(
                    (S.STRIPS_RECT.w, cls.strip_h), SRCALPHA)
-            for x in (cls.offset, S.STRIPS_RECT.w-cls.offset):
-                for y in (cls.offset, cls.strip_h-cls.offset):
+            for x in (cls.offset, S.STRIPS_RECT.w - cls.offset):
+                for y in (cls.offset, cls.strip_h - cls.offset):
                     pygame.draw.circle(s, color, (x,y), cls.radius)
             r = pygame.rect.Rect(cls.margin, cls.offset,
                 S.STRIPS_RECT.w-2*cls.margin, cls.strip_h-2*cls.offset)
@@ -168,10 +215,38 @@ class FlightStrip(pygame.sprite.Sprite):
 
     def update(self):
         self.image = self.bkground.copy()
-        fuel_msg = 'FUEL: %s' % str(U.rint(self.plane.fuel)).zfill(3)
+        fuel_msg = 'FUEL: %s (%s)' % (str(U.rint(self.plane.fuel)).zfill(3),
+                    str(U.rint(self.plane.fuel_delta)).zfill(3))
         color = S.DARK_GREEN if self.plane.fuel > 100 else S.KO_COLOUR
         img = self.render_text('small', color, fuel_msg)
-        self.image.blit(img, (S.STRIPS_RECT.w*0.60,
-                              self.strip_h-self.offset-img.get_height()))
+        self.image.blit(img, self.fuel_data_position)
         self.rect.y += cmp(self.target_y, self.rect.y) * \
                        min(3, abs(self.rect.y - self.target_y))
+        # Master alarm
+        if self.plane.flags.collision or not self.plane.fuel:
+            img = self.master_alarm_on
+        else:
+            img = self.master_alarm_off
+        self.image.blit(img, self.master_alarm_position)
+        # Expedite arrow
+        if self.plane.pilot.status['haste'] in ('expedite', 'emergency'):
+            img = self.expedite_on
+        else:
+            img = self.expedite_off
+        self.image.blit(img, self.expedite_position)
+        # Drop
+        if self.plane.fuel_delta > 0:
+            img = self.drop_green
+        elif self.plane.fuel:
+            img = self.drop_yellow
+        else:
+            img = self.drop_red
+        self.image.blit(img, self.drop_position)
+        # Last order
+        text = self.plane.pilot.order_being_processed
+        if text:
+            text = self.render_text('small', S.GRAY, text)
+            self.image.blit(text, self.order_being_processed_position)
+
+# MODULE INITIALISATION
+FlightStrip.initialise()

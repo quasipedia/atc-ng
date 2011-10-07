@@ -494,6 +494,18 @@ class CommandLine(object):
                     filtered.append(sorted(list(tmp), key=len).pop())
         return filtered
 
+    def _pick_shortest_alias(self, command):
+        '''
+        Return the shortes form for a command or None if the command spelling
+        hasn't been found.
+        '''
+        for pool in (GAME_COMMANDS, PLANE_COMMANDS):
+            for values in pool.values():
+                spellings = values['spellings']
+                if command in spellings:
+                    return min(spellings, key=len)
+        return None
+
     def _get_list_of_existing(self, what, context=None):
         '''
         Return a list of existing (=valid) strings representing `what`
@@ -555,6 +567,19 @@ class CommandLine(object):
         for i in range(len(lines)):
             result.blit(surfaces[i], (0,i*font_height))
         return result
+
+    def _short_commmand(self, commandline):
+        '''
+        Reduce a command to its shortest form. Accepts a command line.
+        '''
+        if len(commandline.split()) <= 5:
+            out = commandline.split()[1:]
+        else:
+            out = []
+            for el in commandline.split()[1:]:
+                shorty = self._pick_shortest_alias(el)
+                out.append(shorty if shorty else el)
+        return ' '.join(out)
 
     @property
     def text(self):
@@ -663,9 +688,11 @@ class CommandLine(object):
         else:
             callable_, args = parsed
             fname = callable_.__name__
-            # Successfully parsed commands get logged on console and inserted
-            # into command history
+            # Successfully parsed plane commands get logged on console and
+            # inserted into command history.
             if fname == 'do':
+                shortened_command = self._short_commmand(self.text)
+                callable_.__self__.order_being_processed = shortened_command
                 self.msg_append(S.NEUTRAL_COLOUR,
                                 ' '.join((self.cmd_prefix,self.text)))
                 self.command_history.insert(0, self.text)

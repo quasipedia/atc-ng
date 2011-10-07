@@ -124,8 +124,7 @@ class Challenge(object):
                         tmp = random.choice(self.scenario.airports)
                         dest = tmp.iata
                         fuel = U.rint(U.ground_distance(pos, tmp.location)*
-                                    0.5 *self.fuel_per_metre)
-#                                    4*self.fuel_per_metre)
+                                    4*self.fuel_per_metre)
                         return dict(origin=orig, position=pos, velocity=vel,
                                     destination=dest, fuel=fuel,
                                     fuel_efficiency=self.fuel_per_metre)
@@ -137,8 +136,7 @@ class Challenge(object):
             tmp = random.choice(self.scenario.gates)
             dest = tmp.name
             fuel = U.rint(U.ground_distance(pos, Vector3(*tmp.location))*
-                                0.5*self.fuel_per_metre)
-#                                4*self.fuel_per_metre)
+                                4*self.fuel_per_metre)
             return dict(origin=orig, position=pos, velocity=vel,
                         destination=dest, fuel=fuel,
                         fuel_efficiency=self.fuel_per_metre)
@@ -185,7 +183,7 @@ class Challenge(object):
             self.frequency += self.FREQ_STEP
         # If there have been 3 (or more) destroyed planes, terminate the match
         if self.gamelogic.fatalities >= self.MAX_LOST:
-            msg = 'THREE_STRIKES_OUT: Match si over after %s planes entered' \
-                  'the aerospace' % self.plane_counter
+            msg = ('THREE_STRIKES_OUT: Match si over after %s planes ' \
+                  'entered the aerospace' % self.plane_counter, S.KO_COLOUR)
             log.info(msg)
-            self.gamelogic.game_commander.display(msg)
+            self.gamelogic.game_commander.display([msg])

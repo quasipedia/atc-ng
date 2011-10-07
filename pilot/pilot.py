@@ -139,6 +139,7 @@ class Pilot(object):
         self.navigator = navigator.Navigator(self)
         self.executer = executer.Executer(self)
         self.last_radio_hash = None
+        self.order_being_processed = ''
 
     def _reset_status(self):
         '''
@@ -215,6 +216,7 @@ class Pilot(object):
         # Actions to be performed if all orders have been executed
         if self.target_conf.is_reached() and not self.status['procedure']:
             pl.flags.busy = False
+            self.order_being_processed = ''
             self._reset_status()
 
     def _manoeuvre(self):

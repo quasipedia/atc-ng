@@ -175,6 +175,7 @@ class Aeroplane(object):
         self.__accelerometer = ' '
         self.__variometer = ' '
         self.pilot = pilot.pilot.Pilot(self)
+        self.fuel_delta = self.fuel / 2
 
     @property
     def heading(self):
@@ -297,7 +298,8 @@ class Aeroplane(object):
                 tmp = self.aerospace.gates[self.destination].location
                 dest_point = Vector3(tmp[0], tmp[1], self.altitude)
             dist = U.ground_distance(dest_point, self.position)
-            if self.fuel < (2 * dist * self.fuel_efficiency):
+            self.fuel_delta = self.fuel - (2 * dist * self.fuel_efficiency)
+            if self.fuel_delta < 0:
                 log.info('%s is declaring fuel emergency' % self.icao)
                 msg = 'Pan-Pan, Pan-Pan, Pan-Pan... We are low on fuel, ' \
                       'requesting priority landing!'

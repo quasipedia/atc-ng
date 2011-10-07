@@ -146,10 +146,12 @@ SORT:
        criterias are:
 
        * ALTITUDE (lowest aeroplanes first)
+       * CALLSIGN (aphabetical order of callsigns)
        * FUEL (closest to be in an emergency first)
+       * ICAO (aphabetical order of flight numbers)
+       * SPEED (slowest aeroplanes first)
        * STATUS (statuses that require immediate action first)
        * TIME (priority to last order issued a long time ago)
-       * SPEED (slowest aeroplanes first)
   examples: |
 
     >>> /SORT TIME
