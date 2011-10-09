@@ -31,9 +31,9 @@ class Challenge(object):
     '''
 
     DELAY = 3                     # delay before the first plane appears
-    PLANE_NUMBER_START = 3        # begin game with X planes
-    MOD_PERIOD = 60               # modify frequency every X seconds
-    FREQ_START = 120              # new plane every X seconds
+    PLANE_NUMBER_START = 2        # begin game with X planes
+    MOD_PERIOD = 90               # modify frequency every X seconds
+    FREQ_START = 180              # new plane every X seconds
     FREQ_STEP = -3                # step of frequency modification
     FREQ_LIMIT = 20               # maximum rate of new planes on screen
     MAX_LOST = 3                  # number of lost planes at which the game

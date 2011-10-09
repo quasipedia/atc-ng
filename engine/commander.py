@@ -271,7 +271,18 @@ class Parser(object):
         cname = self.__from_alias_to_command(cname)
         return [cname] if cname else False
 
-
+    def _validate_sort(self, filter=None):
+        '''
+        ``filter`` must be a valid filter for sorting the strips. A default is
+        set if no argument is passed.
+        '''
+        if not filter:
+            filter = GAME_COMMANDS['SORT']['default']
+            # one could return here, but just as consistency check, we let
+            # the check run even on the default one.
+        valid = ['ALTITUDE', 'CALLSIGN', 'FUEL', 'ICAO', 'DISTANCE', 'SPEED',
+                 'STATUS', 'TIME']
+        return [filter] if filter in valid else False
 
     def parse(self):
         '''

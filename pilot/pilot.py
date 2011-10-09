@@ -334,7 +334,7 @@ class Pilot(object):
         if st['procedure']:
             st['procedure'].update()
         self._manoeuvre()
-        if not self.plane.flags.on_ground and \
+        if not self.plane.flags.on_ground and not self.plane.flags.locked and \
                self.plane.altitude <= self.navigator.get_ground_level():
             msg = 'Noooooooooo! Aaaarrghh!... <click>'
             self.say(msg, S.KO_COLOUR)

@@ -10,13 +10,18 @@ are therefore essential for keeping separation), the flight progress strips
 provide information useful for **planning the course** of each aeroplane.
 
 Anatomy of a strip
-==================
+------------------
 
 Flight strips are very dense when it comes to amount of information displayed.
 
 .. image:: /_static/flight-strip-anatomy.png
 
 Here is some details on each information on the strip. In clockwise order:
+
+**Colour**
+
+  The colour of the strip indicates weather the final destination of an
+  aeroplane is an airport (green) or a gate (red).
 
 **Flight number**
 
@@ -80,3 +85,17 @@ Here is some details on each information on the strip. In clockwise order:
   If the air carrier has been assigned a :term:`call sign`, that is how the
   pilot will identify themselves over radio (on the console). This is were you
   can check what call sign the pilot will use.
+
+Strips handling
+---------------
+
+Flight progress strips can be handled through the :ref:`/SORT<gcommands-SORT>`
+command in a variety of ways.
+
+The idea is that the order of the strips should help the air traffic controller
+following an orderly routine, always processing the strip at the bottom of the
+stack first.
+
+There is no single correct way to sort the strips. According to playing style,
+scenario, number of planes, radar range, etc... a different order might be
+more advisable than another.

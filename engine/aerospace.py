@@ -82,9 +82,9 @@ class RunwayManager(object):
             for runway_name, squatter in runways.items():
                 if plane == squatter:
                     keys = [port_name, runway_name]
-        assert keys
-        port_iata, runway_name = keys
-        del self.__busy_runways[port_iata][runway_name]
+        if keys:  #This is alwasy called when a plane is removed (so need "if")
+            port_iata, runway_name = keys
+            del self.__busy_runways[port_iata][runway_name]
 
 
 class Aerospace(object):

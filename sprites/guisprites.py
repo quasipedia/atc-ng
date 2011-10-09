@@ -31,9 +31,30 @@ class StripsGroup(pygame.sprite.RenderUpdates):
     Sprite container for Flight strips.
     '''
 
+    status_hierarchy = ['on_ground', 'locked', 'busy', '', 'priority',
+                        'fuel_emergency', 'collision']
+
     def update(self, *args):
-        cmp = lambda a,b : U.rint(b.plane.time_last_cmd - a.plane.time_last_cmd)
-        ordered = sorted(self.sprites(), cmp)
+        filter = getattr(self, 'filter', 'TIME')
+        if filter == 'ALTITUDE':
+            compare = lambda a, b: cmp(b.plane.altitude, a.plane.altitude)
+        elif filter == 'CALLSIGN':
+            compare = lambda a, b: cmp(a.plane.callsign, b.plane.callsign)
+        elif filter == 'FUEL':
+            compare = lambda a, b: cmp(b.plane.fuel_delta, a.plane.fuel_delta)
+        elif filter == 'ICAO':
+            compare = lambda a, b: cmp(a.plane.icao, b.plane.icao)
+        elif filter == 'DISTANCE':
+            compare = lambda a, b: cmp(a.plane.dist_to_target,
+                                       b.plane.dist_to_target)
+        elif filter == 'SPEED':
+            compare = lambda a, b: cmp(b.plane.speed, a.plane.speed)
+        elif filter == 'STATUS':
+            compare = self._compare_status
+        elif filter == 'TIME':
+            compare = lambda a, b : cmp(b.plane.time_last_cmd,
+                                        a.plane.time_last_cmd)
+        ordered = sorted(self.sprites(), compare)
         for i, sprite in enumerate(ordered):
             sprite.target_y = i*FlightStrip.strip_h
             sprite.update()
@@ -46,7 +67,22 @@ class StripsGroup(pygame.sprite.RenderUpdates):
             if sprite.plane == plane:
                 sprite.kill()
                 return
-
+    def _compare_status(self, plane_a, plane_b):
+        '''
+        Compares the status of two planes according to their priority.
+        '''
+        # In the hierarchy #3 is the reserved place for planes who do not
+        # have a specific status.
+        a_status = 3
+        b_status = 3
+        for i, flag in enumerate(self.status_hierarchy):
+            # the reserved empty string (#3) will prevent this to run
+            if flag:
+                if True == getattr(plane_a.plane.flags, flag):
+                    a_status = i
+                if True == getattr(plane_b.plane.flags, flag):
+                    b_status = i
+        return cmp(a_status, b_status)
 
 class Score(pygame.sprite.Sprite):
 
@@ -223,7 +259,8 @@ class FlightStrip(pygame.sprite.Sprite):
         self.rect.y += cmp(self.target_y, self.rect.y) * \
                        min(3, abs(self.rect.y - self.target_y))
         # Master alarm
-        if self.plane.flags.collision or not self.plane.fuel:
+        if self.plane.flags.collision or self.plane.tcas.state \
+                                      or not self.plane.fuel:
             img = self.master_alarm_on
         else:
             img = self.master_alarm_off

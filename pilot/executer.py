@@ -45,6 +45,7 @@ class Executer(object):
         self.pilot._reset_status()
         self.pilot.set_target_conf_to_current()
         self.plane.flags.reset()
+        self.plane.aerospace.runways_manager.release_runway(self.plane)
         self.pilot.adjust_to_valid_FL()
 
     def process_commands(self, commands):

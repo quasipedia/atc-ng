@@ -43,13 +43,12 @@ class Checker(object):
         # Reject orders if imminent collision
         if pl.tcas.state == True:
             return 'Mayday, mayday!!!'
-        # Reject orders if busy
-        assert not (pl.flags.busy and pl.flags.locked)  #only one of them on!
-        if pl.flags.busy == True and cnames - set(['ABORT', 'SQUAWK']):
-            return 'We are still performing the previous command.'
         # Reject orders other than SQUAWK if plane is locked
         if pl.flags.locked and cnames - set('SQUAWK'):
             return 'You can only SQUAWK this plane.'
+        # Reject orders if busy
+        if pl.flags.busy == True and cnames - set(['ABORT', 'SQUAWK']):
+            return 'We are still performing the previous command.'
         # Reject orders other than TAKEOFF or SQUAWK if plane is on ground
         if pl.flags.on_ground and not \
                         ('TAKEOFF' in cnames or cnames == set(['SQUAWK'])):

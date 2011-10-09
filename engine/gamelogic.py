@@ -171,7 +171,7 @@ class GameCommandsProcessor(object):
         elif cname == 'HELP':
             self._give_help_on(args[0])
         elif cname == 'SORT':
-            pass
+            self.gamelogic.strips.filter = args[0]
         elif cname == 'LIST':
             pass
         elif cname == 'LOAD':

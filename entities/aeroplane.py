@@ -176,6 +176,7 @@ class Aeroplane(object):
         self.__variometer = ' '
         self.pilot = pilot.pilot.Pilot(self)
         self.fuel_delta = self.fuel / 2
+        self.dist_to_target = self.fuel / self.fuel_efficiency / 4
 
     @property
     def heading(self):
@@ -265,6 +266,7 @@ class Aeroplane(object):
         Terminate an aeroplane.
         '''
         self.aerospace.gamelogic.remove_plane(self, event)
+        self.aerospace.runways_manager.release_runway(self)
 
     def update(self, pings):
         '''
@@ -290,22 +292,22 @@ class Aeroplane(object):
             self.aerospace.gamelogic.score_event(S.PLANE_BURNS_FUEL_UNIT,
                                                  multiplier=burnt)
         # Check if a fuel emergency has to be triggered.
-        if not self.flags.fuel_emergency:
-            # FIXME: this is goo reason to use objects intstead of IATA/NAME
-            try:
-                dest_point = self.aerospace.airports[self.destination].location
-            except KeyError:
-                tmp = self.aerospace.gates[self.destination].location
-                dest_point = Vector3(tmp[0], tmp[1], self.altitude)
-            dist = U.ground_distance(dest_point, self.position)
-            self.fuel_delta = self.fuel - (2 * dist * self.fuel_efficiency)
-            if self.fuel_delta < 0:
-                log.info('%s is declaring fuel emergency' % self.icao)
-                msg = 'Pan-Pan, Pan-Pan, Pan-Pan... We are low on fuel, ' \
-                      'requesting priority landing!'
-                self.pilot.say(msg, S.KO_COLOUR)
-                self.aerospace.gamelogic.score_event(S.EMERGENCY_FUEL)
-                self.flags.fuel_emergency = True
+        # FIXME: this is goo reason to use objects intstead of IATA/NAME
+        try:
+            dest_point = self.aerospace.airports[self.destination].location
+        except KeyError:
+            tmp = self.aerospace.gates[self.destination].location
+            dest_point = Vector3(tmp[0], tmp[1], self.altitude)
+        dist = U.ground_distance(dest_point, self.position)
+        self.fuel_delta = self.fuel - (2 * dist * self.fuel_efficiency)
+        self.dist_to_target = dist
+        if not self.flags.fuel_emergency and self.fuel_delta < 0:
+            log.info('%s is declaring fuel emergency' % self.icao)
+            msg = 'Pan-Pan, Pan-Pan, Pan-Pan... We are low on fuel, ' \
+                  'requesting priority landing!'
+            self.pilot.say(msg, S.KO_COLOUR)
+            self.aerospace.gamelogic.score_event(S.EMERGENCY_FUEL)
+            self.flags.fuel_emergency = True
         # Fuel has ran out
         if self.fuel < 0:
             msg = 'Mayday! Mayday! Mayday! All engines have flamed out, we ' \
