@@ -15,12 +15,12 @@ airports:
 
 - real_iata  : FRA
   new_iata   : MAC
-  new_name   : Mac's home airoport
+  new_name   : Test airport one
   location   : [20000, 20000]
 
 - real_iata  : ARN
   new_iata   : NAD
-  new_name   : Nadia's home airoport
+  new_name   : Test airport two
   location   : [30000, 25000]
 
 gates:

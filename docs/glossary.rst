@@ -24,6 +24,14 @@ Glossary
       generating the so called :term:`gates<gate>`. All aeroplanes that are not
       on ground must enter and exit the aerospace from them.
 
+   Call sign
+      In broadcasting and radio communications, a call sign is a unique
+      designation for a transmitting station.
+
+      in ATC-NG call signs are used for radio (console) communication. For
+      example British Airways flight 1234 will identify itself as "Speedbird
+      1234".
+
    Flight level
       In ATC-NG, a flight level is the standard nominal altitude of an aircraft
       above the sea level, expressed in hundreds of metres. For example FL 05

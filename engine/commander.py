@@ -446,8 +446,8 @@ class CommandLine(object):
         # Font size calculations
         small_size = S.CLI_RECT.h * 0.9 / \
                      (S.CONSOLE_LINES_NUM + 1.0 / S.CONSOLE_FONT_SIZE_RATIO)
-        large_size = U.rint(small_size / S.CONSOLE_FONT_SIZE_RATIO)
-        small_size = U.rint(small_size)
+        large_size = int(small_size / S.CONSOLE_FONT_SIZE_RATIO)
+        small_size = int(small_size)
         self.large_f = pygame.font.Font(S.MAIN_FONT, large_size)
         self.small_f = pygame.font.Font(S.MAIN_FONT, small_size)
         self.max_large_line_length = self.__get_max_line_length(self.large_f)
