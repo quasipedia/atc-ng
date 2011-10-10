@@ -156,6 +156,8 @@ class Clear(GeneralProcedure):
                and commands['SPEED'][0][0] > self.plane.speed):
             msg = 'The target waypoint is too close for us to fly over it!'
             return self._abort_clear(msg)
+        if self._check_expedite(commands):
+            self.pilot.status['haste'] = 'expedite'
         # Head towards the point
         commands['HEADING'] = commands['CLEAR']
         self.pilot.executer.process_commands(commands)
@@ -314,7 +316,8 @@ class Land(GeneralProcedure):
             ticks = 1.0 * l.fd / pi.target_conf.speed / S.PING_IN_SECONDS
             z_step = 1.0 * l.above_foot / ticks
             pi.target_conf.altitude -= z_step
-            if pl.position.z <= l.foot.z:
+            if pl.position.z <= l.foot.z \
+               or pi.navigator.check_overshot(l.foot):
                 pl.flags.on_ground = True
                 self.phase = self.TAXIING
                 pi.target_conf.speed = l.taxiing_data['speed']

@@ -10,6 +10,7 @@ Amongst others:
 '''
 
 import textwrap
+from time import time, strftime, gmtime
 
 import pygame.draw
 import pygame.surface
@@ -227,13 +228,21 @@ class GameLogic(object):
         self.fixed_sprites.add(sprites.guisprites.Score(self))
         self.challenge = engine.challenge.Challenge(self)
         self.parse_scenario(self.challenge.scenario)
-        self.__init_statusbar()
+        self._update_statusbar(start_over=True)
 
-    def __init_statusbar(self):
+    def _update_statusbar(self, start_over=False):
+        '''
+        Update the statusbar information
+        '''
+        if start_over:
+            self.match_start_time = time()
+        assert self.match_start_time
         self.statusbar_surface.fill(S.GRAY)
         bits = []
         bits.append(" Radar range: %sm" % S.RADAR_RANGE)
-        bits.append("Radar markings: %sm " % S.RADAR_MARKING)
+        bits.append("Radar markings: %sm" % S.RADAR_MARKING)
+        bits.append("Elapsed time: %s " %
+                strftime("%H:%M:%S", gmtime(time() - self.match_start_time)))
         text = '     '.join(bits)
         fontobj = U.get_fontobj_by_text_width(S.MAIN_FONT, text,
                   (S.STATUSBAR_RECT.w, S.STATUSBAR_RECT.h-2))
@@ -382,4 +391,5 @@ class GameLogic(object):
                 self.aerospace.draw()
         elif self.machine_state == S.MS_PAUSED:
             pass
+        self._update_statusbar()
         self.cli.draw()

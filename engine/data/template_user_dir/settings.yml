@@ -64,8 +64,8 @@ RADAR_AID_STEPS  : 10             # desired amount of markings per radar screen
 G_GRAVITY            : 9.807      # value of the ``g`` gravitational constant
                                   # in metres / seconds^2
 SLOPE_ANGLE          : 3          # ILS gliding slope angle, in degrees
-VERTICAL_CLEARANCE   : 500        # minimum distance in metres between planes
-HORIZONTAL_CLEARANCE : 5000       # minimum distance in metres between planes
+VERTICAL_CLEARANCE   : 300        # minimum distance in metres between planes
+HORIZONTAL_CLEARANCE : 3000       # minimum distance in metres between planes
 
 # SIMULATION ENGINE ###########################################################
 # This section will be removed from the final distribution of the game,

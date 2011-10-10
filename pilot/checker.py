@@ -73,7 +73,6 @@ class Checker(object):
         # Reject TAKEOFF if one of the various no-go conditions is true
         if 'TAKEOFF' in cnames:
             args, flags = commands['TAKEOFF']
-            assert len(args) == 1 and len(flags) == 0
             if not pl.flags.on_ground:
                 return 'We can\'t take off if we are already airborne!'
             port = aspace.airports[pl.origin]

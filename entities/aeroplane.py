@@ -107,7 +107,7 @@ class Tcas(object):
         '''
         try:
             colliding = self.plane.aerospace.tcas_data[self.plane.icao]
-            self.plane.flags.reset()
+            self.plane.pilot.executer.abort()
             if self.state == False:
                 self.plane.aerospace.gamelogic.score_event(S.EMERGENCY_TCAS)
             self.state = True
