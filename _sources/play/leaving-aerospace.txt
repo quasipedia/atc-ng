@@ -1,4 +1,4 @@
-.. index:: Aerospace; leaving
+.. index:: Aerospace; Leaving
 
 Leaving the aerospace
 =====================

@@ -12,4 +12,5 @@ The file is in :term:`YAML` format, and it's heavily commented. Here's the
 latest version (your version may very slightly, depending on the installed
 release of the game):
 
-.. include:: ../settings-file.inc
+.. literalinclude:: ../../engine/data/template_user_dir/settings.yml
+   :language: yaml

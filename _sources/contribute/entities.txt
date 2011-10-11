@@ -32,9 +32,9 @@ Aeroplane models
 Stub.
 
 .. index::
-   pair:airport; Entity
+   pair:Airport; Entity
 
-airports
+Airports
 ---------
 Stub.
 

@@ -14,7 +14,7 @@ Glossary
       of operating systems.
 
       Traditionally, users of \*nix systems are very versed in the shell
-      environment, a commandline interface operated from keyboard only, hence
+      environment, a command line interface operated from keyboard only, hence
       the auxiliary origin of the ATC-NG game, which operates purely through
       keyboard input.
 
@@ -24,6 +24,14 @@ Glossary
       generating the so called :term:`gates<gate>`. All aeroplanes that are not
       on ground must enter and exit the aerospace from them.
 
+   Call sign
+      In broadcasting and radio communications, a call sign is a unique
+      designation for a transmitting station.
+
+      in ATC-NG call signs are used for radio (console) communication. For
+      example British Airways flight 1234 will identify itself as "Speedbird
+      1234".
+
    Flight level
       In ATC-NG, a flight level is the standard nominal altitude of an aircraft
       above the sea level, expressed in hundreds of metres. For example FL 05
@@ -31,10 +39,28 @@ Glossary
 
       Flight levels are the parameter for the ``ALTITUDE`` command.
 
+   Flight progress strips
+      A flight progress strip is a small strip of paper used to track a flight
+      in air traffic control (ATC). The strip is placed with other strips in
+      a 'strip board' which is then used as a representation of all flights in
+      a particular sector of airspace or on an airport.
+
+      ATC-NG provides :doc:`virtual strips<play/flight-strips>` on the left hand
+      side of the game interface, that can be sorted using :ref:`the /SORT game
+      command<gcommands-SORT>`.
+
    Gate
-      Gates in ATC-NG are the entry/exit points for the aircrafts. An
+      Gates in ATC-NG are the entry/exit points for the aircraft. An
       explanation of how to instruct an aeroplane to use a exit through a gate
       is available :doc:`here<play/leaving-aerospace>`
+
+   Globbing
+      In computer programming, the verb *glob* or *globbing* is used to refer
+      to an instance of pattern matching behaviour. The noun "glob" is used to
+      refer to a particular pattern.
+
+      ATC-NG uses globbing for listing the available scenarios on the system.
+      See :ref:`the /LIST game command<gcommands-LIST>`.
 
    IATA
       IATA stands for *International Air Transport Association*. IATA's mission
@@ -90,7 +116,7 @@ Glossary
 
    reStructuredText
       reStructuredText is an easy-to-read, what-you-see-is-what-you-get
-      plaintext markup syntax and parser system. reStructuredText is a revision
+      plain text markup syntax and parser system. reStructuredText is a revision
       and reinterpretation of the StructuredText and Setext lightweight markup
       systems. More info on the format are available on the
       `reStructuredText website`_.
@@ -104,13 +130,18 @@ Glossary
       09 points east (90°), runway 18 is south (180°), runway 27 points west
       (270°) and runway 36 points to the north (360° rather than 0°). If there
       is more than one runway pointing in the same direction (parallel runways),
-      each runway is identified by appending Left (L), Center (C) and Right (R)
+      each runway is identified by appending Left (L), Centre (C) and Right (R)
       to the number.
 
       ATC-NG models its airport on real ones, and therefore the size and naming
       of the runways is the real one. ATC-NG - though - doesn't simulate Earth's
       magnetic field, and thus the orientation of runways is relative to the
       geographical north.
+
+   Sprite
+      In computer graphics, a sprite is a two-dimensional image or animation
+      that is integrated into a larger scene. ATC-NG uses sprites for all its
+      moveable elements (aeroplane icons, flying strips, etc...).
 
    YAML
       YAML is a human-readable data serialization format (that is: a format for

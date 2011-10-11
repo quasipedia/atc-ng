@@ -13,7 +13,7 @@ A typical landing command looks similar to:
 
 Landing phases
 --------------
-A take off is split in four different phases:
+A take off is split in five different phases:
 
 #. **Intercepting**: The plane keeps current heading, altitude and speed and
    waits for the right moment to turn into the ILS projection on the ground. In
@@ -31,14 +31,28 @@ A take off is split in four different phases:
 #. **Gliding**: The plane follows the ILS vector maintaining speed until the
    moment comes to slow down to landing speed. The plane *aborts* if at the
    beginning of the glide its speed is already too high for it to slow down to
-   landing speed by the foot of the runway.
+   landing speed by the foot of the runway. The plane also *aborts* if at
+   altitude under 100 metres above the runway foot the runway will result in use
+   by any other aircraft, if not, this is also the moment in which such runway
+   will be marked as "busy" by the landing plane.
+#. **Taxiing**: During this time the aircraft will gently roll over the runway
+   until it reaches the taxiway. Once the taxiway is reached, the runway is
+   made available again and the score for the landing is computed.
+
+Aborting and the locked status
+------------------------------
+The landing sequence can be stopped at any moment using the appropriate
+``ABORT`` command. However, once the aeroplane reaches decision altitude, the
+crew will take over any decision and for this reason they will stop responding
+to your commands. To remind you of this, the aeroplane icon will switch to the
+:ref:`locked colour<sprites-colour>`.
 
 Other landing "gotchas"
 -----------------------
 There are a few things to consider when clearing an aeroplane for landing:
 
 * The angle between the current heading of the aeroplane and the runway
-  orientation must be less or equal than 60 degrees.
+  orientation must be less or equal than 30 degrees.
 
 * The gliding angle for an :term:`ILS` is always the standard 3°.
 

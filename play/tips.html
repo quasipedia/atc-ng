@@ -7,13 +7,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Tips &amp; Tricks &mdash; documentation .dev version</title>
+    <title>Tips &amp; Tricks</title>
     <link rel="stylesheet" href="../_static/agogo.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     'dev.snapshot',
+        VERSION:     '0.2-23-g61d9526',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
-    <link rel="top" title="documentation .dev version" href="../index.html" />
+    <link rel="top" title="None" href="../index.html" />
     <link rel="up" title="How to play ATC-NG" href="index.html" />
     <link rel="next" title="Get involved!" href="../contribute/index.html" />
     <link rel="prev" title="Configuration &amp; Settings" href="settings.html" /> 
@@ -55,44 +55,44 @@
           <div class="body">
             
   <div class="section" id="tips-tricks">
-<h1>Tips &amp; Tricks<a class="headerlink" href="#tips-tricks" title="Permalink to this headline">¶</a></h1>
+<span id="index-0"></span><h1>Tips &amp; Tricks<a class="headerlink" href="#tips-tricks" title="Permalink to this headline">¶</a></h1>
 <p>This section of the manual contains some advice that you might find useful for
 increasing your performance while playing.</p>
 <div class="section" id="shorthand-notation">
-<span id="index-0"></span><h2>Shorthand notation<a class="headerlink" href="#shorthand-notation" title="Permalink to this headline">¶</a></h2>
+<span id="index-1"></span><h2>Shorthand notation<a class="headerlink" href="#shorthand-notation" title="Permalink to this headline">¶</a></h2>
 <p>Since <tt class="docutils literal"><span class="pre">HEADING</span></tt>, <tt class="docutils literal"><span class="pre">SPEED</span></tt> and <tt class="docutils literal"><span class="pre">ALTITUDE</span></tt> are the most used command in the
 game, the parsing engine also accept them in a <em>shorthand notation</em> which saves
 a few keystrokes. The shorthand notation allows to issue these commands by their
 initial <strong>joint</strong> with their argument. Example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">QFA1234</span> <span class="n">H210</span> <span class="n">S200</span> <span class="n">A25</span>
+<div class="highlight-none"><div class="highlight"><pre>&gt;&gt;&gt; QFA1234 H210 S200 A25
 </pre></div>
 </div>
 </div>
 <div class="section" id="autocompletion">
-<span id="index-1"></span><h2>Autocompletion<a class="headerlink" href="#autocompletion" title="Permalink to this headline">¶</a></h2>
+<span id="index-2"></span><h2>Autocompletion<a class="headerlink" href="#autocompletion" title="Permalink to this headline">¶</a></h2>
 <p>The command line provides a <em>contex-aware</em> autocompletion (that you can activate
 by pressing the <tt class="kbd docutils literal"><span class="pre">TAB</span></tt> key). <em>Context-aware</em> means that ATC-NG will only try
 to complete a word with makes sense according to the command grammar.</p>
 <p>Example: in a scenario with a flight numbered <cite>ABC1234</cite> and an airport <cite>AZZ</cite>, the
 autocompletion will react differently:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">A</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ABC1234</span>
+<div class="highlight-none"><div class="highlight"><pre>&gt;&gt;&gt; A
+&gt;&gt;&gt; ABC1234
 </pre></div>
 </div>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">AZA1234</span> <span class="n">LAND</span> <span class="n">A</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">AZA1234</span> <span class="n">LAND</span> <span class="n">AZZ</span>
+<div class="highlight-none"><div class="highlight"><pre>&gt;&gt;&gt; AZA1234 LAND A
+&gt;&gt;&gt; AZA1234 LAND AZZ
 </pre></div>
 </div>
 <p>This is especially useful for flight numbers, that can be tedious to be
 memorised.</p>
 </div>
 <div class="section" id="command-history">
-<span id="index-2"></span><h2>Command history<a class="headerlink" href="#command-history" title="Permalink to this headline">¶</a></h2>
+<span id="index-3"></span><h2>Command history<a class="headerlink" href="#command-history" title="Permalink to this headline">¶</a></h2>
 <p>By pressing the <tt class="kbd docutils literal"><span class="pre">Up</span></tt> and <tt class="kbd docutils literal"><span class="pre">Down</span></tt> keys, it is possible to browse the
 command history.</p>
 </div>
 <div class="section" id="cleaning-the-command-line">
-<span id="index-3"></span><h2>Cleaning the command line<a class="headerlink" href="#cleaning-the-command-line" title="Permalink to this headline">¶</a></h2>
+<span id="index-4"></span><h2>Cleaning the command line<a class="headerlink" href="#cleaning-the-command-line" title="Permalink to this headline">¶</a></h2>
 <p>Beside the standard <tt class="kbd docutils literal"><span class="pre">Backspace</span></tt> key, it is also possible to:</p>
 <ul class="simple">
 <li>completely erase the prompt line with <tt class="kbd docutils literal"><span class="pre">Esc</span></tt>,</li>
@@ -100,7 +100,7 @@ command history.</p>
 </ul>
 </div>
 <div class="section" id="approaching">
-<span id="index-4"></span><h2>Approaching<a class="headerlink" href="#approaching" title="Permalink to this headline">¶</a></h2>
+<span id="index-5"></span><h2>Approaching<a class="headerlink" href="#approaching" title="Permalink to this headline">¶</a></h2>
 <p>Make sure to approach the airport for landing at a reasonable speed: <strong>the
 slowest the speed, the easier</strong> it will be for the aeroplane to <em>adjust their
 altitude</em> to that required for <a class="reference internal" href="../glossary.html#term-ils"><em class="xref std std-term">ILS</em></a> approach.</p>
@@ -109,7 +109,7 @@ altitude</em> to that required for <a class="reference internal" href="../glossa
 risk for oncoming planes in the landing queue to come too close).</p>
 </div>
 <div class="section" id="taking-off">
-<span id="index-5"></span><h2>Taking off<a class="headerlink" href="#taking-off" title="Permalink to this headline">¶</a></h2>
+<span id="index-6"></span><h2>Taking off<a class="headerlink" href="#taking-off" title="Permalink to this headline">¶</a></h2>
 <p>Always issue the command in combination with <tt class="docutils literal"><span class="pre">SPEED</span></tt> and <tt class="docutils literal"><span class="pre">ALTITUDE</span></tt>: a
 take-off performed without these parameters will keep the aeroplane busy
 until maximum flight altitude and speed are reached. In many scenarios, by the
@@ -118,12 +118,27 @@ extremely fast, and near the edge of the radar screen, and it might be too late
 for you to direct it towards its final destination.</p>
 </div>
 <div class="section" id="running-out-of-fuel">
-<span id="index-6"></span><h2>Running out of fuel<a class="headerlink" href="#running-out-of-fuel" title="Permalink to this headline">¶</a></h2>
+<span id="index-7"></span><h2>Running out of fuel<a class="headerlink" href="#running-out-of-fuel" title="Permalink to this headline">¶</a></h2>
 <p>Since aircraft running out of fuel still have the possibility to glide for quite
 some time, if you ever find yourself away from your target and low on fuel,
 climbing up will extend your gliding range of various kilometres. Also consider
 that given the simplified physics implemented in ATC-NG, the descent ratio is
 fixed regardless of the ground speed, so: keep going as fast as you can!</p>
+</div>
+<div class="section" id="combining-expedite-commands">
+<span id="index-8"></span><h2>Combining expedite commands<a class="headerlink" href="#combining-expedite-commands" title="Permalink to this headline">¶</a></h2>
+<p>Using the <a class="reference internal" href="fuel.html#fuel-expedite-flag"><em>EXPEDITE flag</em></a> will cause an aeroplane to
+perform any adjustment at twice the normal speed, and also to burn fuel at twice
+its normal rate. However, since the flag is &#8220;global&#8221; (meaning that it will
+affect <a class="reference internal" href="plane-commands.html#pcommands-speed"><em>SPEED</em></a>, <a class="reference internal" href="plane-commands.html#pcommands-altitude"><em>ALTITUDE</em></a> and
+<a class="reference internal" href="plane-commands.html#pcommands-heading"><em>HEADING</em></a> simultaneously), it is often a good idea to combine
+these commands in a single radio dispatch. For example:</p>
+<div class="highlight-none"><div class="highlight"><pre>&gt;&gt;&gt; ABC1234 H180 A20 S500 EXPEDITE
+</pre></div>
+</div>
+<p>will cause the aeroplane to veer <strong>and</strong> climb <strong>and</strong> accelerate at twice its
+normal ratio <em>simultaneously</em>, and might result in a better fuel consumption
+than issuing each of those commands separately.</p>
 </div>
 </div>
 
@@ -138,6 +153,8 @@ fixed regardless of the ground speed, so: keep going as fast as you can!</p>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">How to play ATC-NG</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="basics.html">The very basics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="interface.html">The game interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sprites.html">Aeroplane sprites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="flight-strips.html">Flight progress strips</a></li>
 <li class="toctree-l2"><a class="reference internal" href="game-commands.html">Game commands</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plane-commands.html">Aeroplane commands</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fuel.html">Fuel</a></li>

@@ -7,13 +7,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Fuel &mdash; documentation .dev version</title>
+    <title>Fuel</title>
     <link rel="stylesheet" href="../_static/agogo.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     'dev.snapshot',
+        VERSION:     '0.2-23-g61d9526',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
-    <link rel="top" title="documentation .dev version" href="../index.html" />
+    <link rel="top" title="None" href="../index.html" />
     <link rel="up" title="How to play ATC-NG" href="index.html" />
     <link rel="next" title="Taking off" href="takingoff.html" />
     <link rel="prev" title="Aeroplane commands" href="plane-commands.html" /> 
@@ -60,26 +60,31 @@
 <h2>Fuel units<a class="headerlink" href="#fuel-units" title="Permalink to this headline">¶</a></h2>
 <p>In ATC-NG fuel consumption is <strong>constant per unit of space travelled</strong>. This
 means that a plane will consume the <strong>same amount of fuel regardless of its
-travelling speed</strong>. The only notable exception to this rule is the use of the
-flag <tt class="docutils literal"><span class="pre">expedite</span></tt> in commands: if a command is issued with such flag, the plane
-will consume <strong>twice as much</strong> during the time the manoeuvre will take to
-complete.</p>
+travelling speed</strong>.</p>
 <p>To make possible to compare scores obtained on different maps/scenarios, fuel
 units are calculated based on the size of the aerospace, so that the <strong>maximum
 fuel capacity for any aeroplane in ATC-NG, is always 1000</strong>, which corresponds
-to the amount of fuel needed to travel <a class="footnote-reference" href="#id4" id="id1">[1]</a> four times along the diagonal of the
+to the amount of fuel needed to travel <a class="footnote-reference" href="#id5" id="id1">[1]</a> four times along the diagonal of the
 aerospace monitored on the radar screen. However <strong>each plane</strong> enters the game
 loaded with just enough fuel to fly <strong>four times between its entry and
-destination points</strong> <a class="footnote-reference" href="#id4" id="id2">[1]</a>.</p>
+destination points</strong> <a class="footnote-reference" href="#id5" id="id2">[1]</a>.</p>
+</div>
+<div class="section" id="the-expedite-flag">
+<span id="fuel-expedite-flag"></span><span id="index-1"></span><h2>The expedite flag<a class="headerlink" href="#the-expedite-flag" title="Permalink to this headline">¶</a></h2>
+<p>All commands that imply a change in either altitude, heading or speed can be
+issued in combination with the flag <tt class="docutils literal"><span class="pre">EXPEDITE</span></tt>: if a command is issued with
+such flag, the plane will consume <strong>twice as much</strong> during the time the
+manoeuvre will take to complete (on the other hand, the manoeuvre will be
+performed quicker).</p>
 </div>
 <div class="section" id="fuel-emergency">
-<span id="index-1"></span><h2>Fuel emergency<a class="headerlink" href="#fuel-emergency" title="Permalink to this headline">¶</a></h2>
-<p>A plane declares <strong>fuel emergency</strong> when its fuel will be twice (or less) the
-amount needed to fly the <a class="footnote-reference" href="#id4" id="id3">[1]</a> distance between the current aeroplane position
+<span id="index-2"></span><span id="id3"></span><h2>Fuel emergency<a class="headerlink" href="#fuel-emergency" title="Permalink to this headline">¶</a></h2>
+<p>A plane declares <strong>fuel emergency</strong> when its fuel will be less than twice the
+amount needed to fly the <a class="footnote-reference" href="#id5" id="id4">[1]</a> distance between the current aeroplane position
 and its destination.</p>
 </div>
 <div class="section" id="running-out-of-fuel">
-<h2>Running out of fuel<a class="headerlink" href="#running-out-of-fuel" title="Permalink to this headline">¶</a></h2>
+<span id="index-3"></span><h2>Running out of fuel<a class="headerlink" href="#running-out-of-fuel" title="Permalink to this headline">¶</a></h2>
 <p>A plane that runs out of fuel doesn&#8217;t immediately crash. Its flying parameters
 get instead modified to simulate an <em>unpowered glide</em>:</p>
 <ul class="simple">
@@ -91,10 +96,10 @@ ratio will be limited to <tt class="docutils literal"><span class="pre">max/2</s
 <p>Example: an aeroplane whose normal flight speed range is between 200 and 900
 kph, will be limited to 200 to 400 kph. Similarly, if its nominal climbing rate
 limits are -30 and +15 m/s, its new ones will be -30 and -15.</p>
-<table class="docutils footnote" frame="void" id="id4" rules="none">
+<table class="docutils footnote" frame="void" id="id5" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label">[1]</td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id2">2</a>, <a class="fn-backref" href="#id3">3</a>)</em> These distances are calculated &#8220;as the crow flies&#8221;. The actual distance
+<tr><td class="label">[1]</td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id2">2</a>, <a class="fn-backref" href="#id4">3</a>)</em> These distances are calculated &#8220;as the crow flies&#8221;. The actual distance
 <em>will</em> be longer unless the aeroplane is already flying straight towards
 its destination.</td></tr>
 </tbody>
@@ -113,6 +118,8 @@ its destination.</td></tr>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">How to play ATC-NG</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="basics.html">The very basics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="interface.html">The game interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sprites.html">Aeroplane sprites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="flight-strips.html">Flight progress strips</a></li>
 <li class="toctree-l2"><a class="reference internal" href="game-commands.html">Game commands</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plane-commands.html">Aeroplane commands</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="">Fuel</a></li>

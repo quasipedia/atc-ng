@@ -7,13 +7,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The game interface &mdash; documentation .dev version</title>
+    <title>The game interface</title>
     <link rel="stylesheet" href="../_static/agogo.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     'dev.snapshot',
+        VERSION:     '0.2-23-g61d9526',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,9 +23,9 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
-    <link rel="top" title="documentation .dev version" href="../index.html" />
+    <link rel="top" title="None" href="../index.html" />
     <link rel="up" title="How to play ATC-NG" href="index.html" />
-    <link rel="next" title="Game commands" href="game-commands.html" />
+    <link rel="next" title="Aeroplane sprites" href="sprites.html" />
     <link rel="prev" title="The very basics" href="basics.html" /> 
   </head>
   <body>
@@ -38,7 +38,7 @@
         <div class="rel">
           <a href="basics.html" title="The very basics"
              accesskey="P">previous</a> |
-          <a href="game-commands.html" title="Game commands"
+          <a href="sprites.html" title="Aeroplane sprites"
              accesskey="N">next</a> |
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a>
@@ -57,23 +57,28 @@
   <div class="section" id="the-game-interface">
 <span id="index-0"></span><h1>The game interface<a class="headerlink" href="#the-game-interface" title="Permalink to this headline">¶</a></h1>
 <p>All the interaction with the game happens through the command console. The game
-screen is organised in four main areas:</p>
+screen is organised in areas:</p>
 <img alt="../_images/game-interface.png" src="../_images/game-interface.png" />
 <dl class="docutils">
 <dt><strong>radar screen</strong> (1)</dt>
-<dd>You can see here the aeroplanes, airports, beacons and gates which are used
-during the game</dd>
+<dd>You can see here the aeroplanes, airports, beacons and gates that fall within
+the aerospace you are controlling.</dd>
 <dt><strong>command console</strong> (2)</dt>
 <dd>Here you issue commands either to the game engine (for getting help, pausing,
 quitting...) or to aeroplanes (to alter they course or perform special
-operations)</dd>
-<dt><strong>flight strips</strong> (3)</dt>
+operations).</dd>
+<dt><strong>status bar</strong> (3)</dt>
+<dd>The status bar displays information on your radar, such as the range of it and
+the amount of space between radar markings.</dd>
+<dt><strong>flight strips</strong> (4)</dt>
 <dd>Here you have a list of planes currently under your control, with some data
-which is not available on the main radar screen</dd>
-<dt><strong>airport maps</strong> (4)</dt>
-<dd>Here you have a detailed map of the map&#8217;s airports: airports are also
-visible on radar screen, but in this game area they are big enough for you
-to identify individual runways.</dd>
+which is not available on the main radar screen.</dd>
+<dt><strong>airport maps</strong> (5)</dt>
+<dd>Here you have a detailed map of the airports located in your aerospace:
+airports are also visible on radar screen, but in this part of the game
+interface they are big enough for you to identify individual runways.</dd>
+<dt><strong>score</strong> (6)</dt>
+<dd>The overall score of the current game is displayed here.</dd>
 </dl>
 <div class="section" id="the-radar-screen">
 <h2>The radar screen<a class="headerlink" href="#the-radar-screen" title="Permalink to this headline">¶</a></h2>
@@ -83,7 +88,7 @@ controlling. The typical elements you will find in it are:</p>
 <ol class="arabic simple">
 <li><strong>Radar targets</strong> (aeroplanes), with their flight number, altitude and speed
 indicated in the label next to them.</li>
-<li><strong>airports</strong>, identified by their IATA code.</li>
+<li><strong>Airports</strong>, identified by their IATA code.</li>
 <li><strong>Gates</strong>, which are the entry and exit points for the aeroplanes in the
 aerospace.</li>
 <li><strong>Beacons</strong>, which are points whose location is known to aeroplane pilots,
@@ -102,12 +107,30 @@ commands (whether they are game commands like <tt class="docutils literal"><span
 (press <tt class="kbd docutils literal"><span class="pre">Enter</span></tt> to attempt command execution). The smaller lines above that
 show the history of the past commands, and what happened once executed.</p>
 </div>
+<div class="section" id="the-status-bar">
+<h2>The status bar<a class="headerlink" href="#the-status-bar" title="Permalink to this headline">¶</a></h2>
+<img alt="../_images/statusbar.png" src="../_images/statusbar.png" />
+<p>The status bar report some scale information on your radar settings. These are:</p>
+<ul class="simple">
+<li><em>The radar range</em>, defined as the distance between the location of your radar
+(the centre of the radar screen) and the edge of the aerospace. Note that
+however your radar will be able to pick up signal in the four corner on the
+aerospace [which are beyond such range] too.</li>
+<li><em>The distance between radar markings</em>, defined as the distance between any
+radar marking on screen and the one closest to it. Note that the spacing of
+radar markings and their aspect can be altered via <a class="reference internal" href="settings.html"><em>specific settings</em></a>.</li>
+<li><em>How long have you been playing the current scenario</em>, yes... you truly wasted
+that much time!</li>
+</ul>
+</div>
 <div class="section" id="the-flight-strips">
 <h2>The flight strips<a class="headerlink" href="#the-flight-strips" title="Permalink to this headline">¶</a></h2>
 <img alt="../_images/flight-strips.png" src="../_images/flight-strips.png" />
-<p>The flight strips show some data that is not available on the main radar screen,
-such the departure and destination, or the amount of fuel still available
-onboard the aeroplane).</p>
+<p>The flight strips show data about each flight that might not be available
+directly on the main radar screen. The purpose of the flight progress strips is
+that of helping the air traffic controller (that&#8217;s you!) to establish a routine
+for keeping track of all the flight. Read more on the <a class="reference internal" href="flight-strips.html"><em>flight progress
+strip page</em></a></p>
 </div>
 <div class="section" id="the-airport-maps">
 <h2>The airport maps<a class="headerlink" href="#the-airport-maps" title="Permalink to this headline">¶</a></h2>
@@ -115,6 +138,12 @@ onboard the aeroplane).</p>
 <p>The main function of the airport maps is to give you a detailed view of the
 available runways, so that you can decide which ones to use for takeoffs and
 landings.</p>
+</div>
+<div class="section" id="the-score">
+<h2>The score<a class="headerlink" href="#the-score" title="Permalink to this headline">¶</a></h2>
+<img alt="../_images/score.png" src="../_images/score.png" />
+<p>The score is updated live throughout the game. Please refer to the <a class="reference internal" href="scoring.html"><em>scoring
+page</em></a> for more information on how score is calculated.</p>
 </div>
 </div>
 
@@ -129,6 +158,8 @@ landings.</p>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">How to play ATC-NG</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="basics.html">The very basics</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="">The game interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sprites.html">Aeroplane sprites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="flight-strips.html">Flight progress strips</a></li>
 <li class="toctree-l2"><a class="reference internal" href="game-commands.html">Game commands</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plane-commands.html">Aeroplane commands</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fuel.html">Fuel</a></li>
@@ -164,7 +195,7 @@ landings.</p>
         <div class="left">
           <a href="basics.html" title="The very basics"
              >previous</a> |
-          <a href="game-commands.html" title="Game commands"
+          <a href="sprites.html" title="Aeroplane sprites"
              >next</a> |
           <a href="../genindex.html" title="General Index"
              >index</a>

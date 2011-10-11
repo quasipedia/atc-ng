@@ -7,13 +7,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Game commands &mdash; documentation .dev version</title>
+    <title>Game commands</title>
     <link rel="stylesheet" href="../_static/agogo.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     'dev.snapshot',
+        VERSION:     '0.2-23-g61d9526',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,10 +23,10 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
-    <link rel="top" title="documentation .dev version" href="../index.html" />
+    <link rel="top" title="None" href="../index.html" />
     <link rel="up" title="How to play ATC-NG" href="index.html" />
     <link rel="next" title="Aeroplane commands" href="plane-commands.html" />
-    <link rel="prev" title="The game interface" href="interface.html" /> 
+    <link rel="prev" title="Flight progress strips" href="flight-strips.html" /> 
   </head>
   <body>
     <div class="header-wrapper">
@@ -36,7 +36,7 @@
           </a></p>
         <h1><a href="../index.html">Air Traffic Controller - NG</a></h1>
         <div class="rel">
-          <a href="interface.html" title="The game interface"
+          <a href="flight-strips.html" title="Flight progress strips"
              accesskey="P">previous</a> |
           <a href="plane-commands.html" title="Aeroplane commands"
              accesskey="N">next</a> |
@@ -61,8 +61,192 @@ to aeroplanes). At present, the only useful implemented command is <tt class="do
 (to exit the game).</p>
 <p>Game commands are issued in the console by prepending them with a <tt class="docutils literal"><span class="pre">/</span></tt>. For
 example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="o">/</span><span class="n">quit</span>
+<div class="highlight-none"><div class="highlight"><pre>&gt;&gt;&gt; /QUIT
 </pre></div>
+</div>
+<p>Following is a list of all implemented aeroplane commands.</p>
+<div class="section" id="help">
+<span id="gcommands-help"></span><span id="index-1"></span><h2>HELP<a class="headerlink" href="#help" title="Permalink to this headline">¶</a></h2>
+<p><strong>Example Usage:</strong></p>
+<div class="highlight-none"><div class="highlight"><pre>&gt;&gt;&gt; /HELP LAND
+&gt;&gt;&gt; /MAN MAN
+</pre></div>
+</div>
+<dl class="docutils">
+<dt><strong>Description:</strong></dt>
+<dd><p class="first">Lend a hand to players who lost their faith in ATC-NG.</p>
+<p class="last">The command <tt class="docutils literal"><span class="pre">/HELP</span></tt> provides help on game and aeroplane commands (the
+name of the command must be passed as an argument). If issued without
+arguments, <tt class="docutils literal"><span class="pre">/HELP</span></tt> displays help on the <tt class="docutils literal"><span class="pre">/HELP</span></tt> command (this
+message).</p>
+</dd>
+<dt><strong>Possible spellings:</strong></dt>
+<dd>HELP, MAN</dd>
+<dt><strong>Accepted flags:</strong></dt>
+<dd>&#8212;</dd>
+</dl>
+</div>
+<div class="section" id="list">
+<span id="gcommands-list"></span><span id="index-2"></span><h2>LIST<a class="headerlink" href="#list" title="Permalink to this headline">¶</a></h2>
+<p><strong>Example Usage:</strong></p>
+<div class="highlight-none"><div class="highlight"><pre>&gt;&gt;&gt; /LIST SKY-OVER-
+&gt;&gt;&gt; /LS FUNNY D
+</pre></div>
+</div>
+<dl class="docutils">
+<dt><strong>Description:</strong></dt>
+<dd><p class="first">List the available scenarios on the system.</p>
+<p>Without arguments, the command will list all the available scenarios, but
+it is possible to filter them using a <a class="reference internal" href="../glossary.html#term-globbing"><em class="xref std std-term">glob</em></a> as parameter.
+ATC-NG uses an extremely simplified form of globbing, for which the
+parameter will be surrounded by asterisks (see example below).</p>
+<p>Normally, pattern matching is performed on file names, but if the
+<tt class="docutils literal"><span class="pre">DESCRIPTION</span></tt> flag is used, the matching will be performed on the
+description of the scenario.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="29%" />
+<col width="71%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">ISSUED COMMAND</th>
+<th class="head">LISTED SCENARIOS</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>/LIST</td>
+<td>All currently available (all installed)</td>
+</tr>
+<tr><td>/LIST SKY-OVER-</td>
+<td>All whose filename match the <em>SKY-OVER-</em> glob.</td>
+</tr>
+<tr><td>/LS FUNNY D</td>
+<td>All that contain the word &#8220;funny&#8221; in their
+description.</td>
+</tr>
+</tbody>
+</table>
+<p class="last">Patter matching is <strong>case insensitive</strong>.</p>
+</dd>
+<dt><strong>Possible spellings:</strong></dt>
+<dd>LIST, LS</dd>
+<dt><strong>Accepted flags:</strong></dt>
+<dd><ul class="first last simple">
+<li>DESCRIPTION  (<em>spellings:</em> DESCRIPTION, D)</li>
+</ul>
+</dd>
+</dl>
+</div>
+<div class="section" id="load">
+<span id="gcommands-load"></span><span id="index-3"></span><h2>LOAD<a class="headerlink" href="#load" title="Permalink to this headline">¶</a></h2>
+<p><strong>Example Usage:</strong></p>
+<div class="highlight-none"><div class="highlight"><pre>&gt;&gt;&gt; /LOAD SKY-OVER-STOCKHOLM
+&gt;&gt;&gt; /PLAY
+</pre></div>
+</div>
+<dl class="docutils">
+<dt><strong>Description:</strong></dt>
+<dd><p class="first">Load a scenario (start a new game on that scenario).</p>
+<p>The parameter must be the name of a scenario currently installed on the
+system. Use the <tt class="docutils literal"><span class="pre">/LIST</span></tt> command for a list of installed scenarios.</p>
+<p class="last">If the parameter is omitted, the game will load a random scenario.</p>
+</dd>
+<dt><strong>Possible spellings:</strong></dt>
+<dd>LOAD, LO, RUN, PLAY</dd>
+<dt><strong>Accepted flags:</strong></dt>
+<dd>&#8212;</dd>
+</dl>
+</div>
+<div class="section" id="pause">
+<span id="gcommands-pause"></span><span id="index-4"></span><h2>PAUSE<a class="headerlink" href="#pause" title="Permalink to this headline">¶</a></h2>
+<p><strong>Example Usage:</strong></p>
+<div class="highlight-none"><div class="highlight"><pre>&gt;&gt;&gt; /PAUSE
+&gt;&gt;&gt; /P
+</pre></div>
+</div>
+<dl class="docutils">
+<dt><strong>Description:</strong></dt>
+<dd><p class="first">Toggle between the game running normally e the game being paused. On some systems it&#8217;s possible to achieve the same result by pressing the <tt class="kbd docutils literal"><span class="pre">pause</span></tt> key, if present.</p>
+<p class="last">While the game is paused, the radar screen is obfuscated.</p>
+</dd>
+<dt><strong>Possible spellings:</strong></dt>
+<dd>PAUSE, P</dd>
+<dt><strong>Accepted flags:</strong></dt>
+<dd>&#8212;</dd>
+</dl>
+</div>
+<div class="section" id="quit">
+<span id="gcommands-quit"></span><span id="index-5"></span><h2>QUIT<a class="headerlink" href="#quit" title="Permalink to this headline">¶</a></h2>
+<p><strong>Example Usage:</strong></p>
+<div class="highlight-none"><div class="highlight"><pre>&gt;&gt;&gt; /QUIT
+&gt;&gt;&gt; /EXIT
+</pre></div>
+</div>
+<dl class="docutils">
+<dt><strong>Description:</strong></dt>
+<dd>Quit the program immediately (no further question asked).</dd>
+<dt><strong>Possible spellings:</strong></dt>
+<dd>QUIT, EXIT</dd>
+<dt><strong>Accepted flags:</strong></dt>
+<dd>&#8212;</dd>
+</dl>
+</div>
+<div class="section" id="scores">
+<span id="gcommands-scores"></span><span id="index-6"></span><h2>SCORES<a class="headerlink" href="#scores" title="Permalink to this headline">¶</a></h2>
+<p><strong>Example Usage:</strong></p>
+<div class="highlight-none"><div class="highlight"><pre>&gt;&gt;&gt; /SCORES
+&gt;&gt;&gt; /BOARD STOCKHOLM
+</pre></div>
+</div>
+<dl class="docutils">
+<dt><strong>Description:</strong></dt>
+<dd><p class="first">Show ATC-NG scores.</p>
+<p>Issued without arguments, the command displays the top scores on the
+system (regardless of which user and what scenario).</p>
+<p class="last">If an argument is passed, this must be a string that will be used for
+pattern-matching against both scenarios and users (only scores achieved
+by a user with a matched username or on a scenario with a matched name
+will be shown.)</p>
+</dd>
+<dt><strong>Possible spellings:</strong></dt>
+<dd>SCORES, SC, BOARD</dd>
+<dt><strong>Accepted flags:</strong></dt>
+<dd>&#8212;</dd>
+</dl>
+</div>
+<div class="section" id="sort">
+<span id="gcommands-sort"></span><span id="index-7"></span><h2>SORT<a class="headerlink" href="#sort" title="Permalink to this headline">¶</a></h2>
+<p><strong>Example Usage:</strong></p>
+<div class="highlight-none"><div class="highlight"><pre>&gt;&gt;&gt; /SORT TIME
+&gt;&gt;&gt; /SO FUEL
+</pre></div>
+</div>
+<dl class="docutils">
+<dt><strong>Description:</strong></dt>
+<dd><p class="first">Sort the <a class="reference internal" href="../glossary.html#term-flight-progress-strips"><em class="xref std std-term">flight progress strips</em></a>.</p>
+<blockquote class="last">
+<div><p>The flight progress strips can be sorted according to various criteria.
+The general idea is that <em>the strip at the bottom of the stack should
+always be the one requiring your attention first</em>.</p>
+<p>The command accepts a parameter indicating what criteria to use. Valid
+criterias are:</p>
+<ul class="simple">
+<li>ALTITUDE (lowest aeroplanes first)</li>
+<li>CALLSIGN (aphabetical order of callsigns)</li>
+<li>FUEL (closest to be in an emergency first)</li>
+<li>ICAO (aphabetical order of flight numbers)</li>
+<li>DISTANCE (plane furthest to its destination first)</li>
+<li>SPEED (slowest aeroplanes first)</li>
+<li>STATUS (statuses that require immediate action first)</li>
+<li>TIME (priority to last order issued a long time ago)</li>
+</ul>
+</div></blockquote>
+</dd>
+<dt><strong>Possible spellings:</strong></dt>
+<dd>SORT, SO</dd>
+<dt><strong>Accepted flags:</strong></dt>
+<dd>&#8212;</dd>
+</dl>
 </div>
 </div>
 
@@ -77,6 +261,8 @@ example:</p>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">How to play ATC-NG</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="basics.html">The very basics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="interface.html">The game interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sprites.html">Aeroplane sprites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="flight-strips.html">Flight progress strips</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="">Game commands</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plane-commands.html">Aeroplane commands</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fuel.html">Fuel</a></li>
@@ -110,7 +296,7 @@ example:</p>
     <div class="footer-wrapper">
       <div class="footer">
         <div class="left">
-          <a href="interface.html" title="The game interface"
+          <a href="flight-strips.html" title="Flight progress strips"
              >previous</a> |
           <a href="plane-commands.html" title="Aeroplane commands"
              >next</a> |

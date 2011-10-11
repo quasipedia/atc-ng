@@ -7,13 +7,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>How to play ATC-NG &mdash; documentation .dev version</title>
+    <title>How to play ATC-NG</title>
     <link rel="stylesheet" href="../_static/agogo.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     'dev.snapshot',
+        VERSION:     '0.2-23-g61d9526',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
-    <link rel="top" title="documentation .dev version" href="../index.html" />
+    <link rel="top" title="None" href="../index.html" />
     <link rel="next" title="The very basics" href="basics.html" />
     <link rel="prev" title="The ATC-NG game" href="../index.html" /> 
   </head>
@@ -70,15 +70,39 @@ help!) please consult <a class="reference internal" href="../contribute/index.ht
 <li class="toctree-l1"><a class="reference internal" href="interface.html">The game interface</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="interface.html#the-radar-screen">The radar screen</a></li>
 <li class="toctree-l2"><a class="reference internal" href="interface.html#the-command-console">The command console</a></li>
+<li class="toctree-l2"><a class="reference internal" href="interface.html#the-status-bar">The status bar</a></li>
 <li class="toctree-l2"><a class="reference internal" href="interface.html#the-flight-strips">The flight strips</a></li>
 <li class="toctree-l2"><a class="reference internal" href="interface.html#the-airport-maps">The airport maps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="interface.html#the-score">The score</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="game-commands.html">Game commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sprites.html">Aeroplane sprites</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="sprites.html#orientation">Orientation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sprites.html#shape">Shape</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sprites.html#colour">Colour</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="flight-strips.html">Flight progress strips</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="flight-strips.html#anatomy-of-a-strip">Anatomy of a strip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="flight-strips.html#strips-handling">Strips handling</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="game-commands.html">Game commands</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="game-commands.html#help">HELP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="game-commands.html#list">LIST</a></li>
+<li class="toctree-l2"><a class="reference internal" href="game-commands.html#load">LOAD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="game-commands.html#pause">PAUSE</a></li>
+<li class="toctree-l2"><a class="reference internal" href="game-commands.html#quit">QUIT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="game-commands.html#scores">SCORES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="game-commands.html#sort">SORT</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="plane-commands.html">Aeroplane commands</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="plane-commands.html#abort">ABORT</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plane-commands.html#altitude">ALTITUDE</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plane-commands.html#bye">BYE</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plane-commands.html#circle">CIRCLE</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plane-commands.html#clear">CLEAR</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plane-commands.html#heading">HEADING</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plane-commands.html#land">LAND</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plane-commands.html#speed">SPEED</a></li>
@@ -88,6 +112,7 @@ help!) please consult <a class="reference internal" href="../contribute/index.ht
 </li>
 <li class="toctree-l1"><a class="reference internal" href="fuel.html">Fuel</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="fuel.html#fuel-units">Fuel units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fuel.html#the-expedite-flag">The expedite flag</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fuel.html#fuel-emergency">Fuel emergency</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fuel.html#running-out-of-fuel">Running out of fuel</a></li>
 </ul>
@@ -96,10 +121,12 @@ help!) please consult <a class="reference internal" href="../contribute/index.ht
 <li class="toctree-l2"><a class="reference internal" href="takingoff.html#setting-a-post-take-off-course">Setting a post-take off course</a></li>
 <li class="toctree-l2"><a class="reference internal" href="takingoff.html#take-off-phases">Take off phases</a></li>
 <li class="toctree-l2"><a class="reference internal" href="takingoff.html#use-of-runways">Use of runways</a></li>
+<li class="toctree-l2"><a class="reference internal" href="takingoff.html#locked-status">Locked status</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="landing.html">Landing</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="landing.html#landing-phases">Landing phases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="landing.html#aborting-and-the-locked-status">Aborting and the locked status</a></li>
 <li class="toctree-l2"><a class="reference internal" href="landing.html#other-landing-gotchas">Other landing &#8220;gotchas&#8221;</a></li>
 </ul>
 </li>
@@ -120,6 +147,7 @@ help!) please consult <a class="reference internal" href="../contribute/index.ht
 <li class="toctree-l2"><a class="reference internal" href="tips.html#approaching">Approaching</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tips.html#taking-off">Taking off</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tips.html#running-out-of-fuel">Running out of fuel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tips.html#combining-expedite-commands">Combining expedite commands</a></li>
 </ul>
 </li>
 </ul>
@@ -137,6 +165,8 @@ help!) please consult <a class="reference internal" href="../contribute/index.ht
 <li class="toctree-l1 current"><a class="current reference internal" href="">How to play ATC-NG</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="basics.html">The very basics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="interface.html">The game interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sprites.html">Aeroplane sprites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="flight-strips.html">Flight progress strips</a></li>
 <li class="toctree-l2"><a class="reference internal" href="game-commands.html">Game commands</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plane-commands.html">Aeroplane commands</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fuel.html">Fuel</a></li>

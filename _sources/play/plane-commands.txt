@@ -1,3 +1,5 @@
+.. highlight:: none
+
 .. index::
    pair:Commands; Aeroplanes
 

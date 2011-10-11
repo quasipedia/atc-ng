@@ -7,13 +7,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Configuration &amp; Settings &mdash; documentation .dev version</title>
+    <title>Configuration &amp; Settings</title>
     <link rel="stylesheet" href="../_static/agogo.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     'dev.snapshot',
+        VERSION:     '0.2-23-g61d9526',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
-    <link rel="top" title="documentation .dev version" href="../index.html" />
+    <link rel="top" title="None" href="../index.html" />
     <link rel="up" title="How to play ATC-NG" href="index.html" />
     <link rel="next" title="Tips &amp; Tricks" href="tips.html" />
     <link rel="prev" title="Scoring System" href="scoring.html" /> 
@@ -64,95 +64,99 @@ found at <tt class="docutils literal"><span class="pre">~/.atc-ng/settings.yml</
 <p>The file is in <a class="reference internal" href="../glossary.html#term-yaml"><em class="xref std std-term">YAML</em></a> format, and it&#8217;s heavily commented. Here&#8217;s the
 latest version (your version may very slightly, depending on the installed
 release of the game):</p>
-<div class="highlight-python"><pre># This is the user configuration file for the "Air Traffic Controller - NG"
-# game available at https://github.com/quasipedia/atc-ng, licensed under
-# the GNU General Public Licence (GPL) v.3
-#
-# Edit this file to override the default ATC-NG configuration values.
-# - Removing an entry will force ATC-NG to use the default value
-# - Deleting the file altogether will force ATC-NG to regenerate it populated
-#   with the default values at the next run of the program.
+<div class="highlight-yaml"><div class="highlight"><pre><span class="c1"># This is the user configuration file for the &quot;Air Traffic Controller - NG&quot;</span>
+<span class="c1"># game available at https://github.com/quasipedia/atc-ng, licensed under</span>
+<span class="c1"># the GNU General Public Licence (GPL) v.3</span>
+<span class="c1">#</span>
+<span class="c1"># Edit this file to override the default ATC-NG configuration values.</span>
+<span class="c1"># - Removing an entry will force ATC-NG to use the default value</span>
+<span class="c1"># - Deleting the file altogether will force ATC-NG to regenerate it populated</span>
+<span class="c1">#   with the default values at the next run of the program.</span>
 
-# TIMING ######################################################################
-PING_PERIOD      : 3000           # milliseconds between radar pings
-MAX_FRAMERATE    : 60             # FPS (frame per second)
+<span class="c1"># TIMING ######################################################################</span>
+<span class="l-Scalar-Plain">PING_PERIOD</span>      <span class="p-Indicator">:</span> <span class="l-Scalar-Plain">3000</span>           <span class="c1"># milliseconds between radar pings</span>
+<span class="l-Scalar-Plain">MAX_FRAMERATE</span>    <span class="p-Indicator">:</span> <span class="l-Scalar-Plain">60</span>             <span class="c1"># FPS (frame per second)</span>
 
-# MAIN INTERFACE ##############################################################
-USE_FULLSCREEN   : False          # False | True
-ASPECT_RATIO     : '16:9'         # Recommended: '16:9', works fine with
-                                  # '16:10' might have troubles at lower ratios
-MAX_WINDOW_SIZE  : [1280, 720]    # When playing in windowed mode, these is the
-                                  # max size of the bounding rectangle
-                                  # surrounding the rectangle, it can change
-                                  # independently from the ASPECT_RATIO
+<span class="c1"># MAIN INTERFACE ##############################################################</span>
+<span class="l-Scalar-Plain">USE_FULLSCREEN</span>   <span class="p-Indicator">:</span> <span class="l-Scalar-Plain">False</span>          <span class="c1"># False | True</span>
+<span class="l-Scalar-Plain">ASPECT_RATIO</span>     <span class="p-Indicator">:</span> <span class="s">&#39;16:9&#39;</span>         <span class="c1"># Recommended: &#39;16:9&#39;, works fine with</span>
+                                  <span class="c1"># &#39;16:10&#39; might have troubles at lower ratios</span>
+<span class="l-Scalar-Plain">MAX_WINDOW_SIZE</span>  <span class="p-Indicator">:</span> <span class="p-Indicator">[</span><span class="nv">1280</span><span class="p-Indicator">,</span> <span class="nv">720</span><span class="p-Indicator">]</span>    <span class="c1"># When playing in windowed mode, these is the</span>
+                                  <span class="c1"># max size of the bounding rectangle</span>
+                                  <span class="c1"># surrounding the rectangle, it can change</span>
+                                  <span class="c1"># independently from the ASPECT_RATIO</span>
 
-# TEXT CONSOLE ################################################################
-CONSOLE_HEIGHT          : 0.14    # As a percentage of the main window height
-CONSOLE_LINES_NUM       : 5       # Number of lines in the console
-CONSOLE_FONT_SIZE_RATIO : 0.60    # ratio between the size of the "processed
-                                  # lines" (executed orders and responses) and
-                                  # the size of the "live line" (where player
-                                  # enters commands)
-OUTBOUND_ID         : 'TOWER'     # Radio callsign for the player
-PROMPT_SEPARATOR    : '&gt;&gt;&gt;'       # How callsign and messages are separated
-USE_REAL_CALLSIGNS  : True        # True | False - Whether flights should be
-                                  # Using real callsign over radio, for example
-                                  # flight BAW1234 (Britsih Airways) would use
-                                  # "Speedbird 1234".
+<span class="c1"># TEXT CONSOLE ################################################################</span>
+<span class="l-Scalar-Plain">CONSOLE_HEIGHT</span>          <span class="p-Indicator">:</span> <span class="l-Scalar-Plain">0.14</span>    <span class="c1"># As a percentage of the main window height</span>
+<span class="l-Scalar-Plain">STATUSBAR_HEIGHT</span>        <span class="p-Indicator">:</span> <span class="l-Scalar-Plain">0.025</span>   <span class="c1"># As a percentage of radar screen height</span>
+<span class="l-Scalar-Plain">CONSOLE_LINES_NUM</span>       <span class="p-Indicator">:</span> <span class="l-Scalar-Plain">5</span>       <span class="c1"># Number of lines in the console</span>
+<span class="l-Scalar-Plain">CONSOLE_FONT_SIZE_RATIO</span> <span class="p-Indicator">:</span> <span class="l-Scalar-Plain">0.60</span>    <span class="c1"># ratio between the size of the &quot;processed</span>
+                                  <span class="c1"># lines&quot; (executed orders and responses) and</span>
+                                  <span class="c1"># the size of the &quot;live line&quot; (where player</span>
+                                  <span class="c1"># enters commands)</span>
+<span class="l-Scalar-Plain">CONSOLE_INDENTATION</span>     <span class="p-Indicator">:</span> <span class="l-Scalar-Plain">5</span>       <span class="c1"># Number of leading spaces on lines after the</span>
+                                  <span class="c1"># first one in multiline messages.</span>
+<span class="l-Scalar-Plain">OUTBOUND_ID</span>             <span class="p-Indicator">:</span> <span class="l-Scalar-Plain">TOWER</span>   <span class="c1"># Radio callsign for the player</span>
+<span class="l-Scalar-Plain">PROMPT_SEPARATOR</span>        <span class="p-Indicator">:</span> <span class="s">&#39;&gt;&gt;&gt;&#39;</span>   <span class="c1"># How callsign and messages are separated</span>
+<span class="l-Scalar-Plain">USE_REAL_CALLSIGNS</span>      <span class="p-Indicator">:</span> <span class="l-Scalar-Plain">True</span>    <span class="c1"># True | False - Whether flights should be</span>
+                                  <span class="c1"># Using real callsign over radio, for example</span>
+                                  <span class="c1"># flight BAW1234 (British Airways) would use</span>
+                                  <span class="c1"># &quot;Speedbird 1234&quot;.</span>
 
-# CONSOLE COLOURS #############################################################
-OK_COLOUR        : [0,255,0]      # for affermative responses / aknowledgements
-KO_COLOUR        : [255,0,0]      # for negative responses / error messages
-ALERT_COLOUR     : [255,255,0]    # for messages that should attract attention
-EMERGENCY_COLOUR : [255,0,0]      # for emergency messages
-NEUTRAL_COLOUR   : [255,255,255]  # for logged commands / unimportant events
+<span class="c1"># CONSOLE COLOURS #############################################################</span>
+<span class="l-Scalar-Plain">OK_COLOUR</span>        <span class="p-Indicator">:</span> <span class="p-Indicator">[</span><span class="nv">0</span><span class="p-Indicator">,</span><span class="nv">255</span><span class="p-Indicator">,</span><span class="nv">0</span><span class="p-Indicator">]</span>      <span class="c1"># for affirmative responses / aknowledgements</span>
+<span class="l-Scalar-Plain">KO_COLOUR</span>        <span class="p-Indicator">:</span> <span class="p-Indicator">[</span><span class="nv">255</span><span class="p-Indicator">,</span><span class="nv">0</span><span class="p-Indicator">,</span><span class="nv">0</span><span class="p-Indicator">]</span>      <span class="c1"># for negative responses / error messages</span>
+<span class="l-Scalar-Plain">ALERT_COLOUR</span>     <span class="p-Indicator">:</span> <span class="p-Indicator">[</span><span class="nv">255</span><span class="p-Indicator">,</span><span class="nv">255</span><span class="p-Indicator">,</span><span class="nv">0</span><span class="p-Indicator">]</span>    <span class="c1"># for messages that should attract attention</span>
+<span class="l-Scalar-Plain">EMERGENCY_COLOUR</span> <span class="p-Indicator">:</span> <span class="p-Indicator">[</span><span class="nv">255</span><span class="p-Indicator">,</span><span class="nv">0</span><span class="p-Indicator">,</span><span class="nv">0</span><span class="p-Indicator">]</span>      <span class="c1"># for emergency messages</span>
+<span class="l-Scalar-Plain">NEUTRAL_COLOUR</span>   <span class="p-Indicator">:</span> <span class="p-Indicator">[</span><span class="nv">255</span><span class="p-Indicator">,</span><span class="nv">255</span><span class="p-Indicator">,</span><span class="nv">255</span><span class="p-Indicator">]</span>  <span class="c1"># for logged commands / unimportant events</span>
 
-# SPRITES #####################################################################
-TRAIL_LENGTH        : 15          # number of dots in the trail of a plane
-MIN_PLANE_ICON_SIZE : 10          # minimum size of aeroplan icons in pixels
-HUD_INFO_FONT_SIZE  : 12          # Font size for textual info on radar screen
+<span class="c1"># SPRITES #####################################################################</span>
+<span class="l-Scalar-Plain">TRAIL_LENGTH</span>        <span class="p-Indicator">:</span> <span class="l-Scalar-Plain">15</span>          <span class="c1"># number of dots in the trail of a plane</span>
+<span class="l-Scalar-Plain">MIN_PLANE_ICON_SIZE</span> <span class="p-Indicator">:</span> <span class="l-Scalar-Plain">10</span>          <span class="c1"># minimum size of aeroplane icons in pixels</span>
+<span class="l-Scalar-Plain">HUD_INFO_FONT_SIZE</span>  <span class="p-Indicator">:</span> <span class="l-Scalar-Plain">12</span>          <span class="c1"># Font size for textual info on radar screen</span>
 
-# RADAR AID ###################################################################
-# The radar aid helps having an idea of the represented distances on the radar
-# screen, by superimposing a mask with markings at eavenly spaced intervals.
-RADAR_AID        : circles        # null | grid | circles | crosses | dots
-RADAR_AID_COLOUR : [80,80,20]     # RGB value
-RADAR_AID_STEPS  : 10             # desired amount of markings per radar screen
-                                  # side. The actual amount could be different
-                                  # as the distance between marking is always
-                                  # set to a sensible amount (1, 5, 10, 20, 25,
-                                  # 50 or 100 kilometres)
+<span class="c1"># RADAR AID ###################################################################</span>
+<span class="c1"># The radar aid helps having an idea of the represented distances on the radar</span>
+<span class="c1"># screen, by superimposing a mask with markings at eavenly spaced intervals.</span>
+<span class="l-Scalar-Plain">RADAR_AID</span>        <span class="p-Indicator">:</span> <span class="l-Scalar-Plain">circles</span>        <span class="c1"># null | grid | circles | crosses | dots</span>
+<span class="l-Scalar-Plain">RADAR_AID_COLOUR</span> <span class="p-Indicator">:</span> <span class="p-Indicator">[</span><span class="nv">80</span><span class="p-Indicator">,</span><span class="nv">80</span><span class="p-Indicator">,</span><span class="nv">20</span><span class="p-Indicator">]</span>     <span class="c1"># RGB value</span>
+<span class="l-Scalar-Plain">RADAR_AID_STEPS</span>  <span class="p-Indicator">:</span> <span class="l-Scalar-Plain">10</span>             <span class="c1"># desired amount of markings per radar screen</span>
+                                  <span class="c1"># side. The actual amount could be different</span>
+                                  <span class="c1"># as the distance between marking is always</span>
+                                  <span class="c1"># set to a sensible amount (1, 5, 10, 20, 25,</span>
+                                  <span class="c1"># 50 or 100 kilometres)</span>
 
-# SIMULATION PARAMETERS WORLD DESCRIPTION #####################################
-G_GRAVITY            : 9.807      # value of the ``g`` gravitational constant
-                                  # in metres / seconds^2
-SLOPE_ANGLE          : 3          # ILS gliding slope angle, in degrees
-VERTICAL_CLEARANCE   : 500        # minimum distance in metres between planes
-HORIZONTAL_CLEARANCE : 5000       # minimum distance in metres between planes
+<span class="c1"># SIMULATION PARAMETERS WORLD DESCRIPTION #####################################</span>
+<span class="l-Scalar-Plain">G_GRAVITY</span>            <span class="p-Indicator">:</span> <span class="l-Scalar-Plain">9.807</span>      <span class="c1"># value of the ``g`` gravitational constant</span>
+                                  <span class="c1"># in metres / seconds^2</span>
+<span class="l-Scalar-Plain">SLOPE_ANGLE</span>          <span class="p-Indicator">:</span> <span class="l-Scalar-Plain">3</span>          <span class="c1"># ILS gliding slope angle, in degrees</span>
+<span class="l-Scalar-Plain">VERTICAL_CLEARANCE</span>   <span class="p-Indicator">:</span> <span class="l-Scalar-Plain">300</span>        <span class="c1"># minimum distance in metres between planes</span>
+<span class="l-Scalar-Plain">HORIZONTAL_CLEARANCE</span> <span class="p-Indicator">:</span> <span class="l-Scalar-Plain">3000</span>       <span class="c1"># minimum distance in metres between planes</span>
 
-# SIMULATION ENGINE ###########################################################
-# This section will be removed from the final distribution of the game,
-# possibility to alter these value is here for testing/tuning purposes only.
-# MODIFY **ONLY** THE SECOND VALUE, which is the score modification the event
-# generates. Leave the first value alone.
-PLANE_LANDS_CORRECT_PORT  : [100,  +500]
-PLANE_LANDS_WRONG_PORT    : [101,  -200]
-PLANE_LEAVES_CORRECT_GATE : [110,  +300]
-PLANE_LEAVES_WRONG_GATE   : [111,  -200]
-PLANE_LEAVES_RANDOM       : [112,  -500]
-PLANE_ENTERS              : [120,   +50]
-PLANE_BURNS_FUEL_UNIT     : [130,    -1]
-PLANE_WAITS_ONE_SECOND    : [140,    -1]
-PLANE_CRASHES             : [150, -1000]
-COMMAND_IS_ISSUED         : [200,   -10]
-EMERGENCY_FUEL            : [300,  -250]
-EMERGENCY_TCAS            : [301,  -250]
-FUEL_SCORE_WEIGHT         : 1
+<span class="c1"># SIMULATION ENGINE ###########################################################</span>
+<span class="c1"># This section will be removed from the final distribution of the game,</span>
+<span class="c1"># possibility to alter these value is here for testing/tuning purposes only.</span>
+<span class="c1"># MODIFY **ONLY** THE SECOND VALUE, which is the score modification the event</span>
+<span class="c1"># generates. Leave the first value alone.</span>
+<span class="l-Scalar-Plain">PLANE_LANDS_CORRECT_PORT</span>  <span class="p-Indicator">:</span> <span class="p-Indicator">[</span><span class="nv">100</span><span class="p-Indicator">,</span>  <span class="nv">+500</span><span class="p-Indicator">]</span>
+<span class="l-Scalar-Plain">PLANE_LANDS_WRONG_PORT</span>    <span class="p-Indicator">:</span> <span class="p-Indicator">[</span><span class="nv">101</span><span class="p-Indicator">,</span>  <span class="nv">-200</span><span class="p-Indicator">]</span>
+<span class="l-Scalar-Plain">PLANE_LEAVES_CORRECT_GATE</span> <span class="p-Indicator">:</span> <span class="p-Indicator">[</span><span class="nv">110</span><span class="p-Indicator">,</span>  <span class="nv">+300</span><span class="p-Indicator">]</span>
+<span class="l-Scalar-Plain">PLANE_LEAVES_WRONG_GATE</span>   <span class="p-Indicator">:</span> <span class="p-Indicator">[</span><span class="nv">111</span><span class="p-Indicator">,</span>  <span class="nv">-200</span><span class="p-Indicator">]</span>
+<span class="l-Scalar-Plain">PLANE_LEAVES_RANDOM</span>       <span class="p-Indicator">:</span> <span class="p-Indicator">[</span><span class="nv">112</span><span class="p-Indicator">,</span>  <span class="nv">-500</span><span class="p-Indicator">]</span>
+<span class="l-Scalar-Plain">PLANE_ENTERS</span>              <span class="p-Indicator">:</span> <span class="p-Indicator">[</span><span class="nv">120</span><span class="p-Indicator">,</span>   <span class="nv">+50</span><span class="p-Indicator">]</span>
+<span class="l-Scalar-Plain">PLANE_BURNS_FUEL_UNIT</span>     <span class="p-Indicator">:</span> <span class="p-Indicator">[</span><span class="nv">130</span><span class="p-Indicator">,</span>    <span class="nv">-1</span><span class="p-Indicator">]</span>
+<span class="l-Scalar-Plain">PLANE_WAITS_ONE_SECOND</span>    <span class="p-Indicator">:</span> <span class="p-Indicator">[</span><span class="nv">140</span><span class="p-Indicator">,</span>    <span class="nv">-1</span><span class="p-Indicator">]</span>
+<span class="l-Scalar-Plain">PLANE_CRASHES</span>             <span class="p-Indicator">:</span> <span class="p-Indicator">[</span><span class="nv">150</span><span class="p-Indicator">,</span> <span class="nv">-1000</span><span class="p-Indicator">]</span>
+<span class="l-Scalar-Plain">COMMAND_IS_ISSUED</span>         <span class="p-Indicator">:</span> <span class="p-Indicator">[</span><span class="nv">200</span><span class="p-Indicator">,</span>   <span class="nv">-10</span><span class="p-Indicator">]</span>
+<span class="l-Scalar-Plain">EMERGENCY_FUEL</span>            <span class="p-Indicator">:</span> <span class="p-Indicator">[</span><span class="nv">300</span><span class="p-Indicator">,</span>  <span class="nv">-250</span><span class="p-Indicator">]</span>
+<span class="l-Scalar-Plain">EMERGENCY_TCAS</span>            <span class="p-Indicator">:</span> <span class="p-Indicator">[</span><span class="nv">301</span><span class="p-Indicator">,</span>  <span class="nv">-250</span><span class="p-Indicator">]</span>
+<span class="l-Scalar-Plain">FUEL_SCORE_WEIGHT</span>         <span class="p-Indicator">:</span> <span class="l-Scalar-Plain">1</span>
 
-# LOGGING #####################################################################
-LOG_NUMBER        : 10            # how many logs to keep in the log directory
-                                  # before deleting the oldest one -
-                                  # 0 will disable logging altogether</pre>
+<span class="c1"># LOGGING #####################################################################</span>
+<span class="l-Scalar-Plain">LOG_NUMBER</span>        <span class="p-Indicator">:</span> <span class="l-Scalar-Plain">10</span>            <span class="c1"># how many logs to keep in the log directory</span>
+                                  <span class="c1"># before deleting the oldest one -</span>
+                                  <span class="c1"># 0 will disable logging altogether</span>
+</pre></div>
 </div>
 </div>
 
@@ -167,6 +171,8 @@ LOG_NUMBER        : 10            # how many logs to keep in the log directory
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">How to play ATC-NG</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="basics.html">The very basics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="interface.html">The game interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sprites.html">Aeroplane sprites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="flight-strips.html">Flight progress strips</a></li>
 <li class="toctree-l2"><a class="reference internal" href="game-commands.html">Game commands</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plane-commands.html">Aeroplane commands</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fuel.html">Fuel</a></li>

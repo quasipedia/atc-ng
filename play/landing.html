@@ -7,13 +7,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Landing &mdash; documentation .dev version</title>
+    <title>Landing</title>
     <link rel="stylesheet" href="../_static/agogo.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     'dev.snapshot',
+        VERSION:     '0.2-23-g61d9526',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
-    <link rel="top" title="documentation .dev version" href="../index.html" />
+    <link rel="top" title="None" href="../index.html" />
     <link rel="up" title="How to play ATC-NG" href="index.html" />
     <link rel="next" title="Leaving the aerospace" href="leaving-aerospace.html" />
     <link rel="prev" title="Taking off" href="takingoff.html" /> 
@@ -66,7 +66,7 @@ indicated runway.</p>
 </div>
 <div class="section" id="landing-phases">
 <h2>Landing phases<a class="headerlink" href="#landing-phases" title="Permalink to this headline">¶</a></h2>
-<p>A take off is split in four different phases:</p>
+<p>A take off is split in five different phases:</p>
 <ol class="arabic simple">
 <li><strong>Intercepting</strong>: The plane keeps current heading, altitude and speed and
 waits for the right moment to turn into the ILS projection on the ground. In
@@ -84,15 +84,29 @@ intercept the ILS vector before the runway.</li>
 <li><strong>Gliding</strong>: The plane follows the ILS vector maintaining speed until the
 moment comes to slow down to landing speed. The plane <em>aborts</em> if at the
 beginning of the glide its speed is already too high for it to slow down to
-landing speed by the foot of the runway.</li>
+landing speed by the foot of the runway. The plane also <em>aborts</em> if at
+altitude under 100 metres above the runway foot the runway will result in use
+by any other aircraft, if not, this is also the moment in which such runway
+will be marked as &#8220;busy&#8221; by the landing plane.</li>
+<li><strong>Taxiing</strong>: During this time the aircraft will gently roll over the runway
+until it reaches the taxiway. Once the taxiway is reached, the runway is
+made available again and the score for the landing is computed.</li>
 </ol>
+</div>
+<div class="section" id="aborting-and-the-locked-status">
+<h2>Aborting and the locked status<a class="headerlink" href="#aborting-and-the-locked-status" title="Permalink to this headline">¶</a></h2>
+<p>The landing sequence can be stopped at any moment using the appropriate
+<tt class="docutils literal"><span class="pre">ABORT</span></tt> command. However, once the aeroplane reaches decision altitude, the
+crew will take over any decision and for this reason they will stop responding
+to your commands. To remind you of this, the aeroplane icon will switch to the
+<a class="reference internal" href="sprites.html#sprites-colour"><em>locked colour</em></a>.</p>
 </div>
 <div class="section" id="other-landing-gotchas">
 <h2>Other landing &#8220;gotchas&#8221;<a class="headerlink" href="#other-landing-gotchas" title="Permalink to this headline">¶</a></h2>
 <p>There are a few things to consider when clearing an aeroplane for landing:</p>
 <ul class="simple">
 <li>The angle between the current heading of the aeroplane and the runway
-orientation must be less or equal than 60 degrees.</li>
+orientation must be less or equal than 30 degrees.</li>
 <li>The gliding angle for an <a class="reference internal" href="../glossary.html#term-ils"><em class="xref std std-term">ILS</em></a> is always the standard 3°.</li>
 <li>The speed of the aeroplane will be kept constant as long as possible, then it
 will be progressively reduced in order for the plane to touch down at its
@@ -115,6 +129,8 @@ for 30 seconds after touchdown.</li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">How to play ATC-NG</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="basics.html">The very basics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="interface.html">The game interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sprites.html">Aeroplane sprites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="flight-strips.html">Flight progress strips</a></li>
 <li class="toctree-l2"><a class="reference internal" href="game-commands.html">Game commands</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plane-commands.html">Aeroplane commands</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fuel.html">Fuel</a></li>

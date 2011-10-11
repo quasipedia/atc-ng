@@ -1,3 +1,7 @@
+.. highlight:: none
+
+.. index:: Tips & Tricks
+
 Tips & Tricks
 =============
 
@@ -83,3 +87,20 @@ some time, if you ever find yourself away from your target and low on fuel,
 climbing up will extend your gliding range of various kilometres. Also consider
 that given the simplified physics implemented in ATC-NG, the descent ratio is
 fixed regardless of the ground speed, so: keep going as fast as you can!
+
+.. index:: Expedite flag
+
+Combining expedite commands
+---------------------------
+Using the :ref:`EXPEDITE flag<fuel-expedite-flag>` will cause an aeroplane to
+perform any adjustment at twice the normal speed, and also to burn fuel at twice
+its normal rate. However, since the flag is "global" (meaning that it will
+affect :ref:`pcommands-SPEED`, :ref:`pcommands-ALTITUDE` and
+:ref:`pcommands-HEADING` simultaneously), it is often a good idea to combine
+these commands in a single radio dispatch. For example:
+
+>>> ABC1234 H180 A20 S500 EXPEDITE
+
+will cause the aeroplane to veer **and** climb **and** accelerate at twice its
+normal ratio *simultaneously*, and might result in a better fuel consumption
+than issuing each of those commands separately.

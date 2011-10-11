@@ -2,8 +2,22 @@ The ATC-NG game
 ===============
 ATC-NG stands for **Air Traffic Controller - Next Generation** [*]_ and it is
 a game inspired by the classic text-only *atc* game from the early 80's.
-Currently the game is in **alpha state**: some of the final functionality is
-already implemented, but not enough to play the game completely.
+Currently the game is in **alpha state** (currently version |version|): a good
+deal of the final functionality is already implemented, and the game itself can
+be already played, but important features are still missing.
+
+ATC-NG is released under the **GNU General Public License license v3.0** (GPL
+v3.0). The full text of the license is available here_).
+
+.. _here: http://www.gnu.org/copyleft/gpl.html
+
+Important links
+---------------
+
+* **Project documentation:** http://quasipedia.github.com/atc-ng
+* **Project code:** https://github.com/quasipedia/atc-ng
+* **Package download:** https://github.com/quasipedia/atc-ng/downloads
+* **Issue tracker:** https://github.com/quasipedia/atc-ng/issues
 
 Contents
 --------
