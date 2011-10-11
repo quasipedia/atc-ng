@@ -58,8 +58,8 @@ Here is some details on each information on the strip. In clockwise order:
   fuel units can still be used before the aeroplane enters that emergency.
 
   Please note that this number will decrease very quickly if the plane is
-  moving away from its destination, and will remain almost fixed if the plane
-  is flying towards it.
+  moving away from its destination, and could even increase if the plane
+  is flying towards its destination.
 
 **Master alarm indicator**
 

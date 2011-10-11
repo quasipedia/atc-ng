@@ -78,6 +78,8 @@ The status bar report some scale information on your radar settings. These are:
   radar marking on screen and the one closest to it. Note that the spacing of
   radar markings and their aspect can be altered via :doc:`specific settings
   <settings>`.
+- *How long have you been playing the current scenario*, yes... you truly wasted
+  that much time!
 
 
 The flight strips
