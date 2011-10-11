@@ -55,7 +55,7 @@ version:
 
 # Remove the source code from the current branch
 remove-source:
-	-rm -rd docs engine entities lib sprites test utils \
+	-rm -rd docs engine entities lib sprites test utils pilot\
 	        README.rst .gitignore
 	@echo "The source code has been removed."
 
